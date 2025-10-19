@@ -66,15 +66,14 @@ function animateModal(modalEl, show = true) {
             content.classList.add('animate-modalHide');
         }
         
-        // Разблокируем скролл через небольшой таймаут
+        // Уменьшаем таймаут для более быстрого скрытия (было 200, стало 150)
         setTimeout(() => {
             modalEl.classList.add('hidden');
             modalEl.style.display = 'none';
             document.body.classList.remove('modal-open');
-        }, 200);
+        }, 150); // Уменьшили с 200ms до 150ms
     }
 }
-
 // -----------------------------
 // Балансы и резерв
 // -----------------------------
@@ -309,7 +308,8 @@ function formatAmount(amount) {
     return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-
+// Сделаем функцию глобально доступной
+window.formatAmount = formatAmount;
 
 
 function updateReserveDisplay() {
@@ -1126,12 +1126,13 @@ function openTransactionDetail(transactionElement) {
     animateModal(modal, true);
 }
 
+
+
+
 // -----------------------------
 // Делегирование событий для кнопок удаления
 // -----------------------------
 document.addEventListener('click', function(e) {
-
-
     // Обработка кнопок удаления категорий
     if (e.target.closest('.delete-category-btn')) {
         const target = e.target.closest('.delete-category-btn');
@@ -1144,12 +1145,27 @@ document.addEventListener('click', function(e) {
         return;
     }
 
+    // Обработка клика по категории для открытия деталей
+    const categoryItem = e.target.closest('.category-item');
+    if (categoryItem && !e.target.closest('.delete-category-btn')) {
+        // Используем функцию из categories-modal.js
+        if (typeof openCategoryDetail === 'function') {
+            openCategoryDetail(categoryItem);
+        }
+    }
+
     // Обработка клика по транзакции для открытия деталей
     const transactionItem = e.target.closest('.transaction-item');
     if (transactionItem && !e.target.closest('.delete-transaction-btn')) {
         openTransactionDetail(transactionItem);
     }
 });
+
+
+
+
+
+
 // -----------------------------
 // Проверки пустых состояний
 // -----------------------------
@@ -1661,7 +1677,6 @@ async function loadCategoriesForModal() {
 
 
 
-
 // -----------------------------
 // Загрузка категорий на главной
 // -----------------------------
@@ -1669,13 +1684,7 @@ async function loadUserCategories() {
     const categoriesList = document.getElementById('categoriesList');
     if (!categoriesList) return;
 
-    const categoryElement = document.createElement('div');
-categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justify-between items-center animate-popIn';
-
-
-    
     try {
-        // Используем новый endpoint со статистикой
         const response = await fetch('/get_categories_with_stats/');
         const data = await response.json();
         
@@ -1684,7 +1693,14 @@ categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justi
         if (data.categories && data.categories.length > 0) {
             data.categories.forEach(category => {
                 const categoryElement = document.createElement('div');
-                categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justify-between items-center';
+                categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700/50 transition-colors';
+                
+                // Добавляем data-атрибуты для модалки
+                categoryElement.dataset.categoryId = category.id;
+                categoryElement.dataset.categoryName = category.name;
+                categoryElement.dataset.categoryIcon = category.icon;
+                categoryElement.dataset.categoryColor = category.color;
+                
                 categoryElement.innerHTML = `
                     <div class="flex items-center space-x-3 flex-1">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: ${category.color}22; color: ${category.color}">
@@ -1703,10 +1719,7 @@ categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justi
                                 ${category.percentage}%
                             </div>
                         ` : ''}
-                        <button class="delete-category-btn text-gray-400 hover:text-red-500 p-2 transition-colors opacity-100 visible" data-category-id="${category.id}">
-    <i class="fas fa-trash"></i>
-</button>
-
+                       
                     </div>
                 `;
                 
@@ -1715,7 +1728,8 @@ categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justi
             
             // Добавляем обработчики для кнопок удаления
             document.querySelectorAll('.delete-category-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     const categoryId = this.dataset.categoryId;
                     deleteCategory(categoryId);
                 });
@@ -1739,156 +1753,8 @@ categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justi
     }
 }
 
-// =============================================
-// УДАЛЕНИЕ КАТЕГОРИЙ С ИНЛАЙН-ПОДТВЕРЖДЕНИЕМ
-// =============================================
-
-async function deleteCategory(categoryId) {
-    const categoryElement = document.querySelector(`.delete-category-btn[data-category-id="${categoryId}"]`)?.closest('.category-item');
-    if (!categoryElement) return;
-    
-    // Сохраняем оригинальное содержимое для возможного восстановления
-    const originalContent = categoryElement.innerHTML;
-    
-    // Заменяем содержимое на компактное подтверждение удаления (такого же размера)
-categoryElement.classList.add('flex', 'items-center', 'justify-between', 'p-4', 'bg-gray-800', 'border', 'border-gray-700', 'rounded-xl');
-categoryElement.innerHTML = `
-    <div class="flex items-center space-x-2">
-        <i class="fas fa-trash text-red-400"></i>
-        <span class="text-gray-200 text-sm font-medium">Удалить категорию?</span>
-    </div>
-    <div class="flex items-center space-x-2">
-        
-        <button class="cancel-category-delete-btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all">
-            Нет
-        </button>
-
-        <button class="confirm-category-delete-btn bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-                data-category-id="${categoryId}">
-            Да
-        </button>
-    </div>
-`;
 
 
-
-    
-    // Обработчик подтверждения удаления
-    const confirmBtn = categoryElement.querySelector('.confirm-category-delete-btn');
-    confirmBtn.addEventListener('click', async function() {
-        await processCategoryDeletion(categoryId, categoryElement);
-    });
-    
-    // Обработчик отмены удаления - просто возвращаем исходное состояние
-    const cancelBtn = categoryElement.querySelector('.cancel-category-delete-btn');
-    cancelBtn.addEventListener('click', function() {
-        // Просто возвращаем оригинальное содержимое без анимации
-        categoryElement.innerHTML = originalContent;
-        
-        // Сразу переинициализируем обработчик удаления
-        const deleteBtn = categoryElement.querySelector('.delete-category-btn');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', function() {
-                deleteCategory(categoryId);
-            });
-        }
-    });
-}
-
-
-
-
-// -----------------------------
-// УДАЛЕНИЕ КАТЕГОРИИ (без возврата подтверждения после ошибки)
-// -----------------------------
-async function processCategoryDeletion(categoryId, categoryElement) {
-    const originalContent = categoryElement.innerHTML;
-
-    try {
-        const response = await fetch(`/delete_category/${categoryId}/`);
-        const data = await response.json();
-
-        // 🟢 УСПЕШНОЕ УДАЛЕНИЕ
-        if (data.success) {
-            categoryElement.innerHTML = `
-                <div class="w-full flex items-center justify-between animate-popIn">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-green-500/15 flex items-center justify-center ring-2 ring-green-400/30 shadow-inner shadow-green-600/10">
-                            <i class="fas fa-check text-green-400 text-lg"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-green-400 font-semibold text-sm tracking-wide">Категория удалена!</span>
-                            <span class="text-gray-400 text-xs">Данные успешно обновлены :)</span>
-                        </div>
-                    </div>
-                    <i class="fas fa-circle-check text-green-400 text-xl opacity-80"></i>
-                </div>
-            `;
-
-            // Ждём 2 секунды — показываем подтверждение
-            setTimeout(() => {
-                categoryElement.classList.add('animate-fade-out');
-                setTimeout(() => categoryElement.remove(), 300);
-            }, 1800);
-
-            // Обновляем списки после анимации
-            setTimeout(async () => {
-                await updateGlobalCategories();
-                await updateCategoryTabs();
-                await loadUserCategories();
-            }, 2200);
-
-            return;
-        }
-
-        // 🔴 ЕСЛИ ОШИБКА (категория содержит записи)
-        categoryElement.innerHTML = `
-            <div class="w-full flex items-center justify-between animate-popIn">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 flex-shrink-0 rounded-full bg-red-500/15 flex items-center justify-center ring-2 ring-green-400/30 shadow-inner shadow-red-600/10">
-                            <i class="fas fa-triangle-exclamation text-red-400 text-lg"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-red-400 font-semibold text-sm tracking-wide">Ошибка!</span>
-                            <span class="text-gray-400 text-xs">Категория содержит данные и не может быть удалена!</span>
-                        </div>
-                    </div>
-                    <i class="fas fa-circle-check text-red-400 text-xl opacity-80"></i>
-                </div>
-        `;
-
-        // Ошибка пропадает через 2 секунды, и элемент просто возвращается к нормальному виду
-        setTimeout(async () => {
-            // Загружаем список заново, без возврата вопроса “Удалить категорию?”
-            await loadUserCategories();
-        }, 2500);
-
-        return;
-
-    } catch (error) {
-        // ⚠️ Ошибка соединения
-        console.error('Ошибка удаления категории:', error);
-
-        categoryElement.innerHTML = `
-            <div class="w-full flex items-center justify-between bg-gray-800 rounded-lg p-3 animate-popIn">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                        <i class="fas fa-exclamation-triangle text-red-400"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-red-400 font-semibold text-sm">Ошибка соединения</span>
-                        <span class="text-gray-400 text-xs">Проверьте интернет и попробуйте снова.</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // После ошибки тоже просто обновляем список — не показываем "Удалить?"
-        setTimeout(async () => {
-            await loadUserCategories();
-        }, 2000);
-    }
-}
 
 
 
@@ -2343,6 +2209,11 @@ document.addEventListener('DOMContentLoaded', function() {
         initCategorySelectionModal();
         updateWelcomeHint();
 
+        // Инициализируем модалки категорий
+        if (typeof initCategoryDetailModal === 'function') {
+            initCategoryDetailModal();
+        }
+
         // Показываем приветствие при необходимости
         if (window.isNewUser) {
             setTimeout(() => { showSuccessNotification('Добро пожаловать!'); }, 800);
@@ -2354,6 +2225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initCategoryModal();
         initMenuModal();
         initTransactionDetailModal();
+        
         // Инициализируем фильтры/загрузку транзакций
         if (typeof initTransactionFilter === 'function') initTransactionFilter();
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();

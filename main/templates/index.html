@@ -991,6 +991,103 @@
     </div>
 </div>
 
+
+
+
+<!-- Модальное окно деталей категории -->
+<div id="categoryDetailModal" class="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto shadow-2xl border border-gray-700 max-h-[90vh] overflow-hidden">
+        <!-- Тело модалки -->
+        <div class="p-6 space-y-6 text-white overflow-y-auto">
+            <!-- Заголовок с иконкой и названием -->
+            <div class="flex items-center space-x-4">
+                <!-- НОВЫЙ ID -->
+                <div id="categoryDetailIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"></div>
+                <div class="flex-1">
+                    <!-- НОВЫЙ ID -->
+                    <h2 id="categoryDetailName" class="font-semibold text-lg text-gray-200"></h2>
+                    <!-- НОВЫЙ ID -->
+                    <p id="categoryDetailType" class="text-gray-400 text-sm">Категория расходов</p>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Общие расходы -->
+                <div class="bg-gray-700/40 rounded-xl p-4 text-center border border-gray-600">
+                    <p class="text-gray-400 text-sm mb-1">Всего потрачено</p>
+                    <!-- НОВЫЙ ID -->
+                    <p id="categoryTotalExpense" class="text-2xl font-bold text-red-400">0 с</p>
+                </div>
+
+                <!-- Процент от общих расходов -->
+                <div class="bg-gray-700/40 rounded-xl p-4 text-center border border-gray-600">
+                    <p class="text-gray-400 text-sm mb-1">От общих доходов</p>
+                    <!-- НОВЫЙ ID -->
+                    <p id="categoryExpensePercentage" class="text-2xl font-bold text-yellow-400">0%</p>
+                </div>
+            </div>
+
+            <!-- Прогресс-бар -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Заполнение бюджета категории</span>
+                    <!-- НОВЫЙ ID -->
+                    <span id="categoryProgressText" class="text-gray-300">0%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3">
+                    <!-- НОВЫЙ ID -->
+                    <div id="categoryProgressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Последние транзакции -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-semibold text-gray-200 border-b border-gray-700 pb-2">Последние операции за день</h3>
+                <!-- НОВЫЙ ID -->
+                <div id="categoryTransactionsList" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Транзакции будут добавляться динамически -->
+                </div>
+                <!-- НОВЫЙ ID -->
+                <div id="categoryNoTransactions" class="text-center py-4 text-gray-500 hidden">
+                    <i class="fas fa-receipt text-2xl mb-2"></i>
+                    <p>Нет операций в этой категории</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки управления -->
+        <div class="p-4 border-t border-gray-700">
+            <!-- Состояние 1: Обычные кнопки -->
+            <div id="categoryNormalButtons" class="flex space-x-3">
+                <button id="closeCategoryDetailModal" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    Закрыть
+                </button>
+                <button id="deleteCategoryDetailBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors hidden">
+                    Удалить
+                </button>
+            </div>
+            
+            <!-- Состояние 2: Подтверждение удаления -->
+            <div id="categoryConfirmDeleteSection" class="hidden">
+                <div class="text-center mb-3">
+                    <p class="text-red-400 font-semibold">Удалить категорию?</p>
+                    <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="cancelCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                        Отмена
+                    </button>
+                    <button id="confirmCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                        Да, удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <!-- Модальное окно меню -->
     <div id="menuModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-[1000] flex items-center justify-center p-4">
         <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
@@ -1077,7 +1174,7 @@
         >
         <button
             id="saveReserveBtn"
-            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all"
+            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
         >
             <i class="fas fa-save mr-2"></i>Сохранить
         </button>
@@ -1112,7 +1209,7 @@
             >
             <button
                 id="saveTargetReserveBtn"
-                class="flex-1 bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
             >
                 <i class="fas fa-save mr-2"></i>Сохранить
             </button>
@@ -1245,9 +1342,10 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
 
 <!-- Подключение Tailwind и JS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="{% static 'main/app.js' %}"></script>
-    <script src="{% static 'main/notes.js' %}"></script>
-
+<!-- После подключения app.js -->
+<script src="{% static 'main/app.js' %}"></script>
+<script src="{% static 'main/categories-modal.js' %}"></script>
+<script src="{% static 'main/notes.js' %}"></script>
 
     <script>
         // Переменная для отслеживания первой смены пароля

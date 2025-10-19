@@ -78,7 +78,15 @@ def send_note_reminder(request):
 
 
 def create_default_categories(user):
-    """Создает категории по умолчанию для пользователя"""
+    """Создает категории по умолчанию для пользователя только один раз"""
+    # Проверяем, создавались ли уже дефолтные категории для этого пользователя
+    if hasattr(user, 'userprofile') and user.userprofile.default_categories_created:
+        return
+    
+    # Если профиля нет, проверяем есть ли вообще какие-либо категории у пользователя
+    if Category.objects.filter(user=user).exists():
+        return  # У пользователя уже есть категории, ничего не создаем
+    
     default_categories = [
         {'name': 'Еда', 'icon': 'fas fa-utensils', 'color': '#ef4444'},
         {'name': 'Жилье', 'icon': 'fas fa-home', 'color': '#10b981'},
@@ -86,13 +94,17 @@ def create_default_categories(user):
     ]
     
     for cat_data in default_categories:
-        Category.objects.get_or_create(
+        Category.objects.create(
             user=user,
             name=cat_data['name'],
-            defaults={'icon': cat_data['icon'], 'color': cat_data['color']}
+            icon=cat_data['icon'],
+            color=cat_data['color']
         )
-
-
+    
+    # Отмечаем, что дефолтные категории были созданы
+    if hasattr(user, 'userprofile'):
+        user.userprofile.default_categories_created = True
+        user.userprofile.save()
 
 @login_required
 def index(request):
@@ -115,8 +127,15 @@ def index(request):
     total = income - expense - total_reserve
     
     # Получаем процент резерва из профиля пользователя
-    reserve_percentage = request.user.userprofile.reserve_percentage
-    target_reserve = request.user.userprofile.target_reserve
+    try:
+        reserve_percentage = int(request.user.userprofile.reserve_percentage)
+    except (AttributeError, ValueError):
+        reserve_percentage = 10
+    
+    try:
+        target_reserve = Decimal(str(request.user.userprofile.target_reserve))
+    except (AttributeError, ValueError, InvalidOperation):
+        target_reserve = Decimal('0')
 
     # Проверяем, является ли это первым входом (новый пользователь)
     is_new_user = request.session.get('is_new_user', False)
@@ -142,13 +161,19 @@ def index(request):
     # Текущий резерв (общий накопленный) - это total_reserve
     current_reserve = total_reserve
     
-    # Прогресс к цели
+    # Прогресс к цели - ИСПРАВЛЕНО
     progress_percentage = 0
     remaining_to_target = target_reserve
     
-    if target_reserve > 0:
-        progress_percentage = float(min(100, (current_reserve / target_reserve) * Decimal('100')))
-        remaining_to_target = max(Decimal('0'), target_reserve - current_reserve)
+    # Безопасное сравнение
+    if target_reserve > Decimal('0'):
+        try:
+            calculated_percentage = float((current_reserve / target_reserve) * Decimal('100'))
+            progress_percentage = min(100.0, calculated_percentage)
+            remaining_to_target = max(Decimal('0'), target_reserve - current_reserve)
+        except (ZeroDivisionError, InvalidOperation):
+            progress_percentage = 0
+            remaining_to_target = target_reserve
 
     return render(request, 'index.html', {
         'categories': categories,
@@ -166,7 +191,6 @@ def index(request):
         'progress_percentage': progress_percentage,
         'remaining_to_target': remaining_to_target,
     })
-
 
 
 @login_required
@@ -908,3 +932,87 @@ def get_pending_reminders(request):
             'success': False,
             'error': str(e)
         })
+    
+
+@login_required
+def get_category_stats(request, category_id):
+    try:
+        print(f"=== GET_CATEGORY_STATS called for category_id: {category_id} ===")
+        
+        category = Category.objects.get(id=category_id, user=request.user)
+        print(f"Category found: {category.name}, {category.icon}, {category.color}")
+        
+        # Получаем сегодняшние транзакции в этой категории
+        today = timezone.now().date()
+        print(f"Today: {today}")
+        
+        daily_expenses = Transaction.objects.filter(
+            user=request.user,
+            category=category,
+            type='expense',
+            created_at__date=today
+        ).order_by('-created_at')
+        
+        print(f"Daily expenses count: {daily_expenses.count()}")
+        
+        # Получаем все расходы в этой категории (для общей статистики)
+        all_expenses = Transaction.objects.filter(
+            user=request.user,
+            category=category,
+            type='expense'
+        )
+        
+        # Сумма расходов по категории за все время
+        total_expense = all_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+        print(f"Total expense: {total_expense}")
+        
+        # Общие расходы пользователя за все время
+        total_user_expenses = Transaction.objects.filter(
+            user=request.user,
+            type='expense'
+        ).aggregate(Sum('amount'))['amount__sum'] or 1  # избегаем деления на 0
+        
+        print(f"Total user expenses: {total_user_expenses}")
+        
+        # Процент от общих расходов
+        expense_percentage = (total_expense / total_user_expenses * 100) if total_user_expenses > 0 else 0
+        print(f"Expense percentage: {expense_percentage}")
+        
+        # Подготавливаем данные транзакций за день
+        transactions_data = []
+        for expense in daily_expenses:
+            transactions_data.append({
+                'id': expense.id,
+                'amount': float(expense.amount),
+                'description': expense.description or 'Без описания',
+                'created_at': expense.created_at.isoformat(),
+            })
+        
+        print(f"Transactions data: {transactions_data}")
+        
+        response_data = {
+            'success': True,
+            'category': {
+                'id': category.id,
+                'name': category.name,
+                'icon': category.icon,
+                'color': category.color,
+            },
+            'total_expense': float(total_expense),
+            'expense_percentage': round(float(expense_percentage), 1),  # Исправлено: убрали Decimal
+            'transactions': transactions_data,
+            'has_transactions': all_expenses.exists(),
+            'daily_transactions_count': len(transactions_data)
+        }
+        
+        print(f"Response data: {response_data}")
+        print("=== GET_CATEGORY_STATS completed ===")
+        
+        return JsonResponse(response_data)
+        
+    except Category.DoesNotExist:
+        print("Category not found")
+        return JsonResponse({'success': False, 'error': 'Категория не найдена'})
+    except Exception as e:
+        print(f"Error in get_category_stats: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Внутренняя ошибка сервера: {str(e)}'})

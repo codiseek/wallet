@@ -4,7 +4,6 @@ let currentEditingNoteId = null;
 let currentNotes = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing notes system...');
     loadNotes();
     initNoteSystem();
     initReminderSystem();
@@ -21,14 +20,10 @@ function initNoteSystem() {
     // Добавляем обработчик для кнопки добавления заметки
     const addNoteBtn = document.querySelector('.add-note-btn');
     if (addNoteBtn) {
-        console.log('Add note button found, adding event listener');
         addNoteBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Add note button clicked');
             openAddNoteModal();
         });
-    } else {
-        console.error('Add note button not found!');
     }
     
     // ОЧИСТКА СТАРЫХ УВЕДОМЛЕНИЙ ПРИ ЗАГРУЗКЕ
@@ -45,14 +40,11 @@ function clearStaleNotifications() {
     reminderNotifications.forEach(notification => {
         notification.remove();
     });
-    
-    console.log('Очищены старые уведомления о напоминаниях');
 }
 
 // Функция для отправки напоминания через push
 function sendReminderPush(reminder) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log('Push уведомления не поддерживаются');
         return;
     }
 
@@ -71,13 +63,6 @@ function sendReminderPush(reminder) {
         })
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Push напоминание отправлено:', reminder.id);
-        } else {
-            console.error('Ошибка отправки push напоминания:', data.error);
-        }
-    })
     .catch(error => {
         console.error('Ошибка отправки push напоминания:', error);
     });
@@ -85,7 +70,6 @@ function sendReminderPush(reminder) {
 
 // Загрузка списка заметок
 function loadNotes() {
-    console.log('Loading notes...');
     fetch('/get_notes/')
         .then(response => response.json())
         .then(data => {
@@ -93,7 +77,6 @@ function loadNotes() {
             const emptyState = document.getElementById('emptyNotesState');
             
             if (!notesList) {
-                console.error('Notes list container not found!');
                 return;
             }
 
@@ -121,7 +104,6 @@ function loadNotes() {
             }
         })
         .catch(error => {
-            console.error('Ошибка загрузки заметок:', error);
             // В случае ошибки тоже показываем пустое состояние
             const emptyState = document.getElementById('emptyNotesState');
             if (emptyState) emptyState.style.display = 'block';
@@ -259,7 +241,6 @@ function createNoteElement(note) {
 
 // Открытие модалки для добавления заметки
 function openAddNoteModal() {
-    console.log('Opening add note modal');
     currentEditingNoteId = null;
     document.getElementById('noteModalTitle').textContent = 'Новая заметка';
     document.getElementById('noteTitleInput').value = '';
@@ -278,7 +259,6 @@ function initNoteModal() {
     const saveNoteBtn = document.getElementById('saveNoteBtn');
 
     if (!noteModal) {
-        console.error('Note modal not found!');
         return;
     }
 
@@ -292,8 +272,6 @@ function initNoteModal() {
     // Сохранение заметки
     if (saveNoteBtn) {
         saveNoteBtn.addEventListener('click', saveNote);
-    } else {
-        console.error('Save note button not found!');
     }
 
     // Закрытие по клику вне окна
@@ -306,7 +284,6 @@ function initNoteModal() {
 
 // Открытие модалки редактирования заметки
 function openEditNoteModal(note) {
-    console.log('Opening edit note modal for note:', note.id);
     currentEditingNoteId = note.id;
     document.getElementById('noteModalTitle').textContent = 'Редактировать заметку';
     document.getElementById('noteTitleInput').value = note.title;
@@ -354,10 +331,8 @@ function saveNote() {
         // ЗАПРАШИВАЕМ РАЗРЕШЕНИЕ НА УВЕДОМЛЕНИЯ ПРИ СОЗДАНИИ ЗАМЕТКИ С НАПОМИНАНИЕМ
         requestNotificationPermission().then(hasPermission => {
             if (hasPermission) {
-                console.log('Разрешение есть, сохраняем заметку с напоминанием');
                 proceedWithSave(title, content, reminderDateValue);
             } else {
-                console.log('Разрешения нет, но все равно сохраняем заметку');
                 proceedWithSave(title, content, reminderDateValue);
             }
         });
@@ -393,8 +368,6 @@ function proceedWithSave(title, content, reminderDateValue) {
         const isoDate = `${year}-${month}-${day}T${hours}:${minutes}:00${timezoneSign}${String(timezoneOffsetHours).padStart(2, '0')}:${String(timezoneOffsetMinutes).padStart(2, '0')}`;
         
         formData.append('reminder_date', isoDate);
-        
-        console.log('Reminder date sent to server:', isoDate);
     }
 
     const url = currentEditingNoteId ? `/edit_note/${currentEditingNoteId}/` : '/add_note/';
@@ -426,7 +399,6 @@ function proceedWithSave(title, content, reminderDateValue) {
                 const timeUntilReminder = selectedDate.getTime() - now.getTime();
                 
                 if (timeUntilReminder > 0) {
-                    console.log('Запланировано push-уведомление через', timeUntilReminder, 'мс');
                     // Можно отправить запрос на сервер для планирования push-уведомления
                 }
             }
@@ -435,7 +407,6 @@ function proceedWithSave(title, content, reminderDateValue) {
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
         showNoteNotification('Произошла ошибка при отправке формы: ' + error.message, 'error');
     });
 }
@@ -449,7 +420,6 @@ function initViewNoteModal() {
     const hideReminderBtn = document.getElementById('hideReminderBtn');
 
     if (!viewNoteModal) {
-        console.error('View note modal not found!');
         return;
     }
 
@@ -500,8 +470,6 @@ function initViewNoteModal() {
         }
     });
 }
-
-
 
 function openViewNoteModal(note, isFromReminder = false) {
     const modal = document.getElementById('viewNoteModal');
@@ -628,7 +596,6 @@ function addModalDecorations(modal, isFromReminder) {
     modal.querySelector('.modal-content').appendChild(gradientBorder);
 }
 
-
 // Удаление заметки
 function deleteNote(noteId) {
     if (!confirm('Удалить заметку? Это действие нельзя отменить.')) {
@@ -652,7 +619,6 @@ function deleteNote(noteId) {
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
         showNoteNotification('Произошла ошибка при удалении заметки', 'error');
     });
 }
@@ -693,15 +659,12 @@ function markNoteAsReminded(noteId) {
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
         showNoteNotification('Произошла ошибка при скрытии напоминания', 'error');
     });
 }
 
 // Система напоминаний
 function initReminderSystem() {
-    console.log('Инициализация системы напоминаний...');
-    
     // Проверяем сразу при загрузке
     checkReminders();
     
@@ -711,7 +674,6 @@ function initReminderSystem() {
     // Дополнительная проверка при фокусе на вкладке
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
-            console.log('Вкладка активна, проверяем напоминания...');
             checkReminders();
         }
     });
@@ -719,14 +681,10 @@ function initReminderSystem() {
 
 // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Проверка напоминаний
 function checkReminders() {
-    console.log('Проверка напоминаний...');
-    
     fetch('/get_pending_reminders/')
         .then(response => response.json())
         .then(data => {
             if (data.reminders && data.reminders.length > 0) {
-                console.log('Найдены активные напоминания:', data.reminders.length);
-                
                 // Получаем текущие уведомления
                 const notificationContainer = document.getElementById('notificationContainer');
                 if (!notificationContainer) return;
@@ -737,15 +695,12 @@ function checkReminders() {
                 // Показываем только новые напоминания
                 data.reminders.forEach(reminder => {
                     if (!currentNotificationIds.includes(reminder.id.toString())) {
-                        console.log('Показываем новое напоминание:', reminder.id);
                         showReminderNotification(reminder);
                         
                         // Отправляем push-уведомление
                         sendReminderPush(reminder);
                     }
                 });
-            } else {
-                console.log('Активных напоминаний нет');
             }
         })
         .catch(error => {
@@ -753,19 +708,16 @@ function checkReminders() {
         });
 }
 
-
 // ИСПРАВЛЕННАЯ ФУНКЦИЯ: Показ уведомления о напоминании
 function showReminderNotification(reminder) {
     const notificationContainer = document.getElementById('notificationContainer');
     if (!notificationContainer) {
-        console.error('Notification container not found!');
         return;
     }
 
     // Проверяем, нет ли уже уведомления с таким ID
     const existingNotification = notificationContainer.querySelector(`[data-reminder-id="${reminder.id}"]`);
     if (existingNotification) {
-        console.log('Уведомление уже существует, обновляем...');
         existingNotification.remove();
     }
 
@@ -789,12 +741,9 @@ function showReminderNotification(reminder) {
         </div>
     `;
 
-    
-
     // При клике на уведомление открываем заметку
     notification.addEventListener('click', function(e) {
         if (!e.target.closest('.close-reminder-notification')) {
-            console.log('Клик по уведомлению для заметки:', reminder.id);
             openReminderNote(reminder);
         }
     });
@@ -806,44 +755,32 @@ function showReminderNotification(reminder) {
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
-            console.log('Уведомление автоматически скрыто:', reminder.id);
         }
     }, 30000);
 }
 
-
-
-
 // ФУНКЦИЯ: Запрос разрешения на уведомления
-// Замените функцию requestNotificationPermission
 function requestNotificationPermission() {
     if (!('Notification' in window)) {
-        console.log('Браузер не поддерживает уведомления');
         return Promise.resolve(false);
     }
     
     if (Notification.permission === 'granted') {
-        console.log('Разрешение уже есть');
-        // Все равно пытаемся подписаться, если еще не подписаны
         subscribeToPushNotifications();
         return Promise.resolve(true);
     }
     
     if (Notification.permission === 'denied') {
-        console.log('Разрешение отклонено');
         showNoteNotification('Разрешите уведомления в настройках браузера', 'error');
         return Promise.resolve(false);
     }
     
     return Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-            console.log('Разрешение получено!');
             showNoteNotification('Уведомления включены!', 'success');
             subscribeToPushNotifications();
             return true;
         } else {
-            console.log('Разрешение не получено');
-            // Все равно сохраняем заметку, но без push-уведомлений
             return false;
         }
     });
@@ -852,13 +789,10 @@ function requestNotificationPermission() {
 // Функция для подписки на push-уведомления
 function subscribeToPushNotifications() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log('Push-уведомления не поддерживаются');
         return;
     }
     
     navigator.serviceWorker.ready.then(registration => {
-        console.log('Service Worker готов, подписываем на push...');
-        
         // Преобразуем ключ VAPID
         const applicationServerKey = urlBase64ToUint8Array("{{ vapid_key|safe }}");
         
@@ -868,8 +802,6 @@ function subscribeToPushNotifications() {
         });
     })
     .then(subscription => {
-        console.log('Подписка на push создана:', subscription);
-        
         // Отправляем подписку на сервер
         return fetch("/webpush/save_information/?group=notes", {
             method: "POST",
@@ -880,15 +812,8 @@ function subscribeToPushNotifications() {
             body: JSON.stringify(subscription)
         });
     })
-    .then(response => {
-        if (response.ok) {
-            console.log('✅ Подписка сохранена на сервере для группы "notes"');
-        } else {
-            console.error('❌ Ошибка сохранения подписки');
-        }
-    })
     .catch(error => {
-        console.error('❌ Ошибка подписки на push:', error);
+        console.error('Ошибка подписки на push:', error);
     });
 }
 
@@ -909,8 +834,6 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 function openReminderNote(reminder) {
-    console.log('Открытие напоминания и отметка как показанного:', reminder.id);
-    
     // Сразу отмечаем заметку как напомненную на сервере
     fetch(`/mark_note_as_reminded/${reminder.id}/`, {
         method: 'POST',
@@ -922,8 +845,6 @@ function openReminderNote(reminder) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Напоминание отмечено как показанное:', reminder.id);
-            
             // Удаляем уведомление из контейнера
             const notificationContainer = document.getElementById('notificationContainer');
             if (notificationContainer) {
@@ -945,13 +866,11 @@ function openReminderNote(reminder) {
             }, 500);
             
         } else {
-            console.error('Ошибка при отметке напоминания:', data.error);
             // Все равно показываем заметку, но без отметки
             openViewNoteModal(reminder, true);
         }
     })
     .catch(error => {
-        console.error('Ошибка при отметке напоминания:', error);
         // В случае ошибки все равно показываем заметку
         openViewNoteModal(reminder, true);
     });
@@ -977,7 +896,6 @@ function escapeHtml(unsafe) {
 function showNoteNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notificationContainer');
     if (!notificationContainer) {
-        console.log(`${type}: ${message}`);
         return;
     }
     
@@ -1004,7 +922,6 @@ function showNoteNotification(message, type = 'success') {
 
 // Глобальная функция для открытия модалки из HTML атрибута onclick
 window.openAddNoteModal = function() {
-    console.log('Opening add note modal from empty state button');
     currentEditingNoteId = null;
     document.getElementById('noteModalTitle').textContent = 'Новая заметка';
     document.getElementById('noteTitleInput').value = '';

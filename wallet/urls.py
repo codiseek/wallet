@@ -46,5 +46,5 @@ urlpatterns = [
     path('webpush/', include('webpush.urls')),
     path('send_note_reminder/', views.send_note_reminder, name='send_note_reminder'),
     path('get_pending_reminders/', views.get_pending_reminders, name='get_pending_reminders'),
-
+    path('get_category_stats/<int:category_id>/', views.get_category_stats, name='get_category_stats'),
 ]
