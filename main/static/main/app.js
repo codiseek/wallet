@@ -358,7 +358,7 @@ function updateReserveDisplay() {
 // -----------------------------
 // Добавление транзакции в DOM
 // -----------------------------
-// В функции addTransactionToList обновите создание HTML:
+
 window.addTransactionToList = function(transaction, animate = true, append = false) {
     const transactionsContainer = document.getElementById('transactionsListContainer');
     if (!transactionsContainer) return;
@@ -452,116 +452,9 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     updateWelcomeHint();
 };
 
-// -----------------------------
-// Модалка деталей транзакции
-// -----------------------------
-function initTransactionDetailModal() {
-    // Создаем модалку динамически, если её нет
-    if (!document.getElementById('transactionDetailModal')) {
-        const modalHTML = `
-        <div id="transactionDetailModal" class="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center p-4" style="display: none;">
-            <div class="bg-gray-800 rounded-2xl w-full max-w-sm mx-auto shadow-2xl border border-gray-700">
-                <!-- Тело чека -->
-                <div class="p-6 space-y-6 text-white">
-                    <!-- Заголовок с суммой -->
-                    <div class="text-center">
-                        <p id="detailAmount" class="text-4xl font-bold mb-2"></p>
-                        
-                        <!-- ID транзакции под суммой -->
-                        <div class="mb-3">
-                            <p id="detailTransactionId" class="text-lg font-mono text-gray-300">-</p>
-                        </div>
-                        
-                        <!-- Блок с резервом под основной суммой -->
-                        <div id="detailReserveInfo" class="hidden mb-3">
-                            <div class="flex items-center justify-center space-x-2 text-blue-400 bg-blue-500/10 rounded-lg p-2 border border-blue-500/20">
-                                <i class="fas fa-piggy-bank text-sm"></i>
-                                <span class="text-sm font-medium">Резерв:</span>
-                                <span id="detailReserveAmount" class="text-sm font-bold"></span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Разделитель -->
-                    <div class="border-t border-gray-700"></div>
 
-                    <!-- Детали операции -->
-                    <div class="space-y-4">
-                        <!-- Категория и тип операции -->
-                        <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-600">
-                            <div class="flex items-center space-x-3">
-                                <div id="detailCategoryIcon" class="w-10 h-10 rounded-xl flex items-center justify-center"></div>
-                                <div class="text-left">
-                                    <p id="detailCategoryName" class="font-semibold text-lg text-gray-200"></p>
-                                    <p id="detailType" class="text-sm text-gray-400"></p>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Описание -->
-                        <div id="detailDescriptionSection">
-                            <p class="text-xs text-gray-400 mb-2">Описание</p>
-                            <div class="bg-gray-700/30 rounded-lg p-3 border border-gray-600">
-                                <p id="detailDescription" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Статус и информация -->
-                    <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
-                        <div class="flex items-center justify-center space-x-2 text-green-400 mb-2">
-                            <i class="fas fa-check-circle"></i>
-                            <span class="text-sm font-semibold">Операция завершена</span>
-                        </div>
-                        <p class="text-xs text-gray-400 text-center" id="detailTimestamp"></p>
-                    </div>
-                </div>
-
-                <!-- Кнопка закрытия -->
-                <div class="p-4 border-t border-gray-700">
-                    <button id="closeTransactionDetailModal" class="w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
-                        Закрыть
-                    </button>
-                </div>
-            </div>
-        </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        console.log('Transaction detail modal created');
-    }
-
-    const modal = document.getElementById("transactionDetailModal");
-    const closeBtn = document.getElementById("closeTransactionDetailModal");
-
-    // Обработчик закрытия
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
-    }
-
-    // Закрытие по клику вне модалки
-    modal.addEventListener('click', e => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    });
-
-    // Обработчик клика на транзакции
-    document.addEventListener('click', function(e) {
-        const transactionItem = e.target.closest('.transaction-item');
-        const deleteBtn = e.target.closest('.delete-transaction-btn');
-        
-        if (transactionItem && !deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            openTransactionDetail(transactionItem);
-        }
-    });
-}
 
 // Обновленная функция открытия модалки
 function openTransactionDetail(transactionElement) {
