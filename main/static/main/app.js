@@ -358,7 +358,7 @@ function updateReserveDisplay() {
 // -----------------------------
 // Добавление транзакции в DOM
 // -----------------------------
-
+// В функции addTransactionToList обновите создание HTML:
 window.addTransactionToList = function(transaction, animate = true, append = false) {
     const transactionsContainer = document.getElementById('transactionsListContainer');
     if (!transactionsContainer) return;
@@ -367,15 +367,21 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     const formattedDate = transactionDate.toLocaleDateString('ru-RU');
     const formattedTime = transactionDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
-    // Универсальная структура с датой всегда под суммой
+    // Сохраняем данные для модалки
+    const categoryName = transaction.category_name || transaction.category || 'Прочее';
+    const categoryIcon = transaction.category_icon || 'fas fa-circle';
+    const categoryColor = transaction.category_color || '#999';
+    const description = transaction.description || '';
+    const reserveAmount = transaction.reserve_amount || 0;
+
     let amountDisplay = '';
     if (transaction.type === 'income') {
-        if (transaction.reserve_amount > 0) {
+        if (reserveAmount > 0) {
             amountDisplay = `
                 <div class="text-right">
                     <div class="space-y-1">
                         <p class="text-green-400 font-semibold">+${formatAmount(transaction.amount)} с</p>
-                        <p class="text-blue-400 text-xs">резерв: ${formatAmount(transaction.reserve_amount)} с</p>
+                        <p class="text-blue-400 text-xs">резерв: ${formatAmount(reserveAmount)} с</p>
                         <p class="text-xs text-gray-400">${formattedDate} ${formattedTime}</p>
                     </div>
                 </div>
@@ -401,18 +407,27 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
         `;
     }
 
-   const html = `
-    <div class="transaction-item flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30 ${animate ? 'animate-fadeIn' : ''}"
+    const html = `
+    <div class="transaction-item flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30 ${animate ? 'animate-fadeIn' : ''} cursor-pointer hover:bg-gray-800/60 transition-colors"
+         data-transaction-id="${transaction.id || ''}"
          data-category-id="${transaction.category_id || transaction.categoryId || 'unknown'}"
-         data-transaction-id="${transaction.id || ''}">
+         data-category-name="${categoryName}"
+         data-category-icon="${categoryIcon}"
+         data-category-color="${categoryColor}"
+         data-transaction-type="${transaction.type}"
+         data-transaction-amount="${transaction.amount}"
+         data-reserve-amount="${reserveAmount}"
+         data-description="${description.replace(/"/g, '&quot;')}"
+         data-created-date="${formattedDate}"
+         data-created-time="${formattedTime}">
         <div class="flex items-center">
             <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" 
-                 style="background-color: ${transaction.category_color || '#999'}22; color: ${transaction.category_color || '#999'}">
-                <i class="${transaction.category_icon || 'fas fa-circle'} text-sm"></i>
+                 style="background-color: ${categoryColor}22; color: ${categoryColor}">
+                <i class="${categoryIcon} text-sm"></i>
             </div>
-            <div>
-                <p class="font-medium text-white text-sm">${transaction.category_name || transaction.category || 'Прочее'}</p>
-                ${transaction.description ? `<p class="text-gray-400 text-xs">${transaction.description}</p>` : ''}
+            <div class="max-w-[140px]">
+                <p class="font-medium text-white text-sm truncate">${categoryName}</p>
+                ${description ? `<p class="text-gray-400 text-xs truncate">${description}</p>` : ''}
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -425,22 +440,199 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
             </button>
         </div>
     </div>
-`;
+    `;
 
-    // ИЗМЕНЕНИЕ: Добавляем транзакцию в начало или конец в зависимости от параметра append
     if (append) {
         transactionsContainer.insertAdjacentHTML('beforeend', html);
     } else {
         transactionsContainer.insertAdjacentHTML('afterbegin', html);
     }
 
-    // скрыть пустые состояния
     hideEmptyStates();
     updateWelcomeHint();
 };
 
+// -----------------------------
+// Модалка деталей транзакции
+// -----------------------------
+function initTransactionDetailModal() {
+    // Создаем модалку динамически, если её нет
+    if (!document.getElementById('transactionDetailModal')) {
+        const modalHTML = `
+        <div id="transactionDetailModal" class="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-sm mx-auto shadow-2xl border border-gray-700">
+                <!-- Тело чека -->
+                <div class="p-6 space-y-6 text-white">
+                    <!-- Заголовок с суммой -->
+                    <div class="text-center">
+                        <p id="detailAmount" class="text-4xl font-bold mb-2"></p>
+                        
+                        <!-- ID транзакции под суммой -->
+                        <div class="mb-3">
+                            <p id="detailTransactionId" class="text-lg font-mono text-gray-300">-</p>
+                        </div>
+                        
+                        <!-- Блок с резервом под основной суммой -->
+                        <div id="detailReserveInfo" class="hidden mb-3">
+                            <div class="flex items-center justify-center space-x-2 text-blue-400 bg-blue-500/10 rounded-lg p-2 border border-blue-500/20">
+                                <i class="fas fa-piggy-bank text-sm"></i>
+                                <span class="text-sm font-medium">Резерв:</span>
+                                <span id="detailReserveAmount" class="text-sm font-bold"></span>
+                            </div>
+                        </div>
+                    </div>
 
+                    <!-- Разделитель -->
+                    <div class="border-t border-gray-700"></div>
 
+                    <!-- Детали операции -->
+                    <div class="space-y-4">
+                        <!-- Категория и тип операции -->
+                        <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-600">
+                            <div class="flex items-center space-x-3">
+                                <div id="detailCategoryIcon" class="w-10 h-10 rounded-xl flex items-center justify-center"></div>
+                                <div class="text-left">
+                                    <p id="detailCategoryName" class="font-semibold text-lg text-gray-200"></p>
+                                    <p id="detailType" class="text-sm text-gray-400"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Описание -->
+                        <div id="detailDescriptionSection">
+                            <p class="text-xs text-gray-400 mb-2">Описание</p>
+                            <div class="bg-gray-700/30 rounded-lg p-3 border border-gray-600">
+                                <p id="detailDescription" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Статус и информация -->
+                    <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                        <div class="flex items-center justify-center space-x-2 text-green-400 mb-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="text-sm font-semibold">Операция завершена</span>
+                        </div>
+                        <p class="text-xs text-gray-400 text-center" id="detailTimestamp"></p>
+                    </div>
+                </div>
+
+                <!-- Кнопка закрытия -->
+                <div class="p-4 border-t border-gray-700">
+                    <button id="closeTransactionDetailModal" class="w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        console.log('Transaction detail modal created');
+    }
+
+    const modal = document.getElementById("transactionDetailModal");
+    const closeBtn = document.getElementById("closeTransactionDetailModal");
+
+    // Обработчик закрытия
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    // Закрытие по клику вне модалки
+    modal.addEventListener('click', e => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Обработчик клика на транзакции
+    document.addEventListener('click', function(e) {
+        const transactionItem = e.target.closest('.transaction-item');
+        const deleteBtn = e.target.closest('.delete-transaction-btn');
+        
+        if (transactionItem && !deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            openTransactionDetail(transactionItem);
+        }
+    });
+}
+
+// Обновленная функция открытия модалки
+function openTransactionDetail(transactionElement) {
+    const modal = document.getElementById("transactionDetailModal");
+    
+    // Получаем данные из data-атрибутов
+    const transactionId = transactionElement.dataset.transactionId;
+    const categoryName = transactionElement.dataset.categoryName;
+    const categoryIcon = transactionElement.dataset.categoryIcon;
+    const categoryColor = transactionElement.dataset.categoryColor;
+    const transactionType = transactionElement.dataset.transactionType;
+    const amount = parseFloat(transactionElement.dataset.transactionAmount);
+    const reserveAmount = parseFloat(transactionElement.dataset.reserveAmount);
+    const description = transactionElement.dataset.description;
+    const createdDate = transactionElement.dataset.createdDate;
+    const createdTime = transactionElement.dataset.createdTime;
+    
+    const isIncome = transactionType === 'income';
+
+    // Заполняем модалку данными
+    
+    // Сумма (самый крупный элемент)
+    const amountDisplay = document.getElementById('detailAmount');
+    amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
+    amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
+    
+    // ID транзакции под суммой
+    document.getElementById('detailTransactionId').textContent = `ID ${transactionId || '-'}`;
+    
+    // Резерв под основной суммой (только для доходов)
+    const reserveInfo = document.getElementById('detailReserveInfo');
+    const reserveAmountElement = document.getElementById('detailReserveAmount');
+    
+    if (isIncome && reserveAmount > 0) {
+        reserveInfo.classList.remove('hidden');
+        reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
+    } else {
+        reserveInfo.classList.add('hidden');
+    }
+    
+    // Категория и тип (в отдельном блоке)
+    const categoryIconEl = document.getElementById('detailCategoryIcon');
+    categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
+    categoryIconEl.style.backgroundColor = categoryColor + '22';
+    categoryIconEl.style.color = categoryColor;
+    
+    document.getElementById('detailCategoryName').textContent = categoryName;
+    
+    const typeElement = document.getElementById('detailType');
+    typeElement.textContent = isIncome ? 'Доход' : 'Расход';
+    typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    
+    // Описание
+    const descriptionSection = document.getElementById('detailDescriptionSection');
+    const descriptionElement = document.getElementById('detailDescription');
+    if (description && description.trim() !== '') {
+        descriptionSection.style.display = 'block';
+        descriptionElement.textContent = description;
+    } else {
+        descriptionSection.style.display = 'none';
+    }
+    
+    // Текущая дата и время для подвала (включаем дату операции)
+    const now = new Date();
+    document.getElementById('detailTimestamp').textContent = 
+    `${createdDate} ${createdTime}`;
+
+    // Показываем модалку
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
 
 // -----------------------------
 // Пустые состояния
@@ -1083,7 +1275,7 @@ function updateBalancesAfterDelete(type, amount, reserveAmount = 0) {
 // -----------------------------
 // Модалка выбора категории
 // -----------------------------
-// В функции initCategorySelectionModal оставьте только этот код для закрытия:
+
 function initCategorySelectionModal() {
     const modal = document.getElementById("categorySelectionModal");
     const openBtn = document.getElementById("openCategorySelectionBtn");
@@ -1997,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initTransactionModal();
         initCategoryModal();
         initMenuModal();
-
+        initTransactionDetailModal();
         // Инициализируем фильтры/загрузку транзакций
         if (typeof initTransactionFilter === 'function') initTransactionFilter();
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();
