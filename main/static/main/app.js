@@ -39,35 +39,41 @@ setTimeout(() => {
 // Модалки
 // -----------------------------
 function animateModal(modalEl, show = true) {
-    if (!modalEl) return;
+    if (!modalEl) {
+        console.error('Modal element not found');
+        return;
+    }
 
     if (show) {
-        modalEl.classList.remove('hidden');
-        modalEl.classList.add('animate-overlayFadeIn');
-
-        // Блокируем скролл фона
-        document.body.classList.add('modal-open');
-
-        const content = modalEl.querySelector('.modal-content');
-        if (content) {
-            content.classList.remove('animate-modalHide');
-            content.classList.add('animate-modalShow');
-        }
+        modalEl.style.display = 'flex';
+        setTimeout(() => {
+            modalEl.classList.remove('hidden');
+            modalEl.classList.add('animate-overlayFadeIn');
+            
+            // Блокируем скролл фона
+            document.body.classList.add('modal-open');
+            
+            const content = modalEl.querySelector('.modal-content');
+            if (content) {
+                content.classList.remove('animate-modalHide');
+                content.classList.add('animate-modalShow');
+            }
+        }, 10);
     } else {
         const content = modalEl.querySelector('.modal-content');
         if (content) {
             content.classList.remove('animate-modalShow');
             content.classList.add('animate-modalHide');
         }
-
+        
         // Разблокируем скролл через небольшой таймаут
         setTimeout(() => {
             modalEl.classList.add('hidden');
+            modalEl.style.display = 'none';
             document.body.classList.remove('modal-open');
         }, 200);
     }
 }
-
 
 // -----------------------------
 // Балансы и резерв
@@ -306,30 +312,6 @@ function formatAmount(amount) {
 
 
 
-// -----------------------------
-// Форматирование всех элементов резерва
-// -----------------------------
-function formatAllReserveElements() {
-    const reserveElements = [
-        'currentReserveAmount',
-        'monthlyReserveAmount',
-        'totalReserveAmount',
-        'targetReserveAmount',
-        'remainingToTarget'
-    ];
-
-    reserveElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            const rawValue = element.getAttribute('data-raw-value') || element.textContent;
-            element.textContent = formatAmount(rawValue);
-            element.setAttribute('data-raw-value', rawValue);
-        }
-    });
-}
-
-
-
 function updateReserveDisplay() {
     try {
         const reserveAmountEl = document.getElementById('reserveAmount');
@@ -408,7 +390,7 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     }
 
     const html = `
-    <div class="transaction-item flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30 ${animate ? 'animate-fadeIn' : ''} cursor-pointer hover:bg-gray-800/60 transition-colors"
+   <div class="transaction-item flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30 ${animate ? 'animate-fadeIn' : ''} cursor-pointer hover:bg-gray-800/60 transition-colors"
          data-transaction-id="${transaction.id || ''}"
          data-category-id="${transaction.category_id || transaction.categoryId || 'unknown'}"
          data-category-name="${categoryName}"
@@ -750,7 +732,8 @@ function deleteTransaction(transactionId) {
 
     // Обработчик подтверждения удаления
     const confirmBtn = item.querySelector('.confirm-delete-btn');
-       confirmBtn.addEventListener('click', async function() {
+    confirmBtn.addEventListener('click', async function(e) {
+        e.stopPropagation(); // Предотвращаем всплытие
         try {
             const resp = await fetch(`/delete_transaction/${transactionId}/`);
             const data = await resp.json();
@@ -771,10 +754,10 @@ function deleteTransaction(transactionId) {
                     </div>
                 `;
 
-              setTimeout(() => { 
+                setTimeout(() => { 
                     item.remove(); 
                     checkEmptyStatesAfterChange(); 
-                    updateWelcomeHint(); // обновляем подсказку
+                    updateWelcomeHint();
                 }, 2200);
 
                 // Обновляем балансы
@@ -782,17 +765,14 @@ function deleteTransaction(transactionId) {
                     window.initialBalances = data.updated_balances;
                     updateBalanceDisplay();
                 } else {
-                    // Локальное обновление баланса при удалении
                     updateBalancesAfterDelete(transactionType, Math.abs(amount));
                 }
             } else {
-                // В случае ошибки возвращаем оригинальное содержимое
                 item.innerHTML = originalContent;
                 reattachDeleteHandler(item, transactionId);
             }
         } catch (e) {
             console.error('delete transaction error', e);
-            // В случае ошибки возвращаем оригинальное содержимое
             item.innerHTML = originalContent;
             reattachDeleteHandler(item, transactionId);
         }
@@ -800,14 +780,12 @@ function deleteTransaction(transactionId) {
     
     // Обработчик отмены удаления
     const cancelBtn = item.querySelector('.cancel-delete-btn');
-    cancelBtn.addEventListener('click', function() {
-        // Возвращаем оригинальное содержимое
+    cancelBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Предотвращаем всплытие
         item.innerHTML = originalContent;
-        // Перепривязываем обработчик удаления
         reattachDeleteHandler(item, transactionId);
     });
 }
-
 // -----------------------------
 // Перепривязка обработчика удаления после отмены
 // -----------------------------
@@ -852,6 +830,131 @@ function updateBalancesAfterDelete(type, amount) {
     updateBalanceDisplay();
 }
 
+
+
+
+
+
+// -----------------------------
+// Модалка деталей транзакции
+// -----------------------------
+function initTransactionDetailModal() {
+    const modal = document.getElementById("transactionDetailModal");
+    const closeBtn = document.getElementById("closeTransactionDetailModal");
+    
+    console.log('Initializing transaction detail modal:', { 
+        modal: !!modal, 
+        closeBtn: !!closeBtn 
+    });
+    
+    // Закрытие по клику вне модалки
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                console.log('Closing modal by backdrop click');
+                closeTransactionDetailModal();
+            }
+        });
+    }
+
+    // Закрытие по кнопке "Закрыть"
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            console.log('Closing modal by close button');
+            closeTransactionDetailModal();
+        });
+    }
+}
+
+function closeTransactionDetailModal() {
+    console.log('closeTransactionDetailModal called');
+    const modal = document.getElementById("transactionDetailModal");
+    if (modal) {
+        animateModal(modal, false);
+    }
+}
+// Функция открытия модалки деталей транзакции
+function openTransactionDetail(transactionElement) {
+    const modal = document.getElementById("transactionDetailModal");
+    if (!modal) return;
+
+    // Получаем данные из data-атрибутов
+    const transactionId = transactionElement.dataset.transactionId;
+    const categoryName = transactionElement.dataset.categoryName;
+    const categoryIcon = transactionElement.dataset.categoryIcon;
+    const categoryColor = transactionElement.dataset.categoryColor;
+    const transactionType = transactionElement.dataset.transactionType;
+    const amount = parseFloat(transactionElement.dataset.transactionAmount);
+    const reserveAmount = parseFloat(transactionElement.dataset.reserveAmount);
+    const description = transactionElement.dataset.description;
+    const createdDate = transactionElement.dataset.createdDate;
+    const createdTime = transactionElement.dataset.createdTime;
+    
+    const isIncome = transactionType === 'income';
+
+    // Заполняем модалку данными
+    
+    // Сумма (самый крупный элемент)
+    const amountDisplay = document.getElementById('detailAmount');
+    amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
+    amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
+    
+    // ID транзакции под суммой
+    document.getElementById('detailTransactionId').textContent = `ID ${transactionId || '-'}`;
+    
+    // Резерв под основной суммой (только для доходов)
+    const reserveInfo = document.getElementById('detailReserveInfo');
+    const reserveAmountElement = document.getElementById('detailReserveAmount');
+    
+    if (isIncome && reserveAmount > 0) {
+        reserveInfo.classList.remove('hidden');
+        reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
+    } else {
+        reserveInfo.classList.add('hidden');
+    }
+    
+    // Категория и тип (в отдельном блоке)
+    const categoryIconEl = document.getElementById('detailCategoryIcon');
+    categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
+    categoryIconEl.style.backgroundColor = categoryColor + '22';
+    categoryIconEl.style.color = categoryColor;
+    
+    document.getElementById('detailCategoryName').textContent = categoryName;
+    
+    const typeElement = document.getElementById('detailType');
+    typeElement.textContent = isIncome ? 'Доход' : 'Расход';
+    typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    
+    // Описание
+    const descriptionSection = document.getElementById('detailDescriptionSection');
+    const descriptionElement = document.getElementById('detailDescription');
+    if (description && description.trim() !== '') {
+        descriptionSection.style.display = 'block';
+        descriptionElement.textContent = description;
+    } else {
+        descriptionSection.style.display = 'none';
+    }
+    
+    // Дата и время
+    document.getElementById('detailTimestamp').textContent = 
+        `${createdDate} ${createdTime}`;
+
+    // Показываем модалку с анимацией - ИСПРАВЛЕНО: используем только animateModal
+    animateModal(modal, true);
+}
+
+
+// Функция закрытия модалки деталей транзакции
+function closeTransactionDetailModal() {
+    const modal = document.getElementById("transactionDetailModal");
+    if (modal) {
+        animateModal(modal, false);
+    }
+}
+
+
+
+
 // -----------------------------
 // Делегирование событий для кнопок удаления
 // -----------------------------
@@ -860,11 +963,12 @@ document.addEventListener('click', function(e) {
     if (e.target.closest('.delete-transaction-btn')) {
         const target = e.target.closest('.delete-transaction-btn');
         e.preventDefault();
-        e.stopPropagation();
+        e.stopPropagation(); // Добавьте эту строку
         const id = target.dataset.transactionId;
         if (id) {
             deleteTransaction(id);
         }
+        return; // Добавьте return чтобы прекратить дальнейшую обработку
     }
     
     // Обработка кнопок удаления категорий
@@ -876,9 +980,15 @@ document.addEventListener('click', function(e) {
         if (categoryId) {
             deleteCategory(categoryId);
         }
+        return;
+    }
+
+    // Обработка клика по транзакции для открытия деталей
+    const transactionItem = e.target.closest('.transaction-item');
+    if (transactionItem && !e.target.closest('.delete-transaction-btn')) {
+        openTransactionDetail(transactionItem);
     }
 });
-
 // -----------------------------
 // Проверки пустых состояний
 // -----------------------------

@@ -1178,26 +1178,45 @@ backdrop-filter: blur(20px) !important;
 }
 
 
-/* Стили для модалки деталей транзакции */
-#transactionDetailModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+/* Bounce анимация для модалки */
+@keyframes modalShowBounce {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(100px);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
+@keyframes modalHideBounce {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3) translateY(100px);
+    }
+}
+
+/* Применяем bounce-анимацию к модалке транзакции */
 #transactionDetailModal .modal-content {
-    background: white;
-    border-radius: 1rem;
-    width: 100%;
-    max-width: 24rem;
-    margin: 0 auto;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-modalShow {
+    animation-name: modalShowBounce !important;
+}
+
+.animate-modalHide {
+    animation-name: modalHideBounce !important;
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in;
 }
