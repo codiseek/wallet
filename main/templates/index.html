@@ -663,133 +663,114 @@
   
     </div> <!-- Конец .app-container -->
 
-    <!-- Модальное окно добавления транзакции -->
-    <div id="transactionModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
-            <!-- Заголовок -->
-            <div class="p-4 border-b border-gray-700">
-                <h2 class="text-xl font-bold text-center">Добавить запись</h2>
-            </div>
-
-            <form id="transactionForm" class="p-4 space-y-4">
-                {% csrf_token %}
-                <input type="hidden" name="category" id="selectedCategory">
-
-                <!-- Поле суммы -->
-                <div class="text-center">
-                    <input id="amountInput" name="amount" type="text" inputmode="decimal" required
-                           placeholder="0.00"
-                           class="w-full p-4 rounded-lg bg-gray-700 text-white text-center text-3xl font-bold border-2 border-gray-600 focus:border-blue-500 outline-none">
-                    <div class="text-xs text-gray-400 mt-1">Введите сумму</div>
-                </div>
-
-                <!-- Цифровая клавиатура -->
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">1</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">2</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">3</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">4</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">5</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">6</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">7</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">8</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">9</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">00</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">0</button>
-                    <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">
-                        <i class="fas fa-backspace"></i>
-                    </button>
-                </div>
-
-                <!-- Тип операции -->
-                <div class="flex gap-2">
-                    <button type="button" class="type-btn flex-1 py-3 rounded-lg font-semibold transition-all active:scale-95 bg-red-600 text-white border-2 border-red-600" data-type="expense">
-                        Расход
-                    </button>
-                    <button type="button" class="type-btn flex-1 py-3 rounded-lg font-semibold transition-all active:scale-95 bg-gray-700 text-gray-300 border-2 border-gray-600" data-type="income">
-                        Доход
-                    </button>
-                </div>
-
-                <!-- Категории -->
-                <div>
-                    <div class="text-sm text-gray-400 mb-2">Выберите категорию:</div>
-                    <div class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1" id="categoriesContainer">
-                        <!-- Категории будут добавляться динамически -->
-                    </div>
-                </div>
-
-                <!-- Комментарий -->
-                <div>
-                    <input id="descriptionInput" name="description" type="text" 
-                           placeholder="Комментарий (необязательно)"
-                           class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none">
-                </div>
-
-                <!-- Кнопки -->
-                <div class="flex gap-3 pt-2">
-                    <button type="button" id="closeTransactionModalBtn" 
-                            class="flex-1 py-3 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-semibold">
-                        Отмена
-                    </button>
-                    <button type="submit" 
-                            class="flex-1 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors">
-                        Добавить
-                    </button>
-                </div>
-            </form>
+   <!-- В файле index.html замените блок с категориями в модалке транзакции -->
+<div id="transactionModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
+        <!-- Заголовок -->
+        <div class="p-4 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-center">Добавить запись</h2>
         </div>
-    </div>
 
+        <form id="transactionForm" class="p-4 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="category" id="selectedCategory">
 
-
-
-
-
- <div id="categoryModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
-          
-            <!-- Заголовок -->
-            <div class="p-4 border-b border-gray-700">
-                <h2 class="text-xl font-bold text-center">Добавить категорию</h2>
+            <!-- Поле суммы -->
+            <div class="text-center">
+                <input id="amountInput" name="amount" type="text" inputmode="decimal" required
+                       placeholder="0.00"
+                       class="w-full p-4 rounded-lg bg-gray-700 text-white text-center text-3xl font-bold border-2 border-gray-600 focus:border-blue-500 outline-none">
+               
             </div>
 
-            <div class="p-6">
-          
-                
-                <div class="space-y-4">
-                    <div>
-                     
-                        <input type="text" placeholder="Название категории" class="input-field" id="categoryNameInput">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 mb-2">Иконка</label>
-                        <div class="grid grid-cols-4 gap-2" id="iconsGrid">
-                            <!-- Иконки будут добавляться динамически -->
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 mb-2">Цвет</label>
-                        <div class="grid grid-cols-5 gap-2" id="colorsGrid">
-                            <!-- Цвета будут добавляться динамически -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end gap-3 mt-6">
-                    <button class="btn-secondary close-modal" data-modal="category">
-                        Отмена
-                    </button>
-                    <button class="btn-primary" id="saveCategoryBtn" type="button">
-                        Сохранить
-                    </button>
-                </div>
+            <!-- Цифровая клавиатура -->
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">1</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">2</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">3</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">4</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">5</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">6</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">7</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">8</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">9</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">00</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">0</button>
+                <button type="button" class="keypad-btn bg-gray-700 hover:bg-gray-600 active:bg-gray-500 p-3 rounded-lg text-xl font-medium transition-all active:scale-95">
+                    <i class="fas fa-backspace"></i>
+                </button>
+            </div>
+
+            <!-- Тип операции -->
+            <div class="flex gap-2">
+                <button type="button" class="type-btn flex-1 py-3 rounded-lg font-semibold transition-all active:scale-95 bg-red-600 text-white border-2 border-red-600" data-type="expense">
+                    Расход
+                </button>
+                <button type="button" class="type-btn flex-1 py-3 rounded-lg font-semibold transition-all active:scale-95 bg-gray-700 text-gray-300 border-2 border-gray-600" data-type="income">
+                    Доход
+                </button>
+            </div>
+
+            <!-- Кнопка выбора категории -->
+            <div>
+              
+                <button type="button" id="openCategorySelectionBtn" class="w-full p-4 rounded-lg bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-blue-500 text-white font-semibold transition-all duration-200 flex items-center justify-between">
+                    <span id="selectedCategoryDisplay" class="flex items-center">
+                        <i class="fas fa-tag mr-2 text-gray-400"></i>
+                        <span>Выберите категорию</span>
+                    </span>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </button>
+            </div>
+
+            <!-- Комментарий -->
+            <div>
+                <input id="descriptionInput" name="description" type="text" 
+                       placeholder="Комментарий (необязательно)"
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none">
+            </div>
+
+            <!-- Кнопки -->
+            <div class="flex gap-3 pt-2">
+                <button type="button" id="closeTransactionModalBtn" 
+                        class="flex-1 py-3 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-semibold">
+                    Отмена
+                </button>
+                <button type="submit" 
+                        class="flex-1 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors">
+                    Добавить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Новая модалка выбора категории -->
+<div id="categorySelectionModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1100] bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto h-[80vh] flex flex-col">
+        <!-- Список категорий -->
+        <div class="flex-1 overflow-y-auto p-4">
+            <div class="space-y-2" id="categorySelectionList">
+                <!-- Категории будут добавляться динамически -->
+            </div>
+            
+            <!-- Пустое состояние -->
+            <div id="emptyCategoriesSelection" class="text-center py-8 text-gray-500 hidden">
+                <i class="fas fa-tags text-3xl mb-3"></i>
+                <p>Категорий пока нет</p>
+                <p class="text-sm mt-2">Создайте категории в разделе "Категории"</p>
             </div>
         </div>
-    </div>
 
+        <!-- Кнопка Отменить внизу -->
+        <div class="p-4 border-t border-gray-700 flex-shrink-0">
+            <button type="button" id="closeCategorySelectionBtn" 
+                    class="w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                Отменить
+            </button>
+        </div>
+    </div>
+</div>
 
 <div id="noteModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
         <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">

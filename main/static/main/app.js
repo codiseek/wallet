@@ -465,7 +465,7 @@ function showEmptyState() {
 }
 
 // -----------------------------
-// Загрузка транзакций (единственная реализация)
+// Загрузка транзакций кнопка
 // -----------------------------
 async function loadTransactions() {
     if (isLoading) return;
@@ -939,12 +939,18 @@ function initKeypad() {
 function resetTransactionForm() {
     const form = document.getElementById('transactionForm');
     if (form) form.reset();
-    const selected = document.getElementById('selectedCategory');
-    if (selected) selected.value = '';
-    document.querySelectorAll('.category-carousel-btn').forEach(btn => btn.classList.remove('active'));
+    resetCategorySelection();
+    
     const amountInput = document.getElementById('amountInput');
     if (amountInput) amountInput.value = '0';
+    
+    // Сброс кнопок типа операции
+    document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.classList.remove('bg-red-600','bg-green-600','text-white','border-red-600','border-green-600');
+        btn.classList.add('bg-gray-700','text-gray-300','border-gray-600');
+    });
 }
+
 
 
 
@@ -1068,6 +1074,144 @@ function updateBalancesAfterDelete(type, amount, reserveAmount = 0) {
     
     updateBalanceDisplay();
 }
+
+
+
+
+
+
+// -----------------------------
+// Модалка выбора категории
+// -----------------------------
+// В функции initCategorySelectionModal оставьте только этот код для закрытия:
+function initCategorySelectionModal() {
+    const modal = document.getElementById("categorySelectionModal");
+    const openBtn = document.getElementById("openCategorySelectionBtn");
+    const closeBtn = document.getElementById("closeCategorySelectionBtn"); // Теперь это кнопка "Отменить"
+
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', async function() {
+            animateModal(modal, true);
+            await loadCategoriesForSelection();
+        });
+    }
+
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => animateModal(modal, false));
+    }
+
+    // Закрытие по клику вне модалки
+    if (modal) {
+        modal.addEventListener('click', e => {
+            if (e.target === modal) animateModal(modal, false);
+        });
+    }
+}
+
+// Загрузка категорий для модалки выбора
+async function loadCategoriesForSelection() {
+    const container = document.getElementById('categorySelectionList');
+    const emptyState = document.getElementById('emptyCategoriesSelection');
+    
+    if (!container) return;
+
+    try {
+        const response = await fetch('/get_categories/');
+        const data = await response.json();
+
+        container.innerHTML = '';
+
+        if (data.categories && data.categories.length > 0) {
+            emptyState.classList.add('hidden');
+            
+            data.categories.forEach(cat => {
+                const categoryItem = document.createElement('button');
+                categoryItem.type = 'button';
+                categoryItem.className = 'category-selection-item w-full p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50 hover:border-blue-500/50 transition-all duration-200 flex items-center space-x-4 text-left';
+                categoryItem.dataset.categoryId = cat.id;
+                
+                categoryItem.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
+                         style="background-color: ${cat.color}22; color: ${cat.color}">
+                        <i class="${cat.icon} text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-white text-lg">${cat.name}</p>
+                    </div>
+                    <div class="w-6 h-6 rounded-full border-2 border-gray-500 flex items-center justify-center flex-shrink-0">
+                        <div class="w-3 h-3 rounded-full bg-blue-500 hidden"></div>
+                    </div>
+                `;
+
+                categoryItem.addEventListener('click', function() {
+                    selectCategory(cat);
+                    animateModal(document.getElementById('categorySelectionModal'), false);
+                });
+
+                container.appendChild(categoryItem);
+            });
+        } else {
+            emptyState.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки категорий для выбора:', error);
+        container.innerHTML = `
+            <div class="text-center py-8 text-red-400">
+                <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
+                <p>Ошибка загрузки категорий</p>
+            </div>
+        `;
+    }
+}
+
+// Выбор категории
+function selectCategory(category) {
+    const selectedCategoryInput = document.getElementById('selectedCategory');
+    const selectedCategoryDisplay = document.getElementById('selectedCategoryDisplay');
+    
+    if (selectedCategoryInput && selectedCategoryDisplay) {
+        selectedCategoryInput.value = category.id;
+        selectedCategoryDisplay.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" 
+                     style="background-color: ${category.color}22; color: ${category.color}">
+                    <i class="${category.icon} text-sm"></i>
+                </div>
+                <span class="text-white font-medium">${category.name}</span>
+            </div>
+        `;
+    }
+    
+    // Обновляем кнопку выбора категории
+    const openCategoryBtn = document.getElementById('openCategorySelectionBtn');
+    if (openCategoryBtn) {
+        openCategoryBtn.classList.remove('border-gray-600', 'hover:border-blue-500');
+        openCategoryBtn.classList.add('border-blue-500', 'bg-blue-500/10');
+    }
+}
+
+// Сброс выбора категории при открытии модалки транзакции
+function resetCategorySelection() {
+    const selectedCategoryInput = document.getElementById('selectedCategory');
+    const selectedCategoryDisplay = document.getElementById('selectedCategoryDisplay');
+    const openCategoryBtn = document.getElementById('openCategorySelectionBtn');
+    
+    if (selectedCategoryInput) selectedCategoryInput.value = '';
+    if (selectedCategoryDisplay) {
+        selectedCategoryDisplay.innerHTML = `
+            <i class="fas fa-tag mr-2 text-gray-400"></i>
+            <span>Выберите категорию</span>
+        `;
+    }
+    if (openCategoryBtn) {
+        openCategoryBtn.classList.remove('border-blue-500', 'bg-blue-500/10');
+        openCategoryBtn.classList.add('border-gray-600', 'hover:border-blue-500');
+    }
+}
+
+
+
+
 
 // -----------------------------
 // Управление подсказкой "Сделай первую транзакцию"
@@ -1840,7 +1984,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Обновляем отображение сбережений при загрузке
         updateSavingsDisplay();
-        
+        initCategorySelectionModal();
         updateWelcomeHint();
 
         // Показываем приветствие при необходимости

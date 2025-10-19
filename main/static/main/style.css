@@ -1176,3 +1176,5 @@ backdrop-filter: blur(20px) !important;
     top: calc(env(safe-area-inset-top) + 0px) !important; /* 70px = твоя высота хедера */
   }
 }
+
+
