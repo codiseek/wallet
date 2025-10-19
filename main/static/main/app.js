@@ -836,7 +836,7 @@ function updateBalancesAfterDelete(type, amount) {
 
 
 
-// -----------------------------
+    // -----------------------------
 // Инициализация модалки деталей транзакции
 // -----------------------------
 function initTransactionDetailModal() {
@@ -910,10 +910,23 @@ function resetDeleteConfirmation() {
     
     if (normalButtons) normalButtons.classList.remove('hidden');
     if (confirmDeleteSection) {
+        // ВОССТАНАВЛИВАЕМ ОРИГИНАЛЬНЫЙ HTML КНОПОК ПОДТВЕРЖДЕНИЯ
+        confirmDeleteSection.innerHTML = `
+            <p class="text-center text-red-400 mb-3">Вы уверены, что хотите удалить эту транзакцию?</p>
+            <div class="flex space-x-2">
+                <button id="cancelDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    Отмена
+                </button>
+                <button id="confirmDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                    Да, удалить
+                </button>
+            </div>
+        `;
         confirmDeleteSection.classList.add('hidden');
         confirmDeleteSection.classList.remove('animate-fadeIn');
     }
 }
+
 
 // Функция для удаления транзакции из модалки
 async function deleteTransactionFromModal() {
@@ -928,6 +941,7 @@ async function deleteTransactionFromModal() {
     if (!transactionId) {
         console.error("No transaction ID found");
         alert('Ошибка: ID транзакции не найден');
+        resetDeleteConfirmation();
         return;
     }
     
@@ -937,7 +951,6 @@ async function deleteTransactionFromModal() {
         // Показываем состояние загрузки
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
         if (confirmDeleteBtn) {
-            const originalText = confirmDeleteBtn.innerHTML;
             confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Удаление...';
             confirmDeleteBtn.disabled = true;
         }
@@ -960,7 +973,7 @@ async function deleteTransactionFromModal() {
                             <i class="fas fa-check text-green-400 text-xl"></i>
                         </div>
                         <p class="text-green-400 font-semibold">Транзакция удалена!</p>
-
+                        
                     </div>
                 `;
             }
@@ -974,9 +987,12 @@ async function deleteTransactionFromModal() {
             // Удаляем транзакцию из списка
             const transactionElement = document.querySelector(`[data-transaction-id="${transactionId}"]`);
             if (transactionElement) {
-                transactionElement.remove();
-                checkEmptyStatesAfterChange();
-                updateWelcomeHint();
+                transactionElement.style.opacity = '0.5';
+                setTimeout(() => {
+                    transactionElement.remove();
+                    checkEmptyStatesAfterChange();
+                    updateWelcomeHint();
+                }, 500);
             }
             
             // Закрываем модалку через 1 секунду
@@ -996,28 +1012,30 @@ async function deleteTransactionFromModal() {
         resetDeleteConfirmation();
     }
 }
-
 // Функция закрытия модалки деталей транзакции
 function closeTransactionDetailModal() {
     console.log("Closing transaction detail modal");
     const modal = document.getElementById("transactionDetailModal");
     if (modal) {
+        // СБРАСЫВАЕМ СОСТОЯНИЕ ПОДТВЕРЖДЕНИЯ ПЕРЕД ЗАКРЫТИЕМ
+        resetDeleteConfirmation();
+        
         animateModal(modal, false);
-        // Сбрасываем состояние подтверждения при закрытии
+        
+        // ОЧИЩАЕМ ID ТРАНЗАКЦИИ ПРИ ЗАКРЫТИИ
         setTimeout(() => {
-            resetDeleteConfirmation();
+            if (modal.dataset.currentTransactionId) {
+                delete modal.dataset.currentTransactionId;
+            }
         }, 300);
     }
 }
-
-
-
+// Функция открытия модалки деталей транзакции
 // Функция открытия модалки деталей транзакции
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) return;
 
-    
     // Получаем данные из data-атрибутов
     const transactionId = transactionElement.dataset.transactionId;
     const categoryName = transactionElement.dataset.categoryName;
@@ -1030,78 +1048,83 @@ function openTransactionDetail(transactionElement) {
     const createdDate = transactionElement.dataset.createdDate;
     const createdTime = transactionElement.dataset.createdTime;
     
+    // УБЕДИТЕСЬ, ЧТО ПЕРЕД ОТКРЫТИЕМ ПОЛНОСТЬЮ СБРАСЫВАЕМ ВСЕ СОСТОЯНИЯ
+    resetDeleteConfirmation();
+    
+    // Сохраняем transactionId в модалке для использования при удалении
+    modal.dataset.currentTransactionId = transactionId;
+    console.log("Set current transaction ID:", transactionId);
+    
     const isIncome = transactionType === 'income';
 
     // Заполняем модалку данными
     
     // Сумма (самый крупный элемент)
     const amountDisplay = document.getElementById('detailAmount');
-    amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
-    amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
+    if (amountDisplay) {
+        amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
+        amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
+    }
     
     // ID транзакции под суммой
-    document.getElementById('detailTransactionId').textContent = `ID ${transactionId || '-'}`;
+    const detailTransactionId = document.getElementById('detailTransactionId');
+    if (detailTransactionId) {
+        detailTransactionId.textContent = `ID ${transactionId || '-'}`;
+    }
     
     // Резерв под основной суммой (только для доходов)
     const reserveInfo = document.getElementById('detailReserveInfo');
     const reserveAmountElement = document.getElementById('detailReserveAmount');
     
-    if (isIncome && reserveAmount > 0) {
-        reserveInfo.classList.remove('hidden');
-        reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
-    } else {
-        reserveInfo.classList.add('hidden');
+    if (reserveInfo && reserveAmountElement) {
+        if (isIncome && reserveAmount > 0) {
+            reserveInfo.classList.remove('hidden');
+            reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
+        } else {
+            reserveInfo.classList.add('hidden');
+        }
     }
     
     // Категория и тип (в отдельном блоке)
     const categoryIconEl = document.getElementById('detailCategoryIcon');
-    categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
-    categoryIconEl.style.backgroundColor = categoryColor + '22';
-    categoryIconEl.style.color = categoryColor;
+    if (categoryIconEl) {
+        categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
+        categoryIconEl.style.backgroundColor = categoryColor + '22';
+        categoryIconEl.style.color = categoryColor;
+    }
     
-    document.getElementById('detailCategoryName').textContent = categoryName;
+    const detailCategoryName = document.getElementById('detailCategoryName');
+    if (detailCategoryName) {
+        detailCategoryName.textContent = categoryName;
+    }
     
     const typeElement = document.getElementById('detailType');
-    typeElement.textContent = isIncome ? 'Доход' : 'Расход';
-    typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    if (typeElement) {
+        typeElement.textContent = isIncome ? 'Доход' : 'Расход';
+        typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    }
     
-
-      // Сохраняем transactionId в модалке для использования при удалении
-    modal.dataset.currentTransactionId = transactionId;
-
- // Сбрасываем состояние кнопок при открытии
-    resetDeleteConfirmation();
-
-
     // Описание
     const descriptionSection = document.getElementById('detailDescriptionSection');
     const descriptionElement = document.getElementById('detailDescription');
-    if (description && description.trim() !== '') {
-        descriptionSection.style.display = 'block';
-        descriptionElement.textContent = description;
-    } else {
-        descriptionSection.style.display = 'none';
+    if (descriptionSection && descriptionElement) {
+        if (description && description.trim() !== '') {
+            descriptionSection.style.display = 'block';
+            descriptionElement.textContent = description;
+        } else {
+            descriptionSection.style.display = 'none';
+        }
     }
     
     // Дата и время
-    document.getElementById('detailTimestamp').textContent = 
-        `${createdDate} ${createdTime}`;
+    const detailTimestamp = document.getElementById('detailTimestamp');
+    if (detailTimestamp) {
+        detailTimestamp.textContent = `${createdDate} ${createdTime}`;
+    }
 
-    // Показываем модалку с анимацией - ИСПРАВЛЕНО: используем только animateModal
+    // Показываем модалку с анимацией
     animateModal(modal, true);
 }
-
-
-// Функция закрытия модалки деталей транзакции
-function closeTransactionDetailModal() {
-    const modal = document.getElementById("transactionDetailModal");
-    if (modal) {
-        animateModal(modal, false);
-    }
-}
-
-
-
 
 // -----------------------------
 // Делегирование событий для кнопок удаления
