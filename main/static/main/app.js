@@ -412,14 +412,8 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
                 ${description ? `<p class="text-gray-400 text-xs truncate">${description}</p>` : ''}
             </div>
         </div>
-        <div class="flex items-center space-x-2">
-            <div class="text-right">
-                ${amountDisplay}
-            </div>
-            <button class="delete-transaction-btn text-red-400 hover:text-red-300 p-1 transition-colors" 
-                    data-transaction-id="${transaction.id || ''}" title="Удалить транзакцию">
-                <i class="fas fa-trash text-xs"></i>
-            </button>
+        <div class="text-right">
+            ${amountDisplay}
         </div>
     </div>
     `;
@@ -437,11 +431,11 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
 
 
 
-
 // Обновленная функция открытия модалки
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
-    
+    if (!modal) return;
+
     // Получаем данные из data-атрибутов
     const transactionId = transactionElement.dataset.transactionId;
     const categoryName = transactionElement.dataset.categoryName;
@@ -453,6 +447,9 @@ function openTransactionDetail(transactionElement) {
     const description = transactionElement.dataset.description;
     const createdDate = transactionElement.dataset.createdDate;
     const createdTime = transactionElement.dataset.createdTime;
+    
+    // Сохраняем transactionId в модалке для использования при удалении
+    modal.dataset.currentTransactionId = transactionId;
     
     const isIncome = transactionType === 'income';
 
@@ -499,15 +496,22 @@ function openTransactionDetail(transactionElement) {
         descriptionSection.style.display = 'none';
     }
     
-    // Текущая дата и время для подвала (включаем дату операции)
-    const now = new Date();
+    // Дата и время
     document.getElementById('detailTimestamp').textContent = 
-    `${createdDate} ${createdTime}`;
+        `${createdDate} ${createdTime}`;
 
-    // Показываем модалку
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    // Сбрасываем состояние кнопок при открытии
+    resetDeleteConfirmation();
+
+    // Показываем модалку с анимацией
+    animateModal(modal, true);
 }
+
+
+
+
+
+
 
 // -----------------------------
 // Пустые состояния
@@ -832,52 +836,188 @@ function updateBalancesAfterDelete(type, amount) {
 
 
 
-
-
-
 // -----------------------------
-// Модалка деталей транзакции
+// Инициализация модалки деталей транзакции
 // -----------------------------
 function initTransactionDetailModal() {
     const modal = document.getElementById("transactionDetailModal");
-    const closeBtn = document.getElementById("closeTransactionDetailModal");
-    
-    console.log('Initializing transaction detail modal:', { 
-        modal: !!modal, 
-        closeBtn: !!closeBtn 
-    });
-    
-    // Закрытие по клику вне модалки
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                console.log('Closing modal by backdrop click');
-                closeTransactionDetailModal();
-            }
-        });
+    if (!modal) {
+        console.error("Transaction detail modal not found");
+        return;
     }
 
-    // Закрытие по кнопке "Закрыть"
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            console.log('Closing modal by close button');
+    // Закрытие по клику вне модалки
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
             closeTransactionDetailModal();
-        });
+        }
+    });
+
+    // Делегирование событий для кнопок внутри модалки
+    modal.addEventListener('click', function(e) {
+        // Кнопка "Удалить транзакцию" - ПЕРВОЕ НАЖАТИЕ
+        if (e.target.closest('#deleteTransactionBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            showDeleteConfirmation();
+            return;
+        }
+        
+        // Кнопка "Отмена" при подтверждении удаления
+        if (e.target.closest('#cancelDeleteBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            resetDeleteConfirmation();
+            return;
+        }
+        
+        // Кнопка "Да, удалить" - ВТОРОЕ НАЖАТИЕ
+        if (e.target.closest('#confirmDeleteBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteTransactionFromModal();
+            return;
+        }
+        
+        // Кнопка закрытия модалки
+        if (e.target.closest('#closeTransactionDetailModal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeTransactionDetailModal();
+            return;
+        }
+    });
+}
+
+// Функция для показа подтверждения удаления
+function showDeleteConfirmation() {
+    console.log("Showing delete confirmation");
+    const normalButtons = document.getElementById('normalButtons');
+    const confirmDeleteSection = document.getElementById('confirmDeleteSection');
+    
+    if (normalButtons) normalButtons.classList.add('hidden');
+    if (confirmDeleteSection) {
+        confirmDeleteSection.classList.remove('hidden');
+        confirmDeleteSection.classList.add('animate-fadeIn');
     }
 }
 
+// Функция для сброса состояния подтверждения удаления
+function resetDeleteConfirmation() {
+    console.log("Resetting delete confirmation");
+    const normalButtons = document.getElementById('normalButtons');
+    const confirmDeleteSection = document.getElementById('confirmDeleteSection');
+    
+    if (normalButtons) normalButtons.classList.remove('hidden');
+    if (confirmDeleteSection) {
+        confirmDeleteSection.classList.add('hidden');
+        confirmDeleteSection.classList.remove('animate-fadeIn');
+    }
+}
+
+// Функция для удаления транзакции из модалки
+async function deleteTransactionFromModal() {
+    console.log("Deleting transaction from modal");
+    const modal = document.getElementById("transactionDetailModal");
+    if (!modal) {
+        console.error("Modal not found");
+        return;
+    }
+    
+    const transactionId = modal.dataset.currentTransactionId;
+    if (!transactionId) {
+        console.error("No transaction ID found");
+        alert('Ошибка: ID транзакции не найден');
+        return;
+    }
+    
+    console.log("Deleting transaction ID:", transactionId);
+    
+    try {
+        // Показываем состояние загрузки
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        if (confirmDeleteBtn) {
+            const originalText = confirmDeleteBtn.innerHTML;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Удаление...';
+            confirmDeleteBtn.disabled = true;
+        }
+        
+        const resp = await fetch(`/delete_transaction/${transactionId}/`);
+        if (!resp.ok) {
+            throw new Error(`HTTP error! status: ${resp.status}`);
+        }
+        
+        const data = await resp.json();
+        console.log("Delete response:", data);
+        
+        if (data.success) {
+            // Показываем успешное сообщение
+            const confirmDeleteSection = document.getElementById('confirmDeleteSection');
+            if (confirmDeleteSection) {
+                confirmDeleteSection.innerHTML = `
+                    <div class="text-center py-4 animate-popIn">
+                        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-check text-green-400 text-xl"></i>
+                        </div>
+                        <p class="text-green-400 font-semibold">Транзакция удалена!</p>
+
+                    </div>
+                `;
+            }
+            
+            // Обновляем балансы
+            if (data.updated_balances) {
+                window.initialBalances = data.updated_balances;
+                updateBalanceDisplay();
+            }
+            
+            // Удаляем транзакцию из списка
+            const transactionElement = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+            if (transactionElement) {
+                transactionElement.remove();
+                checkEmptyStatesAfterChange();
+                updateWelcomeHint();
+            }
+            
+            // Закрываем модалку через 1 секунду
+            setTimeout(() => {
+                closeTransactionDetailModal();
+            }, 1000);
+            
+        } else {
+            // Показываем ошибку
+            console.error('Delete failed:', data.error);
+            alert(data.error || 'Ошибка при удалении транзакции');
+            resetDeleteConfirmation();
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении транзакции:', error);
+        alert('Произошла ошибка при удалении: ' + error.message);
+        resetDeleteConfirmation();
+    }
+}
+
+// Функция закрытия модалки деталей транзакции
 function closeTransactionDetailModal() {
-    console.log('closeTransactionDetailModal called');
+    console.log("Closing transaction detail modal");
     const modal = document.getElementById("transactionDetailModal");
     if (modal) {
         animateModal(modal, false);
+        // Сбрасываем состояние подтверждения при закрытии
+        setTimeout(() => {
+            resetDeleteConfirmation();
+        }, 300);
     }
 }
+
+
+
 // Функция открытия модалки деталей транзакции
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) return;
 
+    
     // Получаем данные из data-атрибутов
     const transactionId = transactionElement.dataset.transactionId;
     const categoryName = transactionElement.dataset.categoryName;
@@ -925,6 +1065,14 @@ function openTransactionDetail(transactionElement) {
     typeElement.textContent = isIncome ? 'Доход' : 'Расход';
     typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
     
+
+      // Сохраняем transactionId в модалке для использования при удалении
+    modal.dataset.currentTransactionId = transactionId;
+
+ // Сбрасываем состояние кнопок при открытии
+    resetDeleteConfirmation();
+
+
     // Описание
     const descriptionSection = document.getElementById('detailDescriptionSection');
     const descriptionElement = document.getElementById('detailDescription');
@@ -959,18 +1107,8 @@ function closeTransactionDetailModal() {
 // Делегирование событий для кнопок удаления
 // -----------------------------
 document.addEventListener('click', function(e) {
-    // Обработка кнопок удаления транзакций
-    if (e.target.closest('.delete-transaction-btn')) {
-        const target = e.target.closest('.delete-transaction-btn');
-        e.preventDefault();
-        e.stopPropagation(); // Добавьте эту строку
-        const id = target.dataset.transactionId;
-        if (id) {
-            deleteTransaction(id);
-        }
-        return; // Добавьте return чтобы прекратить дальнейшую обработку
-    }
-    
+
+
     // Обработка кнопок удаления категорий
     if (e.target.closest('.delete-category-btn')) {
         const target = e.target.closest('.delete-category-btn');
