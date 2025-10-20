@@ -617,23 +617,34 @@ def change_password(request):
     return JsonResponse({"success": False, "error": "Неверный метод запроса"})
 
 
+
+
+@login_required
 def get_transactions(request):
     filter_type = request.GET.get('filter', 'week')
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 10))
     category_id = request.GET.get('category', 'all')
     
-    # Определяем период фильтрации
+    # Определяем период фильтрации - ИСПРАВЛЕНО
     now = timezone.now()
     if filter_type == 'day':
         start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
     elif filter_type == 'week':
-        start_date = now - timedelta(days=now.weekday())
+        start_date = now - timedelta(days=6)
         start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+
     elif filter_type == 'month':
         start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        next_month = (start_date + timedelta(days=32)).replace(day=1)
+        end_date = next_month - timedelta(microseconds=1)
+
+        end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
     else:
         start_date = None
+        end_date = None
     
     # Получаем транзакции
     transactions = Transaction.objects.filter(user=request.user)
@@ -642,8 +653,10 @@ def get_transactions(request):
     if category_id != 'all':
         transactions = transactions.filter(category_id=category_id)
     
-    # Фильтруем по дате если выбран период
-    if start_date:
+    # Фильтруем по дате если выбран период - ИСПРАВЛЕНО
+    if start_date and end_date:
+        transactions = transactions.filter(created_at__range=[start_date, end_date])
+    elif start_date:  # Для случая "все время" или других фильтров
         transactions = transactions.filter(created_at__gte=start_date)
     
     transactions = transactions.order_by('-created_at')
@@ -671,7 +684,7 @@ def get_transactions(request):
         transactions_data.append({
             'id': transaction.id,
             'amount': float(transaction.amount),
-            'reserve_amount': float(transaction.reserve_amount),  # добавляем резерв
+            'reserve_amount': float(transaction.reserve_amount),
             'type': transaction.type,
             'description': transaction.description,
             'created_at': transaction.created_at.isoformat(),
@@ -684,8 +697,12 @@ def get_transactions(request):
     return JsonResponse({
         'success': True,
         'transactions': transactions_data,
-        'has_more': page_obj.has_next()
+        'has_more': page_obj.has_next(),
+        'filter_type': filter_type,  # Добавляем информацию о текущем фильтре
+        'total_count': paginator.count  # Добавляем общее количество
     })
+
+
 
 @login_required
 def get_categories_with_stats(request):

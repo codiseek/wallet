@@ -544,11 +544,14 @@ async function loadTransactions() {
 
     const transactionsContainer = document.getElementById('transactionsListContainer');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
+    
     if (!transactionsContainer) {
         console.error('transactionsListContainer not found');
         isLoading = false;
         return;
     }
+
+    console.log(`Загрузка транзакций: фильтр=${currentFilter}, страница=${currentPage}, категория=${currentCategory}`);
 
     if (currentPage === 1) {
         transactionsContainer.innerHTML = `
@@ -560,7 +563,10 @@ async function loadTransactions() {
     }
 
     try {
-        const resp = await fetch(`/get_transactions/?filter=${currentFilter}&page=${currentPage}&limit=${PAGE_SIZE}&category=${currentCategory}`, {
+        const url = `/get_transactions/?filter=${currentFilter}&page=${currentPage}&limit=${PAGE_SIZE}&category=${currentCategory}`;
+        console.log('Запрос к:', url);
+        
+        const resp = await fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
@@ -575,12 +581,14 @@ async function loadTransactions() {
         }
 
         const data = await resp.json();
+        console.log('Получены данные:', data);
+        
         if (data.success) {
             if (currentPage === 1) transactionsContainer.innerHTML = '';
             
             if (data.transactions && data.transactions.length > 0) {
-                // УБИРАЕМ СОРТИРОВКУ - сервер должен возвращать уже отсортированные данные
-                // от новых к старым
+                console.log(`Добавлено ${data.transactions.length} транзакций`);
+                
                 data.transactions.forEach(tx => window.addTransactionToList(tx, false, true));
                 
                 hasMoreTransactions = !!data.has_more;
@@ -589,6 +597,7 @@ async function loadTransactions() {
                 updateWelcomeHint();
                 if (hasMoreTransactions) currentPage++;
             } else {
+                console.log('Нет транзакций для отображения');
                 if (currentPage === 1) {
                     transactionsContainer.innerHTML = '';
                     showEmptyState();
@@ -618,7 +627,6 @@ async function loadTransactions() {
         isLoading = false;
     }
 }
-
 // Загрузить ещё
 async function loadMoreTransactions() {
     if (isLoading || !hasMoreTransactions) return;
@@ -659,19 +667,42 @@ function updateCategoryTabsHandlers() {
 }
 
 function initTransactionFilter() {
+    console.log('initTransactionFilter called');
+    
+    // Ждем полной загрузки DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTransactionFilter);
+        return;
+    }
+
     const filterToggle = document.getElementById('filterToggleBtn');
     const filterDropdown = document.getElementById('filterDropdown');
     const filterOptions = document.querySelectorAll('.filter-option');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
 
+    console.log('filterToggle:', filterToggle);
+    console.log('filterDropdown:', filterDropdown);
+
     if (filterToggle && filterDropdown) {
-        filterToggle.addEventListener('click', function(e) {
+        // Удаляем существующие обработчики чтобы избежать дублирования
+        filterToggle.replaceWith(filterToggle.cloneNode(true));
+        const newFilterToggle = document.getElementById('filterToggleBtn');
+        
+        newFilterToggle.addEventListener('click', function(e) {
             e.stopPropagation();
+            console.log('Filter toggle clicked');
             filterDropdown.classList.toggle('hidden');
         });
-        document.addEventListener('click', () => filterDropdown.classList.add('hidden'));
+
+        // закрываем при клике вне
+        document.addEventListener('click', function(e) {
+            if (!filterDropdown.contains(e.target) && !newFilterToggle.contains(e.target)) {
+                filterDropdown.classList.add('hidden');
+            }
+        });
     }
 
+    // Остальной код остается без изменений...
     filterOptions.forEach(option => {
         option.addEventListener('click', function() {
             const filter = this.dataset.filter;
@@ -685,20 +716,14 @@ function initTransactionFilter() {
         });
     });
 
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadMoreTransactions);
-    }
+    if (loadMoreBtn) loadMoreBtn.addEventListener('click', loadMoreTransactions);
 
-    // авто-инициализация при загрузке если пусто
+    // автоинициализация
     setTimeout(() => {
         const container = document.getElementById('transactionsListContainer');
-        if (container && container.children.length === 0) {
-            loadTransactions();
-        }
+        if (container && container.children.length === 0) loadTransactions();
     }, 300);
 }
-
-
 
 // -----------------------------
 // Удаление транзакций (инлайн-подтверждение)
@@ -2208,7 +2233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSavingsDisplay();
         initCategorySelectionModal();
         updateWelcomeHint();
-
+        initTransactionFilter();
         // Инициализируем модалки категорий
         if (typeof initCategoryDetailModal === 'function') {
             initCategoryDetailModal();
@@ -2226,8 +2251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initMenuModal();
         initTransactionDetailModal();
         
-        // Инициализируем фильтры/загрузку транзакций
-        if (typeof initTransactionFilter === 'function') initTransactionFilter();
+       
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();
 
         // Загружаем категории и транзакции при старте
