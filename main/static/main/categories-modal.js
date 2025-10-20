@@ -47,9 +47,8 @@ function initCategoryFilter() {
 }
 
 // Перезагрузка данных категории с фильтром
+
 async function reloadCategoryData(categoryId, filter) {
-   
-    
     try {
         // Показываем состояние загрузки
         showCategoryLoadingState();
@@ -72,47 +71,6 @@ async function reloadCategoryData(categoryId, filter) {
         showCategoryErrorState('Ошибка соединения с сервером');
     }
 }
-
-// Обновляем функцию openCategoryDetail
-async function openCategoryDetail(categoryElement) {
-    const modal = document.getElementById("categoryDetailModal");
-    if (!modal) return;
-
-    const categoryId = categoryElement.dataset.categoryId;
-    const categoryName = categoryElement.dataset.categoryName;
-    const categoryIcon = categoryElement.dataset.categoryIcon;
-    const categoryColor = categoryElement.dataset.categoryColor;
-    
-    currentCategoryId = categoryId;
-
-    resetCategoryDeleteConfirmation();
-
-    // 🔹 Сразу открываем модалку (мгновенно)
-    animateModal(modal, true);
-
-    // 🔹 Показываем "загрузка" с базовой информацией
-    showCategoryLoadingState(categoryName, categoryIcon, categoryColor);
-
-    try {
-        // 🔹 Чуть позже грузим данные (без блокировки UI)
-        setTimeout(async () => {
-            const response = await fetch(`/get_category_stats/${categoryId}/`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            if (data.success) {
-                showCategoryData(data);
-            } else {
-                showCategoryErrorState('Ошибка загрузки данных: ' + (data.error || 'неизвестная ошибка'));
-            }
-        }, 50);
-    } catch (error) {
-        showCategoryErrorState('Ошибка соединения с сервером');
-    }
-}
-
-
-
 
 
 
@@ -303,7 +261,15 @@ function resetCategoryStats() {
 
 // Показать данные категории
 function showCategoryData(data) {
-    
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
     
     // Используем функцию formatAmount из app.js
     const formatAmount = window.formatAmount || function(amount) {
@@ -319,9 +285,8 @@ function showCategoryData(data) {
         updateCategoryDisplay(data.category.name, data.category.icon, data.category.color);
     }
 
-    // НЕПОСРЕДСТВЕННО ОБНОВЛЯЕМ ВСЕ ЭЛЕМЕНТЫ ВРУЧНУЮ
-    updateCategoryElementsDirectly(data, formatAmount);
-
+    // НЕПОСРЕДСТВЕННО ОБНОВЛЯЕМ ВСЕ ЭЛЕМЕНТЫ С УЧЕТОМ ВАЛЮТЫ
+    updateCategoryElementsDirectly(data, formatAmount, currencySymbol);
 
     // Показываем/скрываем кнопку удаления
     const deleteBtn = document.getElementById('deleteCategoryDetailBtn');
@@ -334,24 +299,59 @@ function showCategoryData(data) {
     }
 }
 
-// Прямое обновление элементов (обходной путь)
+
+
+// Прямое обновление элементов с правильной валютой
 function updateCategoryElementsDirectly(data, formatAmount) {
- 
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
     
+    // Обновляем символы валюты в модалке
+    const currencySymbols = document.querySelectorAll('.category-currency-symbol');
+    currencySymbols.forEach(symbol => {
+        symbol.textContent = currencySymbol;
+    });
+
     // Всего потрачено
     const totalExpenseEl = document.getElementById('categoryTotalExpense');
     if (totalExpenseEl) {
         const total = parseFloat(data.total_expense) || 0;
-        totalExpenseEl.textContent = formatAmount(total) + ' с';
-        
+        // Убедимся, что обновляем только числовое значение, символ валюты уже обновлен выше
+        const amountSpan = totalExpenseEl.querySelector('.amount-value') || document.createElement('span');
+        if (!totalExpenseEl.querySelector('.amount-value')) {
+            amountSpan.className = 'amount-value';
+            totalExpenseEl.innerHTML = '';
+            totalExpenseEl.appendChild(amountSpan);
+            const symbolSpan = document.createElement('span');
+            symbolSpan.className = 'category-currency-symbol';
+            symbolSpan.textContent = ' ' + currencySymbol;
+            totalExpenseEl.appendChild(symbolSpan);
+        }
+        amountSpan.textContent = formatAmount(total);
     }
 
     // Средний чек
     const averageAmountEl = document.getElementById('categoryAverageAmount');
     if (averageAmountEl) {
         const average = parseFloat(data.average_amount) || 0;
-        averageAmountEl.textContent = formatAmount(average) + ' с';
-        
+        const amountSpan = averageAmountEl.querySelector('.amount-value') || document.createElement('span');
+        if (!averageAmountEl.querySelector('.amount-value')) {
+            amountSpan.className = 'amount-value';
+            averageAmountEl.innerHTML = '';
+            averageAmountEl.appendChild(amountSpan);
+            const symbolSpan = document.createElement('span');
+            symbolSpan.className = 'category-currency-symbol';
+            symbolSpan.textContent = ' ' + currencySymbol;
+            averageAmountEl.appendChild(symbolSpan);
+        }
+        amountSpan.textContent = formatAmount(average);
     }
 
     // Количество операций
@@ -359,7 +359,6 @@ function updateCategoryElementsDirectly(data, formatAmount) {
     if (transactionsCountEl) {
         const count = parseInt(data.transactions_count) || 0;
         transactionsCountEl.textContent = count.toString();
-        
     }
 
     // Доля расходов
@@ -367,7 +366,6 @@ function updateCategoryElementsDirectly(data, formatAmount) {
     if (expensePercentageEl) {
         const percentage = parseFloat(data.income_percentage) || 0;
         expensePercentageEl.textContent = percentage.toFixed(1) + '%';
-       
         
         // Меняем цвет в зависимости от процента
         if (percentage > 50) {
@@ -378,8 +376,53 @@ function updateCategoryElementsDirectly(data, formatAmount) {
             expensePercentageEl.className = 'text-xl font-bold text-green-400';
         }
     }
-
 }
+
+
+
+// Функция для обновления символов валюты в модалке категорий
+function updateCategoryModalCurrency() {
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
+    
+    // Обновляем все символы валюты в модалке категорий
+    const currencySymbols = document.querySelectorAll('.category-currency-symbol');
+    currencySymbols.forEach(symbol => {
+        symbol.textContent = currencySymbol;
+    });
+    
+    // Также обновляем символы валюты в элементах, которые могут их содержать
+    const elementsToUpdate = [
+        'categoryTotalExpense',
+        'categoryAverageAmount'
+    ];
+    
+    elementsToUpdate.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            const rawValue = element.getAttribute('data-raw-value');
+            if (rawValue) {
+                const formatAmount = window.formatAmount || function(amount) {
+                    const number = typeof amount === 'string' ? 
+                        parseFloat(amount.replace(/\s/g, '').replace(',', '.')) : 
+                        amount || 0;
+                    const rounded = Math.round(number);
+                    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+                };
+                
+                // Обновляем текст с правильным символом валюты
+                element.textContent = formatAmount(rawValue) + ' ' + currencySymbol;
+            }
+        }
+    });
+}
+
 
 // Функция для обновления отображения категории (оставляем как есть)
 function updateCategoryDisplay(name, icon, color) {

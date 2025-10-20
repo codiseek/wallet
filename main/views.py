@@ -222,6 +222,41 @@ def get_personal_notifications(request):
 
 @login_required
 @require_POST
+def update_currency(request):
+    """Обновление валюты пользователя"""
+    try:
+        currency = request.POST.get('currency')
+        print(f"=== UPDATE CURRENCY ===")
+        print(f"User: {request.user.username}")
+        print(f"Requested currency: {currency}")
+        
+        if currency not in ['c', 'r', '$', '€']:
+            return JsonResponse({'success': False, 'error': 'Неверная валюта'})
+        
+        # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
+        if not hasattr(request.user, 'userprofile'):
+            from .models import UserProfile
+            UserProfile.objects.create(user=request.user)
+        
+        # Обновляем валюту в профиле пользователя
+        profile = request.user.userprofile
+        old_currency = profile.currency
+        profile.currency = currency
+        profile.save()
+        
+        print(f"Updated currency from {old_currency} to {currency}")
+        print(f"======================")
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        print(f"Error updating currency: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+@login_required
+@require_POST
 def mark_notification_as_read(request, notification_id):
     """Пометить уведомление как прочитанное"""
     try:
@@ -346,6 +381,13 @@ def index(request):
     categories = Category.objects.filter(user=request.user)
     transactions = Transaction.objects.filter(user=request.user).order_by('-created_at')
     
+
+     # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
+    if not hasattr(request.user, 'userprofile'):
+        from .models import UserProfile
+        UserProfile.objects.create(user=request.user)
+
+
     # РАСЧЕТ БАЛАНСОВ С УЧЕТОМ РЕЗЕРВА
     income_result = transactions.filter(type='income').aggregate(total=Sum('amount'))
     expense_result = transactions.filter(type='expense').aggregate(total=Sum('amount'))
@@ -358,6 +400,14 @@ def index(request):
     # ОСНОВНОЙ БАЛАНС: общая сумма минус накопленный резерв
     total = income - expense - total_reserve
     
+     # Получаем валюту из профиля пользователя
+    try:
+        user_currency = request.user.userprofile.currency
+    except (AttributeError, ValueError):
+        user_currency = 'c'
+    
+
+
     # Получаем процент резерва из профиля пользователя
     try:
         reserve_percentage = int(request.user.userprofile.reserve_percentage)
@@ -422,6 +472,7 @@ def index(request):
         'monthly_reserve': monthly_reserve,
         'progress_percentage': progress_percentage,
         'remaining_to_target': remaining_to_target,
+        'user_currency': user_currency,
     })
 
 

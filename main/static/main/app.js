@@ -1,12 +1,28 @@
 // -----------------------------
 // Утилиты и глобальные переменные
 // -----------------------------
+
+
+// Добавьте в самом начале app.js для отладки
+console.log('app.js загружен');
+
+// Проверьте что функции доступны
+window.testCurrency = function() {
+    console.log('Функция testCurrency доступна');
+    return 'OK';
+};
+
+
+
 let currentFilter = 'week';
 let currentPage = 1;
 let hasMoreTransactions = true;
 let isLoading = false;
 let currentCategory = 'all';
 const PAGE_SIZE = 10;
+
+// Добавьте в начало файла с другими глобальными переменными
+let currentTransactionDetailData = null;
 
 window.categories = window.categories || [];
 window.initialBalances = window.initialBalances || { total: 0, income: 0, expense: 0 };
@@ -74,14 +90,23 @@ function animateModal(modalEl, show = true) {
         }, 150); // Уменьшили с 200ms до 150ms
     }
 }
-// -----------------------------
-// Балансы и резерв
-// -----------------------------
+
+
 function updateBalanceDisplay() {
     const totalEl = document.getElementById('totalBalance');
     const incomeEl = document.getElementById('monthIncome');
     const expenseEl = document.getElementById('monthExpense');
     const reserveEl = document.getElementById('reserveAmount');
+    
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let symbol = 'с';
+    switch(currentCurrency) {
+        case 'c': symbol = 'с'; break;
+        case 'r': symbol = '₽'; break;
+        case '$': symbol = '$'; break;
+        case '€': symbol = '€'; break;
+    }
     
     if (totalEl && window.initialBalances) {
         const rawValue = window.initialBalances.total || 0;
@@ -91,13 +116,13 @@ function updateBalanceDisplay() {
     
     if (incomeEl && window.initialBalances) {
         const rawValue = window.initialBalances.income || 0;
-        incomeEl.textContent = formatAmount(rawValue) + ' с';
+        incomeEl.textContent = '+' + formatAmount(rawValue);
         incomeEl.setAttribute('data-raw-value', rawValue);
     }
     
     if (expenseEl && window.initialBalances) {
         const rawValue = window.initialBalances.expense || 0;
-        expenseEl.textContent = formatAmount(rawValue) + ' с';
+        expenseEl.textContent = formatAmount(rawValue);
         expenseEl.setAttribute('data-raw-value', rawValue);
     }
     
@@ -106,6 +131,9 @@ function updateBalanceDisplay() {
         reserveEl.textContent = formatAmount(rawValue);
         reserveEl.setAttribute('data-raw-value', rawValue);
     }
+    
+    // Обновляем символы валюты отдельно
+    updateCurrencySymbols(currentCurrency);
     
     updateSavingsDisplay();
 }
@@ -116,6 +144,7 @@ function updateBalanceDisplay() {
 
 
 // Обновленная функция для отображения сбережений
+// Обновленная функция для отображения сбережений
 function updateSavingsDisplay() {
     try {
         const currentReserveValue = window.initialBalances.total_reserve || 0;
@@ -125,45 +154,45 @@ function updateSavingsDisplay() {
         const progressPercentage = targetReserveValue > 0 ? 
             Math.min(100, (currentReserveValue / targetReserveValue) * 100) : 0;
 
-        // Обновляем текущий резерв
+        // Обновляем текущий резерв (только число, символ валюты добавится автоматически)
         const currentReserveEl = document.getElementById('currentReserveAmount');
         if (currentReserveEl) {
             currentReserveEl.textContent = formatAmount(currentReserveValue);
             currentReserveEl.setAttribute('data-raw-value', currentReserveValue);
         }
 
-        // Обновляем отложено в этом месяце
+        // Обновляем отложено в этом месяце (только число)
         const monthlyReserveEl = document.getElementById('monthlyReserveAmount');
         if (monthlyReserveEl) {
             monthlyReserveEl.textContent = formatAmount(monthlyReserveValue);
             monthlyReserveEl.setAttribute('data-raw-value', monthlyReserveValue);
         }
 
-        // Обновляем всего накоплено
+        // Обновляем всего накоплено (только число)
         const totalReserveEl = document.getElementById('totalReserveAmount');
         if (totalReserveEl) {
             totalReserveEl.textContent = formatAmount(currentReserveValue);
             totalReserveEl.setAttribute('data-raw-value', currentReserveValue);
         }
 
-        // Обновляем целевой резерв
+        // Обновляем целевой резерв (только число)
         const targetReserveEl = document.getElementById('targetReserveAmount');
         if (targetReserveEl) {
             targetReserveEl.textContent = formatAmount(targetReserveValue);
             targetReserveEl.setAttribute('data-raw-value', targetReserveValue);
         }
 
-        // Обновляем осталось до цели
+        // Обновляем осталось до цели (только число)
         const remainingEl = document.getElementById('remainingToTarget');
         if (remainingEl) {
             remainingEl.textContent = formatAmount(remainingValue);
             remainingEl.setAttribute('data-raw-value', remainingValue);
         }
 
-        // Обновляем текст "Осталось: X с"
+        // Обновляем текст "Осталось: X" (без символа валюты)
         const remainingTextEl = document.getElementById('remainingToTargetText');
         if (remainingTextEl) {
-            remainingTextEl.innerHTML = `Осталось: <span id="remainingToTarget" data-raw-value="${remainingValue}">${formatAmount(remainingValue)}</span> с`;
+            remainingTextEl.innerHTML = `Осталось: <span id="remainingToTarget" data-raw-value="${remainingValue}">${formatAmount(remainingValue)}</span>`;
         }
 
         // Обновляем прогресс-бар и текст прогресса
@@ -183,16 +212,16 @@ function updateSavingsDisplay() {
             targetProgressBar.style.width = `${progressPercentage}%`;
         }
 
-        // ОБНОВЛЯЕМ ДИНАМИЧЕСКИЕ ЭЛЕМЕНТЫ ЦЕЛЕВОГО РЕЗЕРВА
+        // ОБНОВЛЯЕМ ДИНАМИЧЕСКИЕ ЭЛЕМЕНТЫ ЦЕЛЕВОГО РЕЗЕРВА (только числа)
         const targetCurrentReserveEl = document.getElementById('targetCurrentReserve');
         if (targetCurrentReserveEl) {
-            targetCurrentReserveEl.textContent = formatAmount(currentReserveValue) + ' с';
+            targetCurrentReserveEl.textContent = formatAmount(currentReserveValue);
             targetCurrentReserveEl.setAttribute('data-raw-value', currentReserveValue);
         }
 
         const targetRemainingEl = document.getElementById('targetRemaining');
         if (targetRemainingEl) {
-            targetRemainingEl.textContent = formatAmount(remainingValue) + ' с';
+            targetRemainingEl.textContent = formatAmount(remainingValue);
             targetRemainingEl.setAttribute('data-raw-value', remainingValue);
         }
 
@@ -208,7 +237,6 @@ function updateSavingsDisplay() {
         console.error('updateSavingsDisplay error', e);
     }
 }
-
 // Функция для обновления мотивационного сообщения
 function updateMotivationMessage(progressPercentage) {
     const motivationMessageEl = document.getElementById('motivationMessage');
@@ -356,14 +384,24 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     const description = transaction.description || '';
     const reserveAmount = transaction.reserve_amount || 0;
 
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
+
     let amountDisplay = '';
     if (transaction.type === 'income') {
         if (reserveAmount > 0) {
             amountDisplay = `
                 <div class="text-right">
                     <div class="space-y-1">
-                        <p class="text-green-400 font-semibold">+${formatAmount(transaction.amount)} с</p>
-                        <p class="text-blue-400 text-xs">резерв: ${formatAmount(reserveAmount)} с</p>
+                        <p class="text-green-400 font-semibold">+${formatAmount(transaction.amount)} ${currencySymbol}</p>
+                        <p class="text-blue-400 text-xs">резерв: ${formatAmount(reserveAmount)} ${currencySymbol}</p>
                         <p class="text-xs text-gray-400">${formattedDate} ${formattedTime}</p>
                     </div>
                 </div>
@@ -372,7 +410,7 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
             amountDisplay = `
                 <div class="text-right">
                     <div class="space-y-1">
-                        <p class="text-green-400 font-semibold">+${formatAmount(transaction.amount)} с</p>
+                        <p class="text-green-400 font-semibold">+${formatAmount(transaction.amount)} ${currencySymbol}</p>
                         <p class="text-xs text-gray-400">${formattedDate} ${formattedTime}</p>
                     </div>
                 </div>
@@ -382,7 +420,7 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
         amountDisplay = `
             <div class="text-right">
                 <div class="space-y-1">
-                    <p class="text-red-400 font-semibold">-${formatAmount(transaction.amount)} с</p>
+                    <p class="text-red-400 font-semibold">-${formatAmount(transaction.amount)} ${currencySymbol}</p>
                     <p class="text-xs text-gray-400">${formattedDate} ${formattedTime}</p>
                 </div>
             </div>
@@ -429,9 +467,6 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
 };
 
 
-
-
-// Обновленная функция открытия модалки
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) return;
@@ -448,70 +483,150 @@ function openTransactionDetail(transactionElement) {
     const createdDate = transactionElement.dataset.createdDate;
     const createdTime = transactionElement.dataset.createdTime;
     
+    // Сохраняем данные транзакции для возможного обновления
+    currentTransactionDetailData = {
+        transactionId,
+        categoryName,
+        categoryIcon,
+        categoryColor,
+        transactionType,
+        amount,
+        reserveAmount,
+        description,
+        createdDate,
+        createdTime
+    };
+    
+    // Обновляем модалку с текущими данными
+    updateTransactionDetailModal();
+    
+    // УБЕДИТЕСЬ, ЧТО ПЕРЕД ОТКРЫТИЕМ ПОЛНОСТЬЮ СБРАСЫВАЕМ ВСЕ СОСТОЯНИЯ
+    resetDeleteConfirmation();
+    
     // Сохраняем transactionId в модалке для использования при удалении
     modal.dataset.currentTransactionId = transactionId;
-    
-    const isIncome = transactionType === 'income';
-
-    // Заполняем модалку данными
-    
-    // Сумма (самый крупный элемент)
-    const amountDisplay = document.getElementById('detailAmount');
-    amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
-    amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
-    
-    // ID транзакции под суммой
-    document.getElementById('detailTransactionId').textContent = `ID ${transactionId || '-'}`;
-    
-    // Резерв под основной суммой (только для доходов)
-    const reserveInfo = document.getElementById('detailReserveInfo');
-    const reserveAmountElement = document.getElementById('detailReserveAmount');
-    
-    if (isIncome && reserveAmount > 0) {
-        reserveInfo.classList.remove('hidden');
-        reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
-    } else {
-        reserveInfo.classList.add('hidden');
-    }
-    
-    // Категория и тип (в отдельном блоке)
-    const categoryIconEl = document.getElementById('detailCategoryIcon');
-    categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
-    categoryIconEl.style.backgroundColor = categoryColor + '22';
-    categoryIconEl.style.color = categoryColor;
-    
-    document.getElementById('detailCategoryName').textContent = categoryName;
-    
-    const typeElement = document.getElementById('detailType');
-    typeElement.textContent = isIncome ? 'Доход' : 'Расход';
-    typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
-    
-    // Описание
-    const descriptionSection = document.getElementById('detailDescriptionSection');
-    const descriptionElement = document.getElementById('detailDescription');
-    if (description && description.trim() !== '') {
-        descriptionSection.style.display = 'block';
-        descriptionElement.textContent = description;
-    } else {
-        descriptionSection.style.display = 'none';
-    }
-    
-    // Дата и время
-    document.getElementById('detailTimestamp').textContent = 
-        `${createdDate} ${createdTime}`;
-
-    // Сбрасываем состояние кнопок при открытии
-    resetDeleteConfirmation();
 
     // Показываем модалку с анимацией
     animateModal(modal, true);
 }
 
+// Функция для обновления модалки деталей транзакции
+function updateTransactionDetailModal() {
+    if (!currentTransactionDetailData) return;
+    
+    const modal = document.getElementById("transactionDetailModal");
+    if (!modal) return;
+    
+    const {
+        transactionId,
+        categoryName,
+        categoryIcon,
+        categoryColor,
+        transactionType,
+        amount,
+        reserveAmount,
+        description,
+        createdDate,
+        createdTime
+    } = currentTransactionDetailData;
+    
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
+    
+    const isIncome = transactionType === 'income';
 
-
-
-
-
+    // Обновляем основную сумму
+    const amountDisplay = document.getElementById('detailAmount');
+    if (amountDisplay) {
+        amountDisplay.innerHTML = '';
+        
+        const amountSpan = document.createElement('span');
+        amountSpan.textContent = (isIncome ? '+' : '-') + formatAmount(amount);
+        amountSpan.style.color = isIncome ? '#10B981' : '#EF4444';
+        
+        const currencySpan = document.createElement('span');
+        currencySpan.className = 'currency-symbol';
+        currencySpan.textContent = ' ' + currencySymbol;
+        
+        amountDisplay.appendChild(amountSpan);
+        amountDisplay.appendChild(currencySpan);
+    }
+    
+    // ID транзакции под суммой
+    const detailTransactionId = document.getElementById('detailTransactionId');
+    if (detailTransactionId) {
+        detailTransactionId.textContent = `ID ${transactionId || '-'}`;
+    }
+    
+    // Резерв под основной суммой (только для доходов)
+    const reserveInfo = document.getElementById('detailReserveInfo');
+    const reserveAmountElement = document.getElementById('detailReserveAmount');
+    
+    if (reserveInfo && reserveAmountElement) {
+        if (isIncome && reserveAmount > 0) {
+            reserveInfo.classList.remove('hidden');
+            reserveAmountElement.textContent = formatAmount(reserveAmount);
+            
+            // Обновляем символ валюты в резерве
+            const reserveCurrencySymbols = reserveInfo.querySelectorAll('.currency-symbol');
+            reserveCurrencySymbols.forEach(symbol => {
+                symbol.textContent = ' ' + currencySymbol;
+            });
+        } else {
+            reserveInfo.classList.add('hidden');
+        }
+    }
+    
+    // Обновляем все символы валюты в модалке
+    const currencySymbols = modal.querySelectorAll('.currency-symbol');
+    currencySymbols.forEach(symbol => {
+        symbol.textContent = ' ' + currencySymbol;
+    });
+    
+    // Категория и тип
+    const categoryIconEl = document.getElementById('detailCategoryIcon');
+    if (categoryIconEl) {
+        categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
+        categoryIconEl.style.backgroundColor = categoryColor + '22';
+        categoryIconEl.style.color = categoryColor;
+    }
+    
+    const detailCategoryName = document.getElementById('detailCategoryName');
+    if (detailCategoryName) {
+        detailCategoryName.textContent = categoryName;
+    }
+    
+    const typeElement = document.getElementById('detailType');
+    if (typeElement) {
+        typeElement.textContent = isIncome ? 'Доход' : 'Расход';
+        typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    }
+    
+    // Описание
+    const descriptionSection = document.getElementById('detailDescriptionSection');
+    const descriptionElement = document.getElementById('detailDescription');
+    if (descriptionSection && descriptionElement) {
+        if (description && description.trim() !== '') {
+            descriptionSection.style.display = 'block';
+            descriptionElement.textContent = description;
+        } else {
+            descriptionSection.style.display = 'none';
+        }
+    }
+    
+    // Дата и время
+    const detailTimestamp = document.getElementById('detailTimestamp');
+    if (detailTimestamp) {
+        detailTimestamp.textContent = `${createdDate} ${createdTime}`;
+    }
+}
 
 // -----------------------------
 // Пустые состояния
@@ -1036,6 +1151,10 @@ async function deleteTransactionFromModal() {
         resetDeleteConfirmation();
     }
 }
+
+
+
+
 // Функция закрытия модалки деталей транзакции
 function closeTransactionDetailModal() {
     const modal = document.getElementById("transactionDetailModal");
@@ -1045,16 +1164,20 @@ function closeTransactionDetailModal() {
         
         animateModal(modal, false);
         
-        // ОЧИЩАЕМ ID ТРАНЗАКЦИИ ПРИ ЗАКРЫТИИ
+        // ОЧИЩАЕМ ID ТРАНЗАКЦИИ И ДАННЫЕ ПРИ ЗАКРЫТИИ
         setTimeout(() => {
             if (modal.dataset.currentTransactionId) {
                 delete modal.dataset.currentTransactionId;
             }
+            // Сбрасываем данные транзакции
+            currentTransactionDetailData = null;
         }, 300);
     }
 }
-// Функция открытия модалки деталей транзакции
-// Функция открытия модалки деталей транзакции
+
+
+
+
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) return;
@@ -1071,7 +1194,17 @@ function openTransactionDetail(transactionElement) {
     const createdDate = transactionElement.dataset.createdDate;
     const createdTime = transactionElement.dataset.createdTime;
     
-    // УБЕДИТЕСЬ, ЧТО ПЕРЕД ОТКРЫТИЕМ ПОЛНОСТЬЮ СБРАСЫВАЕМ ВСЕ СОСТОЯНИЯ
+    // Получаем текущий символ валюты
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+    }
+    
+    // СБРАСЫВАЕМ СОСТОЯНИЕ ПЕРЕД ОТКРЫТИЕМ
     resetDeleteConfirmation();
     
     // Сохраняем transactionId в модалке для использования при удалении
@@ -1079,13 +1212,28 @@ function openTransactionDetail(transactionElement) {
     
     const isIncome = transactionType === 'income';
 
-    // Заполняем модалку данными
-    
-    // Сумма (самый крупный элемент)
+    // ОБНОВЛЯЕМ СУММУ - ПРАВИЛЬНЫЙ ПОДХОД
     const amountDisplay = document.getElementById('detailAmount');
     if (amountDisplay) {
-        amountDisplay.textContent = (isIncome ? '+' : '-') + formatAmount(amount) + ' с';
-        amountDisplay.style.color = isIncome ? '#10B981' : '#EF4444';
+        // Очищаем и пересоздаем содержимое
+        amountDisplay.innerHTML = '';
+        
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'amount-value';
+        amountSpan.textContent = (isIncome ? '+' : '-') + formatAmount(amount);
+        amountSpan.style.color = isIncome ? '#10B981' : '#EF4444';
+        amountSpan.style.fontSize = '2.25rem'; // text-4xl
+        amountSpan.style.fontWeight = 'bold';
+        
+        const currencySpan = document.createElement('span');
+        currencySpan.className = 'currency-symbol';
+        currencySpan.textContent = ' ' + currencySymbol;
+        currencySpan.style.color = isIncome ? '#10B981' : '#EF4444';
+        currencySpan.style.fontSize = '2.25rem'; // text-4xl
+        currencySpan.style.fontWeight = 'bold';
+        
+        amountDisplay.appendChild(amountSpan);
+        amountDisplay.appendChild(currencySpan);
     }
     
     // ID транзакции под суммой
@@ -1101,13 +1249,19 @@ function openTransactionDetail(transactionElement) {
     if (reserveInfo && reserveAmountElement) {
         if (isIncome && reserveAmount > 0) {
             reserveInfo.classList.remove('hidden');
-            reserveAmountElement.textContent = `${formatAmount(reserveAmount)} с`;
+            reserveAmountElement.textContent = formatAmount(reserveAmount);
+            
+            // Обновляем символ валюты в резерве
+            const reserveCurrencySymbols = reserveInfo.querySelectorAll('.currency-symbol');
+            reserveCurrencySymbols.forEach(symbol => {
+                symbol.textContent = ' ' + currencySymbol;
+            });
         } else {
             reserveInfo.classList.add('hidden');
         }
     }
     
-    // Категория и тип (в отдельном блоке)
+    // Категория и тип
     const categoryIconEl = document.getElementById('detailCategoryIcon');
     if (categoryIconEl) {
         categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
@@ -1147,8 +1301,6 @@ function openTransactionDetail(transactionElement) {
     // Показываем модалку с анимацией
     animateModal(modal, true);
 }
-
-
 
 
 // -----------------------------
@@ -1713,6 +1865,16 @@ async function loadUserCategories() {
         categoriesList.innerHTML = '';
         
         if (data.categories && data.categories.length > 0) {
+            // Получаем текущий символ валюты
+            const currentCurrency = window.currentCurrency || 'c';
+            let currencySymbol = 'с';
+            switch(currentCurrency) {
+                case 'c': currencySymbol = 'с'; break;
+                case 'r': currencySymbol = '₽'; break;
+                case '$': currencySymbol = '$'; break;
+                case '€': currencySymbol = '€'; break;
+            }
+            
             data.categories.forEach(category => {
                 const categoryElement = document.createElement('div');
                 categoryElement.className = 'category-item bg-gray-800 rounded-lg p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700/50 transition-colors';
@@ -1731,7 +1893,7 @@ async function loadUserCategories() {
                         <div class="flex-1">
                             <p class="font-medium">${category.name}</p>
                             <div class="flex items-center space-x-2 text-xs text-gray-400 mt-1">
-                                <span>Расходы: ${formatAmount(category.expense_amount)} с</span>
+                                <span>Расходы: ${formatAmount(category.expense_amount)} <span class="currency-symbol">${currencySymbol}</span></span>
                             </div>
                         </div>
                     </div>
@@ -1774,7 +1936,6 @@ async function loadUserCategories() {
         `;
     }
 }
-
 
 
 
@@ -1977,7 +2138,7 @@ async function saveCategory() {
 // -----------------------------
 function initMenuModal() {
     const modal = document.getElementById('menuModal');
-    const openBtn = document.getElementById('menuBtn'); // кнопка открытия (⚙️)
+    const openBtn = document.getElementById('menuBtn');
     const closeBtn = modal ? modal.querySelector('button[onclick="toggleMenuModal()"]') : null;
 
     if (!modal) {
@@ -1992,6 +2153,10 @@ function initMenuModal() {
         const isVisible = !modal.classList.contains('hidden');
         if (show === true || (!isVisible && show !== false)) {
             animateModal(modal, true);
+            // ИНИЦИАЛИЗИРУЕМ ОБРАБОТЧИКИ ВАЛЮТЫ ПРИ ОТКРЫТИИ МОДАЛКИ
+            setTimeout(() => {
+                initCurrencyHandlers();
+            }, 100);
         } else {
             animateModal(modal, false);
         }
@@ -2009,158 +2174,18 @@ function initMenuModal() {
         closeBtn.addEventListener('click', () => toggleMenuModal(false));
     }
 
-    // Закрытие при клике вне окна
+    // Закрытие по клику вне окна
     modal.addEventListener('click', e => {
         if (e.target === modal) toggleMenuModal(false);
     });
 
-    // Логика сохранения процентов и цели
-    const saveReserveBtn = document.getElementById('saveReserveBtn');
-    const saveTargetReserveBtn = document.getElementById('saveTargetReserveBtn');
+    // ... остальной существующий код ...
 
-if (saveReserveBtn) {
-    saveReserveBtn.addEventListener('click', async () => {
-        const btn = saveReserveBtn;
-        const percent = parseFloat(document.getElementById('reservePercentageInput').value);
-
-        if (isNaN(percent) || percent < 0 || percent > 100) {
-            showErrorNotification('Введите процент от 0 до 100');
-            return;
-        }
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-        const formData = new FormData();
-        formData.append('reserve_percentage', percent);
-
-        try {
-            // Визуальное состояние «сохранения»
-            btn.disabled = true;
-            const oldText = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...`;
-
-            const response = await fetch('/update_reserve_percentage/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: formData,
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                window.initialReservePercentage = percent;
-                document.getElementById('currentReservePercent').textContent = `${percent}%`;
-                
-                // Обновляем отображение процента в блоке резерва
-                const reservePercentageDisplay = document.getElementById('reservePercentageDisplay');
-                if (reservePercentageDisplay) {
-                    reservePercentageDisplay.textContent = percent;
-                }
-                
-                // ОБНОВЛЯЕМ УВЕДОМЛЕНИЕ О РЕЗЕРВЕ
-                updateReserveNotification();
-                
-                showSuccessNotification('Успешно сохранено!');
-                btn.innerHTML = `<i class="fas fa-check mr-2 text-green-400"></i>Сохранено`;
-                
-                setTimeout(() => animateModal(document.getElementById('menuModal'), false), 1000);
-            } else {
-                showErrorNotification(data.error || 'Ошибка при сохранении');
-                btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>Ошибка`;
-            }
-        } catch (e) {
-            console.error('Ошибка при сохранении процента резерва:', e);
-            showErrorNotification('Ошибка при соединении с сервером');
-            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>Ошибка`;
-        } finally {
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i>Сохранить`;
-            }, 2000);
-        }
-    });
+    // ИНИЦИАЛИЗИРУЕМ ОБРАБОТЧИКИ ВАЛЮТЫ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+    setTimeout(() => {
+        initCurrencyHandlers();
+    }, 1000);
 }
-
-
-
-
-// Функция для обновления видимости уведомления о резерве
-function updateReserveNotification() {
-    const reserveNotification = document.getElementById('reserveNotification');
-    if (!reserveNotification) return;
-    
-    if (window.initialReservePercentage === 0) {
-        reserveNotification.classList.remove('hidden');
-    } else {
-        reserveNotification.classList.add('hidden');
-    }
-}
-
-
-if (saveTargetReserveBtn) {
-    saveTargetReserveBtn.addEventListener('click', async () => {
-        const btn = saveTargetReserveBtn;
-        const target = parseFloat(document.getElementById('targetReserveInput').value);
-
-        if (isNaN(target) || target < 0) {
-            showErrorNotification('Введите корректную сумму цели');
-            return;
-        }
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-        const formData = new FormData();
-        formData.append('target_reserve', target);
-
-        try {
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...`;
-
-            const response = await fetch('/update_target_reserve/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: formData,
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                window.initialTargetReserve = target;
-                
-                // Обновляем отображение в меню
-                const currentTargetReserveEl = document.getElementById('currentTargetReserve');
-                if (currentTargetReserveEl) {
-                    currentTargetReserveEl.textContent = `${formatAmount(target)} с`;
-                }
-                
-                // ОБНОВЛЯЕМ ВСЕ ЭЛЕМЕНТЫ ЦЕЛЕВОГО РЕЗЕРВА
-                updateSavingsDisplay();
-                
-                showSuccessNotification('Успешно сохранено!');
-                btn.innerHTML = `<i class="fas fa-check mr-2 text-green-400"></i>Сохранено`;
-                setTimeout(() => animateModal(document.getElementById('menuModal'), false), 1000);
-            } else {
-                showErrorNotification(data.error || 'Ошибка при сохранении');
-                btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>Ошибка`;
-            }
-        } catch (e) {
-            console.error('Ошибка при сохранении целевого резерва:', e);
-            showErrorNotification('Ошибка при соединении с сервером');
-            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>Ошибка`;
-        } finally {
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save mr-2"></i>Сохранить`;
-            }, 2000);
-        }
-    });
-}
-}
-
 
 // -----------------------------
 // Уведомления (успех / ошибка)
@@ -2199,6 +2224,335 @@ function showErrorNotification(message) {
     }, 2000);
 }
 
+
+// Функция для обновления валюты
+async function updateCurrency(currency) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    try {
+        // Показываем состояние загрузки на нажатой кнопке
+        const clickedButton = document.querySelector(`.currency-btn[data-currency="${currency}"]`);
+        if (clickedButton) {
+            const originalHTML = clickedButton.innerHTML;
+            clickedButton.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>';
+            clickedButton.disabled = true;
+        }
+
+        const response = await fetch('/update_currency/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `currency=${currency}`
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем глобальную переменную валюты
+            window.currentCurrency = currency;
+            
+            // Обновляем интерфейс
+            updateBalanceCurrencyIcon(currency);
+            updateCurrencySymbols(currency);
+            updateCurrentCurrencyDisplay(currency);
+            updateAllCurrencyButtons(currency);
+            updateBalanceDisplay();
+            
+            // ОБНОВЛЯЕМ ОТКРЫТУЮ МОДАЛКУ ТРАНЗАКЦИИ
+            updateTransactionDetailModal();
+            
+            // ПЕРЕЗАГРУЖАЕМ ТРАНЗАКЦИИ С НОВЫМ СИМВОЛОМ ВАЛЮТЫ
+            currentPage = 1;
+            hasMoreTransactions = true;
+            loadTransactions();
+            
+            showSuccessNotification('Валюта изменена!');
+            
+        } else {
+            showErrorNotification(data.error || 'Ошибка при изменении валюты');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showErrorNotification('Ошибка соединения');
+    } finally {
+        // Восстанавливаем все кнопки
+        restoreCurrencyButtons();
+    }
+}
+
+
+
+
+
+function updateAllCurrencyButtons(selectedCurrency) {
+    const buttons = document.querySelectorAll('.currency-btn');
+    
+    buttons.forEach(btn => {
+        const currency = btn.dataset.currency;
+        
+        // Удаляем все стили
+        btn.classList.remove(
+            'border-2', 'border-green-500', 'bg-green-500/10',
+            'border', 'border-gray-600'
+        );
+        
+        // Добавляем соответствующие стили
+        if (currency === selectedCurrency) {
+            btn.classList.add('border-2', 'border-green-500', 'bg-green-500/10');
+        } else {
+            btn.classList.add('border', 'border-gray-600');
+        }
+    });
+}
+
+
+
+// Функция для восстановления кнопок валюты
+function restoreCurrencyButtons() {
+    const buttons = document.querySelectorAll('.currency-btn');
+    const currentCurrency = window.currentCurrency || 'c';
+    
+    buttons.forEach(btn => {
+        btn.disabled = false;
+        const currency = btn.dataset.currency;
+        btn.innerHTML = `<span class="text-white font-medium text-sm">${getCurrencyButtonText(currency)}</span>`;
+        
+        // Восстанавливаем правильные стили
+        btn.classList.remove(
+            'border-2', 'border-green-500', 'bg-green-500/10',
+            'border', 'border-gray-600'
+        );
+        
+        if (currency === currentCurrency) {
+            btn.classList.add('border-2', 'border-green-500', 'bg-green-500/10');
+        } else {
+            btn.classList.add('border', 'border-gray-600');
+        }
+    });
+}
+
+
+
+// Функция для обновления стилей кнопок валюты
+function updateCurrencyButtons(selectedCurrency) {
+    const buttons = document.querySelectorAll('.currency-btn');
+    
+    buttons.forEach(btn => {
+        const currency = btn.dataset.currency;
+        
+        // Удаляем все стили
+        btn.classList.remove(
+            'border-2', 'border-green-500', 'bg-green-500/10',
+            'border', 'border-gray-600'
+        );
+        
+        // Добавляем соответствующие стили
+        if (currency === selectedCurrency) {
+            btn.classList.add('border-2', 'border-green-500', 'bg-green-500/10');
+        } else {
+            btn.classList.add('border', 'border-gray-600');
+        }
+    });
+}
+
+// Функция для инициализации кнопок валюты при загрузке
+function initCurrencyButtons() {
+    // Используем валюту из Django или по умолчанию 'c'
+    const currentCurrency = window.currentCurrency || 'c';
+    updateAllCurrencyButtons(currentCurrency);
+}
+
+
+// Функция для получения текста кнопки валюты
+function getCurrencyButtonText(currency) {
+    switch(currency) {
+        case 'c': return 'сом';
+        case 'r': return 'рубль';
+        case '$': return 'доллар';
+        case '€': return 'евро';
+        default: return 'сом';
+    }
+}
+
+
+
+
+// Функция для обновления иконки в основном балансе
+function updateBalanceCurrencyIcon(currency) {
+    const balanceIcon = document.getElementById('balanceCurrencyIcon');
+    if (!balanceIcon) return;
+    
+    // Удаляем все классы иконок валют
+    balanceIcon.className = '';
+    balanceIcon.classList.add('fas', 'text-[110px]', 'text-blue-800/20', 'absolute', 'top-3', 'right-4');
+    
+    // Добавляем нужную иконку
+    switch(currency) {
+        case 'c':
+            balanceIcon.classList.add('fa-c');
+            break;
+        case '$':
+            balanceIcon.classList.add('fa-dollar-sign');
+            break;
+        case 'r':
+            balanceIcon.classList.add('fa-ruble-sign');
+            break;
+        case '€':
+            balanceIcon.classList.add('fa-euro-sign');
+            break;
+        default:
+            balanceIcon.classList.add('fa-c');
+    }
+}
+
+
+
+
+// Обновленная функция для обновления символов валюты во всем интерфейсе
+// Обновленная функция для обновления символов валюты во всем интерфейсе
+function updateCurrencySymbols(currency) {
+    let symbol = 'с'; // по умолчанию
+    
+    switch(currency) {
+        case 'c': symbol = 'с'; break;
+        case 'r': symbol = '₽'; break;
+        case '$': symbol = '$'; break;
+        case '€': symbol = '€'; break;
+    }
+    
+    // Обновляем все элементы с классом currency-symbol
+    const currencySymbols = document.querySelectorAll('.currency-symbol');
+    currencySymbols.forEach(element => {
+        element.textContent = symbol;
+    });
+    
+    // Также обновляем элементы статистики резерва
+    const reserveElements = [
+        'currentReserveAmount',
+        'monthlyReserveAmount',
+        'totalReserveAmount',
+        'targetReserveAmount',
+        'remainingToTarget',
+        'targetCurrentReserve',
+        'targetRemaining'
+    ];
+    
+    reserveElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            const rawValue = element.getAttribute('data-raw-value');
+            if (rawValue) {
+                // Форматируем значение с правильным символом
+                element.textContent = formatAmount(rawValue);
+                // Добавляем символ валюты как отдельный элемент после числа
+                if (!element.nextElementSibling || !element.nextElementSibling.classList.contains('currency-symbol')) {
+                    const currencySpan = document.createElement('span');
+                    currencySpan.className = 'currency-symbol';
+                    currencySpan.textContent = ' ' + symbol;
+                    currencySpan.style.marginLeft = '2px';
+                    element.parentNode.insertBefore(currencySpan, element.nextSibling);
+                }
+            }
+        }
+    });
+    
+    // ОБНОВЛЯЕМ КАТЕГОРИИ - перезагружаем список категорий
+    if (document.getElementById('categoriesList')) {
+        loadUserCategories();
+    }
+    
+    console.log('Символы валюты обновлены на:', symbol);
+}
+
+
+// Функция для обновления отображения текущей валюты в меню
+function updateCurrentCurrencyDisplay(currency) {
+    const currentCurrencyEl = document.getElementById('currentCurrency');
+    if (!currentCurrencyEl) return;
+    
+    let currencyName = '';
+    switch(currency) {
+        case 'c': currencyName = 'сом'; break;
+        case 'r': currencyName = 'рубль'; break;
+        case '$': currencyName = 'доллар'; break;
+        case '€': currencyName = 'евро'; break;
+    }
+    
+    currentCurrencyEl.textContent = currencyName;
+}
+
+function initCurrencyHandlers() {
+    const currencyButtons = document.querySelectorAll('.currency-btn');
+    
+    currencyButtons.forEach(btn => {
+        // Удаляем существующие обработчики
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+    });
+    
+    // Получаем обновленные кнопки
+    const updatedButtons = document.querySelectorAll('.currency-btn');
+    
+    updatedButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currency = this.dataset.currency;
+            console.log('Выбрана валюта:', currency);
+            
+            if (currency) {
+                updateCurrency(currency);
+            }
+        });
+    });
+    
+    // Инициализируем кнопки при загрузке
+    initCurrencyButtons();
+    
+    console.log('Инициализировано обработчиков валюты:', updatedButtons.length);
+}
+
+
+// Инициализация символов валюты при загрузке страницы
+function initCurrencyOnLoad() {
+    const currentCurrency = window.currentCurrency || 'c';
+    console.log('Инициализация валюты при загрузке:', currentCurrency);
+    
+    // Обновляем символы валюты
+    updateCurrencySymbols(currentCurrency);
+    
+    // Обновляем отображение текущей валюты
+    updateCurrentCurrencyDisplay(currentCurrency);
+    
+    // Обновляем иконку в балансе
+    updateBalanceCurrencyIcon(currentCurrency);
+    
+    // Обновляем кнопки валюты
+    updateAllCurrencyButtons(currentCurrency);
+    
+    // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ БАЛАНСА - ДОБАВЬТЕ ЭТУ СТРОКУ
+    updateBalanceDisplay();
+
+ // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ БАЛАНСА И СБЕРЕЖЕНИЙ
+    updateBalanceDisplay();
+    updateSavingsDisplay();
+
+        // ПЕРЕЗАГРУЖАЕМ ТРАНЗАКЦИИ С ПРАВИЛЬНЫМ СИМВОЛОМ ВАЛЮТЫ
+    currentPage = 1;
+    hasMoreTransactions = true;
+    loadTransactions();
+
+
+}
+
+// Вызов инициализации при загрузке
+setTimeout(() => {
+    initCurrencyOnLoad();
+}, 100);
 
 
 
@@ -2241,6 +2595,17 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => { showSuccessNotification('Добро пожаловать!'); }, 800);
         }
 
+
+        // Инициализация валюты при загрузке
+        setTimeout(() => {
+            const currentCurrency = window.currentCurrency || 'c';
+            updateCurrencySymbols(currentCurrency);
+            updateBalanceCurrencyIcon(currentCurrency);
+            updateCurrentCurrencyDisplay(currentCurrency);
+            updateAllCurrencyButtons(currentCurrency);
+        }, 100);
+
+
         // Инициализируем модалки и интерфейс
         initTabNavigation();
         initTransactionModal();
@@ -2249,7 +2614,8 @@ document.addEventListener('DOMContentLoaded', function() {
         initTransactionDetailModal();
         initCategoryFilter();
         initReminderPicker();
-
+// Инициализируем кнопки валюты при загрузке
+        initCurrencyButtons();
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();
 
         // Загружаем категории и транзакции при старте
