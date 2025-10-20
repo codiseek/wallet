@@ -67,22 +67,21 @@
 <div id="notificationsModal2" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto h-[70vh] flex flex-col">
         <!-- Заголовок -->
-        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
-            <h2 class="text-xl font-bold flex items-center">
-                <i class="fas fa-bell text-yellow-400 mr-2"></i>
-                Уведомления
-            </h2>
-            <div class="flex items-center space-x-2">
-                <button class="text-gray-400 hover:text-white p-1 rounded transition-colors" title="Пометить все как прочитанные">
-                    <i class="fas fa-check-double text-sm"></i>
-                </button>
-                <button id="closeNotificationsModal2" class="text-gray-400 hover:text-white p-1 rounded transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
+       <!-- Заголовок -->
+<div class="p-4 border-b border-gray-700 flex items-center justify-between">
+    <h2 class="text-xl font-bold flex items-center">
+        <i class="fas fa-bell text-yellow-400 mr-2"></i>
+        Уведомления
+    </h2>
+    <div class="flex items-center space-x-2">
+        <button id="closeNotificationsModal2" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+           
+            Закрыть
+        </button>
+    </div>
+</div>
 
-        <!-- Фильтры уведомлений -->
+        <!-- Фильтры уведомлений - ТОЛЬКО СИСТЕМНЫЕ -->
         <div class="p-3 border-b border-gray-700">
             <div class="flex space-x-1 bg-gray-700 rounded-lg p-1">
                 <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-blue-600 text-white" data-filter="all">
@@ -91,121 +90,73 @@
                 <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="unread">
                     Непрочитанные
                 </button>
-                <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="system">
-                    Системные
-                </button>
             </div>
         </div>
 
         <!-- Список уведомлений -->
         <div class="flex-1 overflow-y-auto p-2">
             <div class="space-y-2" id="notificationsList2">
-                <!-- Пример уведомления - непрочитанное -->
-                <div class="notification-item bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-blue-500/15 transition-all" data-unread="true">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-white truncate">Достигнута цель резерва! 🎉</h3>
-                                <span class="text-xs text-blue-400 font-medium ml-2 whitespace-nowrap">только что</span>
-                            </div>
-                            <p class="text-xs text-gray-300 leading-relaxed">
-                                Поздравляем! Вы достигли своей цели по накоплению 50,000 с. Продолжайте в том же духе!
-                            </p>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                                <span class="text-xs text-blue-400">Новое</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Пример уведомления - прочитанное -->
-                <div class="notification-item bg-gray-700/30 border border-gray-600/30 rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" data-unread="false">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fas fa-chart-line text-green-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-gray-300 truncate">Еженедельная статистика</h3>
-                                <span class="text-xs text-gray-500 font-medium ml-2 whitespace-nowrap">2 ч назад</span>
-                            </div>
-                            <p class="text-xs text-gray-400 leading-relaxed">
-                                На этой неделе вы сэкономили на 15% больше по сравнению с предыдущей. Отличный результат!
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Пример уведомления - система -->
-                <div class="notification-item bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 cursor-pointer hover:bg-purple-500/15 transition-all" data-unread="false">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fas fa-robot text-purple-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-white truncate">Новые функции доступны</h3>
-                                <span class="text-xs text-purple-400 font-medium ml-2 whitespace-nowrap">вчера</span>
-                            </div>
-                            <p class="text-xs text-gray-300 leading-relaxed">
-                                Теперь вы можете устанавливать цели для категорий и отслеживать прогресс в реальном времени.
-                            </p>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <span class="text-xs text-purple-400 font-medium">Обновление</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Пример уведомления - предупреждение -->
-                <div class="notification-item bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 cursor-pointer hover:bg-yellow-500/15 transition-all" data-unread="true">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i class="fas fa-exclamation-triangle text-yellow-400 text-sm"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between mb-1">
-                                <h3 class="text-sm font-semibold text-white truncate">Превышен бюджет</h3>
-                                <span class="text-xs text-yellow-400 font-medium ml-2 whitespace-nowrap">2 дня назад</span>
-                            </div>
-                            <p class="text-xs text-gray-300 leading-relaxed">
-                                Вы превысили установленный лимит по категории "Рестораны" на 1,250 с.
-                            </p>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <span class="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-                                <span class="text-xs text-yellow-400">Внимание</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Уведомления будут загружаться динамически -->
             </div>
 
             <!-- Пустое состояние -->
-            <div id="emptyNotificationsState2" class="text-center py-8 text-gray-500 hidden">
+            <div id="emptyNotificationsState2" class="text-center py-8 text-gray-500">
                 <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
                     <i class="fas fa-bell-slash text-2xl text-gray-500"></i>
                 </div>
                 <p class="text-gray-400">Уведомлений пока нет</p>
-                <p class="text-sm text-gray-500 mt-1">Здесь будут появляться важные события</p>
+                <p class="text-sm text-gray-500 mt-1">Здесь будут появляться системные уведомления</p>
             </div>
         </div>
 
         <!-- Нижняя панель -->
         <div class="p-3 border-t border-gray-700 bg-gray-800/80">
             <div class="flex items-center justify-between text-xs text-gray-400">
-                <span>Всего уведомлений: <span id="notificationsCount2">4</span></span>
-                <button class="text-blue-400 hover:text-blue-300 transition-colors">
-                    Настройки уведомлений
+                <span>Всего уведомлений: <span id="notificationsCount2">0</span></span>
+                {% if user.is_staff %}
+                <button onclick="openCreateNotificationModal()" class="text-blue-400 hover:text-blue-300 transition-colors text-xs">
+                    <i class="fas fa-plus mr-1"></i> Создать уведомление
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- Модалка создания уведомления для админа -->
+{% if user.is_staff %}
+<div id="createNotificationModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1100] bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-md mx-auto">
+        <div class="p-4 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-center">Создать системное уведомление</h2>
+        </div>
+        
+        <div class="p-6">
+            <form id="createNotificationForm" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-gray-300 mb-2">Заголовок</label>
+                    <input type="text" id="notificationTitle" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" placeholder="Введите заголовок" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-300 mb-2">Сообщение</label>
+                    <textarea id="notificationMessage" rows="4" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" placeholder="Введите текст сообщения" required></textarea>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeCreateNotificationModal()" class="flex-1 py-3 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-semibold">
+                        Отмена
+                    </button>
+                    <button type="submit" class="flex-1 py-3 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold transition-colors">
+                        Отправить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
         <!-- Главная вкладка -->
         <div class="mobile-tab active" id="tab-home">
@@ -1337,6 +1288,8 @@
                         </div>
                     </div>
                 </div>
+
+
                 
   <!-- Настройка процента резерва -->
 <div class="bg-gray-700/60 rounded-xl p-4 mb-6 border border-gray-600/50">
@@ -1415,6 +1368,12 @@
                 </button>
 
 
+
+              
+
+
+
+
     <!-- Модальное окно смены пароля -->
     <div id="changePasswordModal"
      class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-[1000] flex items-center justify-center p-4">
@@ -1458,7 +1417,10 @@
 
 
 
-
+<script>
+    // Определяем isAdmin для JavaScript
+    window.isAdmin = {% if user.is_staff %}true{% else %}false{% endif %};
+</script>
 
 
 <script>

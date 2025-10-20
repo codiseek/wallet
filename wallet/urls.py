@@ -47,4 +47,8 @@ urlpatterns = [
     path('send_note_reminder/', views.send_note_reminder, name='send_note_reminder'),
     path('get_pending_reminders/', views.get_pending_reminders, name='get_pending_reminders'),
     path('get_category_stats/<int:category_id>/', views.get_category_stats, name='get_category_stats'),
+    path('notifications/create/', views.create_system_notification, name='create_system_notification'),
+    path('notifications/', views.get_user_notifications, name='get_user_notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('notifications/<int:notification_id>/delete/', views.delete_system_notification, name='delete_system_notification'),
 ]

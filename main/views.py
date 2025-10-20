@@ -23,11 +23,123 @@ from webpush import send_group_notification
 from .models import Note
 from django.utils import timezone
 
+from .models import SystemNotification, UserNotification
+from django.contrib.admin.views.decorators import staff_member_required
+
+
 def home(request):
     vapid_key = settings.WEBPUSH_SETTINGS.get("VAPID_PUBLIC_KEY")
     return render(request, "main/index.html", {"vapid_key": vapid_key})
 
+@staff_member_required
+@require_POST
+def create_system_notification(request):
+    """Создание системного уведомления админом"""
+    try:
+        data = json.loads(request.body)
+        title = data.get('title')
+        message = data.get('message')
+        
+        if not title or not message:
+            return JsonResponse({'success': False, 'error': 'Заполните все поля'})
+        
+        # Создаем системное уведомление
+        notification = SystemNotification.objects.create(
+            title=title,
+            message=message,
+            created_by=request.user
+        )
+        
+        # Создаем записи для всех пользователей
+        users = User.objects.all()
+        user_notifications = []
+        for user in users:
+            user_notifications.append(
+                UserNotification(user=user, notification=notification)
+            )
+        
+        UserNotification.objects.bulk_create(user_notifications)
+        
+        return JsonResponse({'success': True, 'message': 'Уведомление отправлено всем пользователям'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
+@login_required
+def get_user_notifications(request):
+    """Получение уведомлений пользователя"""
+    try:
+        user_notifications = UserNotification.objects.filter(
+            user=request.user,
+            notification__is_active=True
+        ).select_related('notification').order_by('-created_at')
+        
+        notifications_data = []
+        unread_count = 0
+        
+        for user_notif in user_notifications:
+            notifications_data.append({
+                'id': user_notif.id,
+                'notification_id': user_notif.notification.id,
+                'title': user_notif.notification.title,
+                'message': user_notif.notification.message,
+                'created_at': user_notif.notification.created_at.isoformat(),
+                'is_read': user_notif.is_read,
+                'read_at': user_notif.read_at.isoformat() if user_notif.read_at else None
+            })
+            
+            if not user_notif.is_read:
+                unread_count += 1
+        
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data,
+            'unread_count': unread_count
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def mark_notification_as_read(request, notification_id):
+    """Пометить уведомление как прочитанное"""
+    try:
+        user_notification = UserNotification.objects.get(
+            id=notification_id,
+            user=request.user
+        )
+        
+        if not user_notification.is_read:
+            user_notification.is_read = True
+            user_notification.read_at = timezone.now()
+            user_notification.save()
+        
+        return JsonResponse({'success': True})
+        
+    except UserNotification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Уведомление не найдено'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@staff_member_required
+@require_POST
+def delete_system_notification(request, notification_id):
+    """Удаление системного уведомления (админ)"""
+    try:
+        notification = SystemNotification.objects.get(id=notification_id)
+        notification.is_active = False
+        notification.save()
+        
+        return JsonResponse({'success': True, 'message': 'Уведомление удалено'})
+        
+    except SystemNotification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Уведомление не найдено'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+
+    
 
 @require_POST
 @login_required
