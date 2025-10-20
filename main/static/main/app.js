@@ -551,7 +551,7 @@ async function loadTransactions() {
         return;
     }
 
-    console.log(`Загрузка транзакций: фильтр=${currentFilter}, страница=${currentPage}, категория=${currentCategory}`);
+  
 
     if (currentPage === 1) {
         transactionsContainer.innerHTML = `
@@ -564,7 +564,7 @@ async function loadTransactions() {
 
     try {
         const url = `/get_transactions/?filter=${currentFilter}&page=${currentPage}&limit=${PAGE_SIZE}&category=${currentCategory}`;
-        console.log('Запрос к:', url);
+        
         
         const resp = await fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -581,13 +581,13 @@ async function loadTransactions() {
         }
 
         const data = await resp.json();
-        console.log('Получены данные:', data);
+       
         
         if (data.success) {
             if (currentPage === 1) transactionsContainer.innerHTML = '';
             
             if (data.transactions && data.transactions.length > 0) {
-                console.log(`Добавлено ${data.transactions.length} транзакций`);
+               
                 
                 data.transactions.forEach(tx => window.addTransactionToList(tx, false, true));
                 
@@ -597,7 +597,7 @@ async function loadTransactions() {
                 updateWelcomeHint();
                 if (hasMoreTransactions) currentPage++;
             } else {
-                console.log('Нет транзакций для отображения');
+                
                 if (currentPage === 1) {
                     transactionsContainer.innerHTML = '';
                     showEmptyState();
@@ -667,7 +667,7 @@ function updateCategoryTabsHandlers() {
 }
 
 function initTransactionFilter() {
-    console.log('initTransactionFilter called');
+   
     
     // Ждем полной загрузки DOM
     if (document.readyState === 'loading') {
@@ -680,8 +680,7 @@ function initTransactionFilter() {
     const filterOptions = document.querySelectorAll('.filter-option');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-    console.log('filterToggle:', filterToggle);
-    console.log('filterDropdown:', filterDropdown);
+    
 
     if (filterToggle && filterDropdown) {
         // Удаляем существующие обработчики чтобы избежать дублирования
@@ -690,7 +689,7 @@ function initTransactionFilter() {
         
         newFilterToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            console.log('Filter toggle clicked');
+            
             filterDropdown.classList.toggle('hidden');
         });
 
@@ -916,7 +915,7 @@ function initTransactionDetailModal() {
 
 // Функция для показа подтверждения удаления
 function showDeleteConfirmation() {
-    console.log("Showing delete confirmation");
+    
     const normalButtons = document.getElementById('normalButtons');
     const confirmDeleteSection = document.getElementById('confirmDeleteSection');
     
@@ -929,7 +928,7 @@ function showDeleteConfirmation() {
 
 // Функция для сброса состояния подтверждения удаления
 function resetDeleteConfirmation() {
-    console.log("Resetting delete confirmation");
+  
     const normalButtons = document.getElementById('normalButtons');
     const confirmDeleteSection = document.getElementById('confirmDeleteSection');
     
@@ -937,13 +936,16 @@ function resetDeleteConfirmation() {
     if (confirmDeleteSection) {
         // ВОССТАНАВЛИВАЕМ ОРИГИНАЛЬНЫЙ HTML КНОПОК ПОДТВЕРЖДЕНИЯ
         confirmDeleteSection.innerHTML = `
-            <p class="text-center text-red-400 mb-3">Вы уверены, что хотите удалить эту транзакцию?</p>
+             <div class="text-center mb-3">
+                    <p class="text-red-400 font-semibold">Удалить транзакцию?</p>
+                    <p class="text-gray-400 text-sm">Это действие нельзя отменить!</p>
+                </div>
             <div class="flex space-x-2">
                 <button id="cancelDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
                     Отмена
                 </button>
                 <button id="confirmDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
-                    Да, удалить
+                    Да, удалить!
                 </button>
             </div>
         `;
@@ -955,7 +957,6 @@ function resetDeleteConfirmation() {
 
 // Функция для удаления транзакции из модалки
 async function deleteTransactionFromModal() {
-    console.log("Deleting transaction from modal");
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) {
         console.error("Modal not found");
@@ -970,7 +971,6 @@ async function deleteTransactionFromModal() {
         return;
     }
     
-    console.log("Deleting transaction ID:", transactionId);
     
     try {
         // Показываем состояние загрузки
@@ -986,7 +986,6 @@ async function deleteTransactionFromModal() {
         }
         
         const data = await resp.json();
-        console.log("Delete response:", data);
         
         if (data.success) {
             // Показываем успешное сообщение
@@ -1039,7 +1038,6 @@ async function deleteTransactionFromModal() {
 }
 // Функция закрытия модалки деталей транзакции
 function closeTransactionDetailModal() {
-    console.log("Closing transaction detail modal");
     const modal = document.getElementById("transactionDetailModal");
     if (modal) {
         // СБРАСЫВАЕМ СОСТОЯНИЕ ПОДТВЕРЖДЕНИЯ ПЕРЕД ЗАКРЫТИЕМ
@@ -1078,7 +1076,6 @@ function openTransactionDetail(transactionElement) {
     
     // Сохраняем transactionId в модалке для использования при удалении
     modal.dataset.currentTransactionId = transactionId;
-    console.log("Set current transaction ID:", transactionId);
     
     const isIncome = transactionType === 'income';
 
@@ -2003,7 +2000,6 @@ function initMenuModal() {
     // Открытие панели (по кнопке ⚙️)
     if (openBtn) {
         openBtn.addEventListener('click', () => {
-            console.log('Открытие меню');
             toggleMenuModal(true);
         });
     }
@@ -2250,8 +2246,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initCategoryModal();
         initMenuModal();
         initTransactionDetailModal();
-        
-       
+        initCategoryFilter();
+        initReminderPicker();
+
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();
 
         // Загружаем категории и транзакции при старте

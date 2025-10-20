@@ -950,75 +950,65 @@ def get_pending_reminders(request):
             'error': str(e)
         })
     
-
 @login_required
 def get_category_stats(request, category_id):
     try:
-        print(f"=== GET_CATEGORY_STATS called for category_id: {category_id} ===")
+        period = request.GET.get('period', 'month')  # Получаем период из запроса
+        print(f"=== GET_CATEGORY_STATS called for category_id: {category_id}, period: {period} ===")
         
         category = Category.objects.get(id=category_id, user=request.user)
-        print(f"Category found: {category.name}, {category.icon}, {category.color}")
         
-        # Получаем сегодняшние транзакции в этой категории
-        today = timezone.now().date()
-        print(f"Today: {today}")
+        # Определяем временной диапазон на основе периода
+        today = timezone.now()
+        if period == 'day':
+            start_date = today.replace(hour=0, minute=0, second=0, microsecond=0)
+            period_name = 'день'
+        elif period == 'week':
+            start_date = today - timedelta(days=7)
+            period_name = 'неделю'
+        elif period == '3months':
+            start_date = today - timedelta(days=90)
+            period_name = '3 месяца'
+        elif period == 'year':
+            start_date = today - timedelta(days=365)
+            period_name = 'год'
+        else:  # month (по умолчанию)
+            start_date = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            period_name = 'месяц'
         
-        daily_expenses = Transaction.objects.filter(
+        print(f"Period: {period_name}, Start date: {start_date}")
+        
+        # Получаем расходы в этой категории за выбранный период
+        period_expenses = Transaction.objects.filter(
             user=request.user,
             category=category,
             type='expense',
-            created_at__date=today
-        ).order_by('-created_at')
-        
-        print(f"Daily expenses count: {daily_expenses.count()}")
-        
-        # Получаем все расходы в этой категории (для общей статистики)
-        all_expenses = Transaction.objects.filter(
-            user=request.user,
-            category=category,
-            type='expense'
+            created_at__gte=start_date
         )
         
-        # Сумма расходов по категории за все время
-        total_expense = all_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
-        print(f"Total expense: {total_expense}")
+        # Сумма расходов по категории за период
+        total_expense = period_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
         
-        # НОВЫЕ РАСЧЕТЫ ДЛЯ СТАТИСТИКИ
+        # Количество операций в категории за период
+        transactions_count = period_expenses.count()
         
-        # Количество операций в категории (за все время)
-        transactions_count = all_expenses.count()
-        print(f"Transactions count: {transactions_count}")
-        
-        # Средний чек (за все время)
+        # Средний чек за период
         average_amount = total_expense / transactions_count if transactions_count > 0 else 0
-        print(f"Average amount: {average_amount}")
         
-        # ИСПРАВЛЕНИЕ: Расходы за текущий месяц и доходы за текущий месяц
-        current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
-        # Расходы категории за текущий месяц
-        monthly_category_expenses = Transaction.objects.filter(
-            user=request.user,
-            category=category,
-            type='expense',
-            created_at__gte=current_month_start
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
-        
-        # ВСЕ ДОХОДЫ пользователя за текущий месяц (для расчета процента)
-        monthly_income = Transaction.objects.filter(
+        # Общие доходы за период
+        period_income = Transaction.objects.filter(
             user=request.user,
             type='income',
-            created_at__gte=current_month_start
-        ).aggregate(Sum('amount'))['amount__sum'] or 1  # избегаем деления на 0
+            created_at__gte=start_date
+        ).aggregate(Sum('amount'))['amount__sum'] or 1
         
-        print(f"Monthly income: {monthly_income}")
-        print(f"Monthly category expenses: {monthly_category_expenses}")
+        # Процент от доходов за период
+        income_percentage = (total_expense / period_income * 100) if period_income > 0 else 0
         
-        # ИСПРАВЛЕНИЕ: Процент от месячных ДОХОДОВ (а не расходов)
-        income_percentage = (monthly_category_expenses / monthly_income * 100) if monthly_income > 0 else 0
-        print(f"Income percentage: {income_percentage}%")
+        # Транзакции за сегодня (отдельно для списка)
+        today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
+        daily_expenses = period_expenses.filter(created_at__gte=today_start).order_by('-created_at')
         
-        # Подготавливаем данные транзакций за день
         transactions_data = []
         for expense in daily_expenses:
             transactions_data.append({
@@ -1028,35 +1018,28 @@ def get_category_stats(request, category_id):
                 'created_at': expense.created_at.isoformat(),
             })
         
-        print(f"Transactions data: {transactions_data}")
-        
         response_data = {
             'success': True,
             'category': {
                 'id': category.id,
                 'name': category.name,
-                'icon': category.icon,
-                'color': category.color,
+                'icon': category.icon or 'fas fa-tag',
+                'color': category.color or '#3b82f6',
             },
             'total_expense': float(total_expense),
-            'income_percentage': round(float(income_percentage), 1),  # ПЕРЕИМЕНОВАНО: процент от доходов
             'transactions_count': transactions_count,
             'average_amount': round(float(average_amount), 2),
-            'monthly_category_expenses': float(monthly_category_expenses),
-            'monthly_income': float(monthly_income),  # ДЛЯ ОТЛАДКИ
+            'income_percentage': round(float(income_percentage), 1),
+            'period_income': float(period_income),
+            'period': period_name,  # Для отладки
             'transactions': transactions_data,
-            'has_transactions': all_expenses.exists(),
+            'has_transactions': period_expenses.exists(),
             'daily_transactions_count': len(transactions_data)
         }
         
-        print(f"Response data: {response_data}")
-        print("=== GET_CATEGORY_STATS completed ===")
-        
+        print(f"✅ Final response for {period_name}: {response_data}")
         return JsonResponse(response_data)
         
-    except Category.DoesNotExist:
-        print("Category not found")
-        return JsonResponse({'success': False, 'error': 'Категория не найдена'})
     except Exception as e:
-        print(f"Error in get_category_stats: {str(e)}")
-        return JsonResponse({'success': False, 'error': f'Внутренняя ошибка сервера: {str(e)}'})
+        print(f"❌ Error: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})

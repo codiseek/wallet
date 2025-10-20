@@ -143,18 +143,18 @@
         <div class="relative ">
             <button id="filterToggleBtn" class="bg-gray-800 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors ">
                 <span id="currentFilterText">За неделю</span>
-                <i class="fas fa-chevron-down text-xs"></i>
+                
             </button>
             <!-- Выпадающий список -->
             <div id="filterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40">
                 <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">
-                    <i class="fas fa-calendar-day mr-2"></i>За день
+                   За день
                 </button>
                 <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">
-                    <i class="fas fa-calendar-week mr-2"></i>За неделю
+                   За неделю
                 </button>
                 <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="month">
-                    <i class="fas fa-calendar-alt mr-2"></i>За месяц
+                   За месяц
                 </button>
             </div>
         </div>
@@ -773,37 +773,54 @@
 </div>
 
 <div id="noteModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
-          
-            <!-- Заголовок -->
-            <div class="p-4 border-b border-gray-700">
-                <h2 class="text-xl font-bold text-center" id="noteModalTitle">Новая заметка</h2>
-            </div>
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
+        <!-- Заголовок -->
+        <div class="p-4 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-center" id="noteModalTitle">Новая заметка</h2>
+        </div>
 
-            <div class="p-6">
-
-            
+        <div class="p-6">
             <div class="space-y-4">
                 <div>
-                   
                     <input type="text" placeholder="Введите название" class="input-field" id="noteTitleInput">
                 </div>
                 
                 <div>
-                  
                     <textarea placeholder="Введите текст заметки" rows="6" class="input-field" id="noteContentInput"></textarea>
                 </div>
                 
-                <!-- Добавленное поле для даты напоминания -->
-                <!-- Добавленное поле для даты напоминания -->
+                <!-- Новый красивый интерфейс выбора даты напоминания -->
+                <!-- Обновленный блок выбора напоминания -->
 <div>
-    <label class="block text-gray-300 mb-2">
+    <label class="block text-gray-300 mb-3">
         <i class="fas fa-bell mr-2 text-blue-400"></i>
-        Дата напоминания (необязательно)
+        Напоминание (необязательно)
     </label>
-    <input type="datetime-local" class="input-field" id="reminderDateInput">
-    <p class="text-xs text-gray-400 mt-1">
-        Оставьте пустым, если напоминание не нужно. Время указывается в вашем локальном часовом поясе.
+    
+    <!-- Основное поле выбора даты и времени -->
+    <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+            <div>
+                <label class="block text-gray-400 text-xs mb-1">Дата</label>
+                <input type="date" id="reminderDateInput" 
+                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-xs mb-1">Время</label>
+                <input type="time" id="reminderTimeInput" 
+                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+            </div>
+        </div>
+        
+        <!-- Кнопка очистки -->
+        <button type="button" id="clearReminderBtn" 
+                class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors">
+            <i class="fas fa-times mr-1"></i> Без напоминания
+        </button>
+    </div>
+    
+    <p class="text-xs text-gray-400 mt-2">
+        Оставьте пустым, если напоминание не нужно.
     </p>
 </div>
             </div>
@@ -813,8 +830,8 @@
                     Отмена
                 </button>
                 <button class="btn-primary w-full py-3" id="saveNoteBtn">
-    Сохранить
-</button>
+                    Сохранить
+                </button>
             </div>
         </div>
     </div>
@@ -975,15 +992,15 @@
             <!-- Состояние 2: Подтверждение удаления -->
             <div id="confirmDeleteSection" class="hidden">
                 <div class="text-center mb-3">
-                    <p class="text-red-400 font-semibold">Вы уверены?</p>
-                    <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+                    <p class="text-red-400 font-semibold">Удалить категорию?</p>
+                    <p class="text-gray-400 text-sm">Это действие нельзя отменить!</p>
                 </div>
                 <div class="flex space-x-3">
                     <button id="cancelDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
                         Отмена
                     </button>
                     <button id="confirmDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
-                        Да, удалить
+                        Да, удалить!
                     </button>
                 </div>
             </div>
@@ -999,19 +1016,43 @@
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto shadow-2xl border border-gray-700 max-h-[90vh] overflow-hidden">
         <!-- Тело модалки -->
         <div class="p-6 space-y-6 text-white overflow-y-auto">
-            <!-- Заголовок с иконкой и названием -->
-            <div class="flex items-center space-x-4">
-                <!-- НОВЫЙ ID -->
-                <div id="categoryDetailIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"></div>
-                <div class="flex-1">
-                    <!-- НОВЫЙ ID -->
-                    <h2 id="categoryDetailName" class="font-semibold text-lg text-gray-200"></h2>
-                    <!-- НОВЫЙ ID -->
-                    <p id="categoryDetailType" class="text-gray-400 text-sm">Категория расходов</p>
+            <!-- Заголовок с иконкой, названием и кнопкой сортировки -->
+            <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-4 flex-1">
+                    <div id="categoryDetailIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"></div>
+                    <div class="flex-1">
+                        <h2 id="categoryDetailName" class="font-semibold text-lg text-gray-200 truncate w-[10ch]"></h2>
+                        <p class="text-gray-400 text-sm">Статистика</p>
+                    </div>
+                </div>
+                <!-- Кнопка фильтра периода -->
+                <div class="relative">
+                    <button id="categoryFilterToggleBtn" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors">
+                        <span id="categoryCurrentFilterText">За месяц</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <!-- Выпадающий список -->
+                    <div id="categoryFilterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-10">
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">
+                            За день
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">
+                            За неделю
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="month">
+                            За месяц
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="3months">
+                            За 3 месяца
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="year">
+                            За год
+                        </button>
+                    </div>
                 </div>
             </div>
 
-  <!-- Основная статистика в карточках -->
+            <!-- Основная статистика в карточках -->
             <div class="grid grid-cols-2 gap-3">
                 <!-- Общие расходы -->
                 <div class="bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-xl p-4 border border-red-500/20">
@@ -1019,7 +1060,7 @@
                         <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
                             <i class="fas fa-money-bill-wave text-red-400 text-sm"></i>
                         </div>
-                        <i class="fas fa-info-circle text-red-400/60 text-sm cursor-help" title="Общая сумма расходов в этой категории"></i>
+                        
                     </div>
                     <p class="text-gray-400 text-xs mb-1">Всего потрачено</p>
                     <p id="categoryTotalExpense" class="text-xl font-bold text-red-400">0 с</p>
@@ -1031,7 +1072,7 @@
                         <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                             <i class="fas fa-receipt text-purple-400 text-sm"></i>
                         </div>
-                        <i class="fas fa-info-circle text-purple-400/60 text-sm cursor-help" title="Средняя сумма одной операции"></i>
+                        
                     </div>
                     <p class="text-gray-400 text-xs mb-1">Средний чек</p>
                     <p id="categoryAverageAmount" class="text-xl font-bold text-purple-400">0 с</p>
@@ -1043,7 +1084,7 @@
                         <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                             <i class="fas fa-calendar-day text-blue-400 text-sm"></i>
                         </div>
-                        <i class="fas fa-info-circle text-blue-400/60 text-sm cursor-help" title="Количество операций в этой категории"></i>
+                        
                     </div>
                     <p class="text-gray-400 text-xs mb-1">Всего операций</p>
                     <p id="categoryTransactionsCount" class="text-xl font-bold text-blue-400">0</p>
@@ -1055,15 +1096,12 @@
                         <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                             <i class="fas fa-chart-pie text-yellow-400 text-sm"></i>
                         </div>
-                        <i class="fas fa-info-circle text-yellow-400/60 text-sm cursor-help" title="Доля от общих расходов"></i>
+                        
                     </div>
                     <p class="text-gray-400 text-xs mb-1">Доля расходов</p>
                     <p id="categoryExpensePercentage" class="text-xl font-bold text-yellow-400">0%</p>
                 </div>
             </div>
-
-
-          
         </div>
 
         <!-- Кнопки управления -->
@@ -1089,14 +1127,13 @@
                         Отмена
                     </button>
                     <button id="confirmCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
-                        Да, удалить
+                        Да, удалить!
                     </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 
     <!-- Модальное окно меню -->
     <div id="menuModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden z-[1000] flex items-center justify-center p-4">
@@ -1298,13 +1335,11 @@ function urlBase64ToUint8Array(base64String) {
 if ('serviceWorker' in navigator && 'PushManager' in window) {
   navigator.serviceWorker.register("{% static 'service-worker.js' %}")
     .then(() => {
-      console.log("✅ SW зарегистрирован");
 
       // Ждём пока он станет активным
       return navigator.serviceWorker.ready;
     })
     .then(async (reg) => {
-      console.log("💪 SW готов, создаём подписку...");
 
       const appServerKey = urlBase64ToUint8Array("{{ vapid_key|safe }}");
 
@@ -1313,7 +1348,6 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
         applicationServerKey: appServerKey
       });
 
-      console.log("📡 Подписка создана:", subscription);
 
      await fetch("/webpush/save_information/?group=notes", {
   method: "POST",
@@ -1325,7 +1359,6 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
 });
 
 
-      console.log("✅ Подписка сохранена на сервере.");
     })
     .catch(err => console.error("❌ Ошибка подписки:", err));
 }

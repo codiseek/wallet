@@ -516,7 +516,7 @@ function openViewNoteModal(note, isFromReminder = false) {
     if (isFromReminder) {
         // РЕЖИМ НАПОМИНАНИЯ - только одна кнопка закрытия
         const closeBtn = document.createElement('button');
-        closeBtn.className = 'w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors duration-200';
+        closeBtn.className = 'w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors duration-200';
         closeBtn.textContent = 'Закрыть';
         closeBtn.addEventListener('click', () => {
             animateModal(modal, false);
@@ -531,7 +531,7 @@ function openViewNoteModal(note, isFromReminder = false) {
         
         // Кнопка Закрыть
         const closeBtn = document.createElement('button');
-        closeBtn.className = 'flex-1 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition-colors duration-200 flex items-center justify-center';
+        closeBtn.className = 'flex-1 py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition-colors duration-200 flex items-center justify-center';
         closeBtn.innerHTML = `
             <span>Закрыть</span>
         `;
@@ -541,7 +541,7 @@ function openViewNoteModal(note, isFromReminder = false) {
         
         // Кнопка Редактировать
         const editBtn = document.createElement('button');
-        editBtn.className = 'flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors duration-200 flex items-center justify-center';
+        editBtn.className = 'flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors duration-200 flex items-center justify-center';
         editBtn.innerHTML = `
             <span>Редактировать</span>
         `;
@@ -919,6 +919,163 @@ function showNoteNotification(message, type = 'success') {
         }
     }, 3000);
 }
+
+// Управление выбором даты напоминания
+// Упрощенная система выбора напоминания
+function initReminderPicker() {
+    const dateInput = document.getElementById('reminderDateInput');
+    const timeInput = document.getElementById('reminderTimeInput');
+    const clearBtn = document.getElementById('clearReminderBtn');
+
+    // Устанавливаем минимальную дату - сегодня
+    const today = new Date().toISOString().split('T')[0];
+    if (dateInput) {
+        dateInput.min = today;
+    }
+
+    // Очистка напоминания
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (dateInput) dateInput.value = '';
+            if (timeInput) timeInput.value = '';
+        });
+    }
+
+    // Автоматическая установка времени при выборе даты
+    if (dateInput && timeInput) {
+        dateInput.addEventListener('change', function() {
+            // Если дата сегодня, устанавливаем время на час вперед
+            if (this.value === today && !timeInput.value) {
+                const now = new Date();
+                now.setHours(now.getHours() + 1);
+                timeInput.value = now.toTimeString().slice(0, 5);
+            }
+        });
+    }
+}
+
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ: Сохранение заметки с улучшенной валидацией
+function saveNote() {
+    const title = document.getElementById('noteTitleInput').value.trim();
+    const content = document.getElementById('noteContentInput').value.trim();
+    const dateInput = document.getElementById('reminderDateInput');
+    const timeInput = document.getElementById('reminderTimeInput');
+
+    if (!title) {
+        showNoteNotification('Заголовок пуст!', 'error');
+        return;
+    }
+
+    let reminderDateValue = '';
+    
+    // Проверяем, заполнены ли оба поля даты и времени
+    if (dateInput && timeInput && dateInput.value && timeInput.value) {
+        const dateStr = dateInput.value;
+        const timeStr = timeInput.value;
+        
+        // Создаем полную дату-время
+        const selectedDate = new Date(`${dateStr}T${timeStr}`);
+        const now = new Date();
+        
+        // ДОБАВЛЯЕМ БУФЕР В 5 МИНУТ, чтобы избежать ошибки для "слишком близкого" времени
+        now.setMinutes(now.getMinutes() - 5);
+        
+        if (selectedDate < now) {
+            showNoteNotification('Выберите дату и время в будущем!', 'error');
+            return;
+        }
+        
+        // Форматируем для отправки на сервер
+        const timezoneOffset = -selectedDate.getTimezoneOffset();
+        const timezoneOffsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
+        const timezoneOffsetMinutes = Math.abs(timezoneOffset) % 60;
+        const timezoneSign = timezoneOffset >= 0 ? '+' : '-';
+        
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const hours = String(selectedDate.getHours()).padStart(2, '0');
+        const minutes = String(selectedDate.getMinutes()).padStart(2, '0');
+        
+        reminderDateValue = `${year}-${month}-${day}T${hours}:${minutes}:00${timezoneSign}${String(timezoneOffsetHours).padStart(2, '0')}:${String(timezoneOffsetMinutes).padStart(2, '0')}`;
+    }
+
+    // Запрашиваем разрешение на уведомления, если нужно напоминание
+    if (reminderDateValue) {
+        requestNotificationPermission().then(hasPermission => {
+            proceedWithSave(title, content, reminderDateValue);
+        });
+    } else {
+        proceedWithSave(title, content, '');
+    }
+}
+
+// Обновленная функция открытия модалки редактирования
+function openEditNoteModal(note) {
+    currentEditingNoteId = note.id;
+    document.getElementById('noteModalTitle').textContent = 'Редактировать заметку';
+    document.getElementById('noteTitleInput').value = note.title;
+    document.getElementById('noteContentInput').value = note.content || '';
+    
+    // Устанавливаем значения даты и времени для редактирования
+    const dateInput = document.getElementById('reminderDateInput');
+    const timeInput = document.getElementById('reminderTimeInput');
+    
+    if (note.reminder_date && dateInput && timeInput) {
+        const reminderDate = new Date(note.reminder_date);
+        
+        // Форматируем для input[type=date]
+        const year = reminderDate.getFullYear();
+        const month = String(reminderDate.getMonth() + 1).padStart(2, '0');
+        const day = String(reminderDate.getDate()).padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+        
+        // Форматируем для input[type=time]
+        const hours = String(reminderDate.getHours()).padStart(2, '0');
+        const minutes = String(reminderDate.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hours}:${minutes}`;
+    } else if (dateInput && timeInput) {
+        // Сбрасываем поля, если напоминания нет
+        dateInput.value = '';
+        timeInput.value = '';
+    }
+    
+    animateModal(document.getElementById('noteModal'), true);
+}
+
+// Обновленная функция открытия модалки добавления
+function openAddNoteModal() {
+    currentEditingNoteId = null;
+    document.getElementById('noteModalTitle').textContent = 'Новая заметка';
+    document.getElementById('noteTitleInput').value = '';
+    document.getElementById('noteContentInput').value = '';
+    
+    // Сбрасываем поля даты и времени
+    const dateInput = document.getElementById('reminderDateInput');
+    const timeInput = document.getElementById('reminderTimeInput');
+    if (dateInput && timeInput) {
+        dateInput.value = '';
+        timeInput.value = '';
+        
+        // Устанавливаем минимальную дату
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
+    
+    animateModal(document.getElementById('noteModal'), true);
+}
+
+// Обновляем инициализацию
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotes();
+    initNoteSystem();
+    initReminderSystem();
+    initReminderPicker(); // Добавляем инициализацию упрощенного пикера
+    
+    setTimeout(checkReminders, 2000);
+});
+
+
 
 // Глобальная функция для открытия модалки из HTML атрибута onclick
 window.openAddNoteModal = function() {

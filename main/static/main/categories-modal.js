@@ -1,7 +1,153 @@
-// categories-modal.js
-// Функции для работы с модалкой категорий
-
+// Глобальные переменные для фильтра категории
+let currentCategoryFilter = 'month'; // По умолчанию месяц
 let currentCategoryId = null;
+
+// Инициализация фильтра категории
+function initCategoryFilter() {
+    const filterToggle = document.getElementById('categoryFilterToggleBtn');
+    const filterDropdown = document.getElementById('categoryFilterDropdown');
+    const filterOptions = document.querySelectorAll('.category-filter-option');
+
+    if (filterToggle && filterDropdown) {
+        // Удаляем старые обработчики и добавляем новые
+        filterToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            filterDropdown.classList.toggle('hidden');
+        });
+
+        // Закрываем при клике вне
+        document.addEventListener('click', function(e) {
+            if (!filterDropdown.contains(e.target) && !filterToggle.contains(e.target)) {
+                filterDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Обработчики для опций фильтра
+    filterOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            currentCategoryFilter = filter || 'month';
+            
+            // Обновляем текст кнопки
+            const currentText = document.getElementById('categoryCurrentFilterText');
+            if (currentText) {
+                currentText.textContent = this.textContent.trim();
+            }
+            
+            // Закрываем dropdown
+            filterDropdown.classList.add('hidden');
+            
+            // Перезагружаем данные категории с новым фильтром
+            if (currentCategoryId) {
+                reloadCategoryData(currentCategoryId, currentCategoryFilter);
+            }
+        });
+    });
+}
+
+// Перезагрузка данных категории с фильтром
+async function reloadCategoryData(categoryId, filter) {
+   
+    
+    try {
+        // Показываем состояние загрузки
+        showCategoryLoadingState();
+        
+        // Загружаем данные с сервера с фильтром
+        const response = await fetch(`/get_category_stats/${categoryId}/?period=${filter}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        if (data.success) {
+            showCategoryData(data);
+        } else {
+            showCategoryErrorState('Ошибка загрузки данных: ' + (data.error || 'неизвестная ошибка'));
+        }
+    } catch (error) {
+        showCategoryErrorState('Ошибка соединения с сервером');
+    }
+}
+
+// Обновляем функцию openCategoryDetail
+async function openCategoryDetail(categoryElement) {
+    const modal = document.getElementById("categoryDetailModal");
+    if (!modal) {
+        return;
+    }
+
+    // Получаем данные из data-атрибутов
+    const categoryId = categoryElement.dataset.categoryId;
+    const categoryName = categoryElement.dataset.categoryName;
+    const categoryIcon = categoryElement.dataset.categoryIcon;
+    const categoryColor = categoryElement.dataset.categoryColor;
+    
+    currentCategoryId = categoryId;
+
+    // Сбрасываем состояние подтверждения удаления
+    resetCategoryDeleteConfirmation();
+    
+    // Сбрасываем фильтр к значению по умолчанию
+    currentCategoryFilter = 'month';
+    const currentText = document.getElementById('categoryCurrentFilterText');
+    if (currentText) {
+        currentText.textContent = 'За месяц';
+    }
+    
+    try {
+        // Показываем загрузку с правильными данными категории
+        showCategoryLoadingState(categoryName, categoryIcon, categoryColor);
+
+        // Загружаем данные категории с сервера с фильтром по умолчанию
+        const response = await fetch(`/get_category_stats/${categoryId}/?period=${currentCategoryFilter}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        if (data.success) {
+            showCategoryData(data);
+        } else {
+            showCategoryErrorState('Ошибка загрузки данных: ' + (data.error || 'неизвестная ошибка'));
+        }
+    } catch (error) {
+        showCategoryErrorState('Ошибка соединения с сервером');
+    }
+
+    // Показываем модалку с анимацией
+    animateModal(modal, true);
+}
+
+// Обновляем функцию showCategoryLoadingState
+function showCategoryLoadingState(name, icon, color) {
+    if (name && icon && color) {
+        updateCategoryDisplay(name, icon, color);
+    }
+    
+    // Показываем состояние загрузки в статистике
+    const statsElements = {
+        'categoryTotalExpense': '0 с',
+        'categoryAverageAmount': '0 с',
+        'categoryTransactionsCount': '0',
+        'categoryExpensePercentage': '0%'
+    };
+
+    Object.keys(statsElements).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = statsElements[id];
+        }
+    });
+}
+
+
+
 
 // Инициализация модалки категории
 function initCategoryDetailModal() {
@@ -192,7 +338,7 @@ function resetCategoryStats() {
 
 // Показать данные категории
 function showCategoryData(data) {
-    console.log('📊 RAW DATA FROM SERVER:', data);
+    
     
     // Используем функцию formatAmount из app.js
     const formatAmount = window.formatAmount || function(amount) {
@@ -227,14 +373,14 @@ function showCategoryData(data) {
 
 // Прямое обновление элементов (обходной путь)
 function updateCategoryElementsDirectly(data, formatAmount) {
-    console.log('🔄 Directly updating elements...');
+ 
     
     // Всего потрачено
     const totalExpenseEl = document.getElementById('categoryTotalExpense');
     if (totalExpenseEl) {
         const total = parseFloat(data.total_expense) || 0;
         totalExpenseEl.textContent = formatAmount(total) + ' с';
-        console.log('✅ Total expense:', totalExpenseEl.textContent);
+        
     }
 
     // Средний чек
@@ -242,7 +388,7 @@ function updateCategoryElementsDirectly(data, formatAmount) {
     if (averageAmountEl) {
         const average = parseFloat(data.average_amount) || 0;
         averageAmountEl.textContent = formatAmount(average) + ' с';
-        console.log('✅ Average amount:', averageAmountEl.textContent);
+        
     }
 
     // Количество операций
@@ -250,7 +396,7 @@ function updateCategoryElementsDirectly(data, formatAmount) {
     if (transactionsCountEl) {
         const count = parseInt(data.transactions_count) || 0;
         transactionsCountEl.textContent = count.toString();
-        console.log('✅ Transactions count:', transactionsCountEl.textContent);
+        
     }
 
     // Доля расходов
@@ -258,7 +404,7 @@ function updateCategoryElementsDirectly(data, formatAmount) {
     if (expensePercentageEl) {
         const percentage = parseFloat(data.income_percentage) || 0;
         expensePercentageEl.textContent = percentage.toFixed(1) + '%';
-        console.log('✅ Expense percentage:', expensePercentageEl.textContent);
+       
         
         // Меняем цвет в зависимости от процента
         if (percentage > 50) {
@@ -270,7 +416,6 @@ function updateCategoryElementsDirectly(data, formatAmount) {
         }
     }
 
-    console.log('🎯 Final check - Elements should be updated');
 }
 
 // Функция для обновления отображения категории (оставляем как есть)
