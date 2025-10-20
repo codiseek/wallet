@@ -59,9 +59,24 @@ class SystemNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    # Новое поле - для персональных уведомлений
+    target_user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='personal_notifications',
+        verbose_name='Персонально для пользователя'
+    )
     
     def __str__(self):
         return self.title
+
+    @property
+    def is_personal(self):
+        """Проверка, является ли уведомление персональным"""
+        return self.target_user is not None
+    
 
 class UserNotification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -92,8 +107,11 @@ def save_user_profile(sender, instance, **kwargs):
 @receiver(post_save, sender=User)
 def create_notifications_for_new_user(sender, instance, created, **kwargs):
     if created:
-        # Получаем все активные системные уведомления
-        active_notifications = SystemNotification.objects.filter(is_active=True)
+        # Получаем только ОБЩИЕ активные системные уведомления (не персональные)
+        active_notifications = SystemNotification.objects.filter(
+            is_active=True,
+            target_user=None  # Только общие уведомления
+        )
         
         # Создаем записи UserNotification для нового пользователя
         user_notifications = [
@@ -103,4 +121,4 @@ def create_notifications_for_new_user(sender, instance, created, **kwargs):
         
         if user_notifications:
             UserNotification.objects.bulk_create(user_notifications)
-            print(f"Created {len(user_notifications)} notifications for new user {instance.username}") 
+            print(f"Created {len(user_notifications)} general notifications for new user {instance.username}")

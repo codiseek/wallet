@@ -82,16 +82,22 @@
 </div>
 
         <!-- Фильтры уведомлений - ТОЛЬКО СИСТЕМНЫЕ -->
-        <div class="p-3 border-b border-gray-700">
-            <div class="flex space-x-1 bg-gray-700 rounded-lg p-1">
-                <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-blue-600 text-white" data-filter="all">
-                    Все
-                </button>
-                <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="unread">
-                    Непрочитанные
-                </button>
-            </div>
-        </div>
+       <!-- Фильтры уведомлений -->
+<div class="p-3 border-b border-gray-700">
+    <div class="flex space-x-1 bg-gray-700 rounded-lg p-1">
+        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-blue-600 text-white" data-filter="all">
+            Все
+        </button>
+        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="unread">
+            Непрочитанные
+        </button>
+        {% if user.is_staff %}
+        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="personal">
+            Персональные
+        </button>
+        {% endif %}
+    </div>
+</div>
 
         <!-- Список уведомлений -->
         <div class="flex-1 overflow-y-auto p-2">
@@ -124,16 +130,36 @@
 </div>
 
 <!-- Модалка создания уведомления для админа -->
+<!-- Модалка создания уведомления для админа -->
 {% if user.is_staff %}
 <div id="createNotificationModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1100] bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-md mx-auto">
         <div class="p-4 border-b border-gray-700">
-            <h2 class="text-xl font-bold text-center">Создать системное уведомление</h2>
+            <h2 class="text-xl font-bold text-center">Создать уведомление</h2>
         </div>
         
         <div class="p-6">
             <form id="createNotificationForm" class="space-y-4">
                 {% csrf_token %}
+                
+                <!-- Поле для User ID -->
+                <div>
+                    <label class="block text-gray-300 mb-2">
+                        <i class="fas fa-user mr-2 text-blue-400"></i>
+                        User ID (необязательно)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="targetUserId" 
+                        class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" 
+                        placeholder="Оставьте пустым для уведомления всем"
+                        min="1"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">
+                        Если указать ID пользователя - уведомление отправится только ему
+                    </p>
+                </div>
+                
                 <div>
                     <label class="block text-gray-300 mb-2">Заголовок</label>
                     <input type="text" id="notificationTitle" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" placeholder="Введите заголовок" required>
@@ -157,6 +183,11 @@
     </div>
 </div>
 {% endif %}
+
+
+
+
+
 
         <!-- Главная вкладка -->
         <div class="mobile-tab active" id="tab-home">

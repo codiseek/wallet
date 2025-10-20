@@ -83,23 +83,30 @@ function initNotificationsModal2() {
         });
     });
 
-    // Обработка кликов по уведомлениям
-    document.addEventListener('click', function(e) {
+// В обработчике кликов по уведомлениям добавьте проверку на активную вкладку
+document.addEventListener('click', function(e) {
+    const activeFilter = document.querySelector('.filter-notification-btn.bg-blue-600').dataset.filter;
+    
+    // Для обычных вкладок обрабатываем отметку как прочитанное
+    if (activeFilter !== 'personal') {
         const notificationItem = e.target.closest('.notification-item');
         if (notificationItem) {
             const notificationId = notificationItem.dataset.id;
             markNotificationAsRead2(notificationId, notificationItem);
         }
-        
-        // Обработка удаления уведомления (для админа)
-        const deleteBtn = e.target.closest('.delete-notification-btn');
-        if (deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const notificationId = deleteBtn.dataset.notificationId;
-            deleteSystemNotification(notificationId, deleteBtn.closest('.notification-item'));
-        }
-    });
+    }
+    
+    // Обработка удаления уведомления (для админа)
+    const deleteBtn = e.target.closest('.delete-notification-btn');
+    if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const notificationId = deleteBtn.dataset.notificationId;
+        deleteSystemNotification(notificationId, deleteBtn.closest('.notification-item'));
+    }
+});
+
+
 
     // Инициализация счетчика уведомлений
     updateNotificationsCounter2();
@@ -161,38 +168,165 @@ function renderNotificationsList2() {
         const isUnread = !notif.is_read;
         const timeAgo = getTimeAgo(notif.created_at);
         
+        // Исправленный блок - убраны лишние обратные кавычки
+       // В блоке создания HTML для каждого уведомления замените на:
+notificationsHTML += `
+    <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
+         data-id="${notif.id}" data-unread="${isUnread}" data-notification-id="${notif.notification_id}">
+        <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
+                <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between mb-1">
+                    <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                    <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+                </div>
+                <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
+                    ${escapeHtml(notif.message)}
+                </p>
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center space-x-2">
+                        ${isUnread ? `
+                        <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                        <span class="text-xs text-blue-400">Новое</span>
+                        ` : ''}
+                        ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                    </div>
+                    <!-- Кнопка удаления для админа -->
+                    ${window.isAdmin ? `
+                    <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
+                            data-notification-id="${notif.notification_id}"
+                            title="Удалить уведомление">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+    });
+    
+    notificationsList2.innerHTML = notificationsHTML;
+    applyNotificationsFilter2('all'); // Применяем фильтр по умолчанию
+}
+
+
+
+
+// -----------------------------
+// Загрузка персональных уведомлений для админа
+// -----------------------------
+async function loadPersonalNotifications() {
+    try {
+        const response = await fetch('/notifications/personal/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            renderPersonalNotificationsList(data.notifications);
+        } else {
+            console.error('Ошибка загрузки персональных уведомлений:', data.error);
+            renderPersonalNotificationsList([]);
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке персональных уведомлений:', error);
+        renderPersonalNotificationsList([]);
+    }
+}
+
+// -----------------------------
+// Отображение списка персональных уведомлений
+// -----------------------------
+function renderPersonalNotificationsList(personalNotifications) {
+    const notificationsList2 = document.getElementById('notificationsList2');
+    const emptyState2 = document.getElementById('emptyNotificationsState2');
+    const counterElement2 = document.getElementById('notificationsCount2');
+    
+    if (!notificationsList2) return;
+
+    // Обновляем счетчик
+    if (counterElement2) {
+        counterElement2.textContent = personalNotifications.length;
+    }
+
+    if (personalNotifications.length === 0) {
+        if (emptyState2) {
+            emptyState2.innerHTML = `
+                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
+                    <i class="fas fa-user-slash text-2xl text-gray-500"></i>
+                </div>
+                <p class="text-gray-400">Персональных уведомлений нет</p>
+                <p class="text-sm text-gray-500 mt-1">Вы еще не отправляли персональные уведомления</p>
+            `;
+            emptyState2.classList.remove('hidden');
+        }
+        notificationsList2.innerHTML = '';
+        return;
+    }
+
+    if (emptyState2) emptyState2.classList.add('hidden');
+
+    let notificationsHTML = '';
+    
+    personalNotifications.forEach(notif => {
+        const isUnread = !notif.is_read;
+        const timeAgo = getTimeAgo(notif.created_at);
+        
         notificationsHTML += `
-            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
-                 data-id="${notif.id}" data-unread="${isUnread}" data-notification-id="${notif.notification_id}">
+            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-green-500/20 bg-green-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all">
                 <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
-                        <i class="fas fa-bullhorn ${isUnread ? 'text-blue-400' : 'text-gray-400'} text-sm"></i>
+                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-green-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
+                        <i class="fas fa-user text-green-400 text-sm"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between mb-1">
                             <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                            <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+                            <span class="text-xs ${isUnread ? 'text-green-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                         </div>
+                        
+                        <!-- Информация о пользователе -->
+                        <div class="mb-2 p-2 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <span class="text-gray-400">ID:</span>
+                                    <span class="text-white font-mono ml-1">${notif.target_user.id}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Логин:</span>
+                                    <span class="text-white ml-1">${escapeHtml(notif.target_user.username)}</span>
+                                </div>
+                                <div class="col-span-2">
+                                    <span class="text-gray-400">Почта:</span>
+                                    <span class="text-white ml-1">${escapeHtml(notif.target_user.email)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
                             ${escapeHtml(notif.message)}
                         </p>
-                        ${isUnread ? `
-                        <div class="flex items-center space-x-2 mt-2">
-                            <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                            <span class="text-xs text-blue-400">Новое</span>
-                        </div>
-                        ` : ''}
                         
-                        <!-- Кнопка удаления для админа -->
-                        ${window.isAdmin ? `
-                        <div class="flex justify-end mt-2">
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center space-x-2">
+                                ${isUnread ? `
+                                <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                <span class="text-xs text-green-400">Новое</span>
+                                ` : ''}
+                                <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>
+                            </div>
                             <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
-                                    data-notification-id="${notif.notification_id}"
+                                    data-notification-id="${notif.id}"
                                     title="Удалить уведомление">
                                 <i class="fas fa-trash"></i> Удалить
                             </button>
                         </div>
-                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -200,8 +334,9 @@ function renderNotificationsList2() {
     });
     
     notificationsList2.innerHTML = notificationsHTML;
-    applyNotificationsFilter2('all'); // Применяем фильтр по умолчанию
 }
+
+
 
 // -----------------------------
 // Пометить уведомление как прочитанное
@@ -274,7 +409,7 @@ async function markNotificationAsRead2(notificationId, notificationElement) {
 // Удаление системного уведомления (для админа)
 // -----------------------------
 async function deleteSystemNotification(notificationId, notificationElement) {
-    if (!confirm('Вы уверены, что хотите удалить это уведомление? Оно будет удалено для всех пользователей.')) {
+    if (!confirm('Вы уверены, что хотите удалить это уведомление?')) {
         return;
     }
     
@@ -296,17 +431,21 @@ async function deleteSystemNotification(notificationId, notificationElement) {
             setTimeout(() => {
                 notificationElement.remove();
                 
-                // Обновляем список уведомлений
-                userNotifications = userNotifications.filter(n => n.notification_id != notificationId);
+                // Обновляем счетчик
+                const counterElement2 = document.getElementById('notificationsCount2');
+                if (counterElement2) {
+                    const currentCount = parseInt(counterElement2.textContent);
+                    counterElement2.textContent = Math.max(0, currentCount - 1);
+                }
                 
                 // Проверяем пустой список
                 const notificationsList2 = document.getElementById('notificationsList2');
                 const emptyState2 = document.getElementById('emptyNotificationsState2');
-                if (userNotifications.length === 0 && emptyState2) {
+                const remainingItems = notificationsList2.querySelectorAll('.notification-item').length;
+                
+                if (remainingItems === 0 && emptyState2) {
                     emptyState2.classList.remove('hidden');
                 }
-                
-                updateNotificationsCounter2();
             }, 300);
         } else {
             alert('Ошибка при удалении уведомления: ' + data.error);
@@ -317,12 +456,24 @@ async function deleteSystemNotification(notificationId, notificationElement) {
     }
 }
 
+
+
 // -----------------------------
 // Фильтрация уведомлений
 // -----------------------------
+
 function applyNotificationsFilter2(filter) {
-    const notifications = document.querySelectorAll('.notification-item');
+    const notificationsList2 = document.getElementById('notificationsList2');
     const emptyState2 = document.getElementById('emptyNotificationsState2');
+    
+    if (filter === 'personal') {
+        // Для вкладки "Персональные" загружаем специальные данные
+        loadPersonalNotifications();
+        return;
+    }
+    
+    // Остальная логика фильтрации для обычных вкладок
+    const notifications = document.querySelectorAll('.notification-item');
     
     let visibleCount = 0;
 
@@ -350,7 +501,6 @@ function applyNotificationsFilter2(filter) {
     // Показываем/скрываем пустое состояние
     if (emptyState2) {
         if (visibleCount === 0 && userNotifications.length > 0) {
-            // Есть уведомления, но они отфильтрованы
             emptyState2.innerHTML = `
                 <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
                     <i class="fas fa-filter text-2xl text-gray-500"></i>
@@ -359,7 +509,6 @@ function applyNotificationsFilter2(filter) {
             `;
             emptyState2.classList.remove('hidden');
         } else if (userNotifications.length === 0) {
-            // Нет уведомлений вообще
             emptyState2.innerHTML = `
                 <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
                     <i class="fas fa-bell-slash text-2xl text-gray-500"></i>
@@ -373,6 +522,7 @@ function applyNotificationsFilter2(filter) {
         }
     }
 }
+
 
 // -----------------------------
 // Открытие модалки уведомлений
@@ -481,6 +631,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const title = document.getElementById('notificationTitle').value;
             const message = document.getElementById('notificationMessage').value;
+            const targetUserId = document.getElementById('targetUserId').value;
+            
+            // Подготавливаем данные
+            const formData = {
+                title: title,
+                message: message
+            };
+            
+            // Добавляем target_user_id только если указан
+            if (targetUserId && targetUserId.trim() !== '') {
+                formData.target_user_id = parseInt(targetUserId);
+            }
             
             try {
                 const response = await fetch('/notifications/create/', {
@@ -490,16 +652,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
-                    body: JSON.stringify({
-                        title: title,
-                        message: message
-                    })
+                    body: JSON.stringify(formData)
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Уведомление успешно отправлено!');
+                    const messageType = data.is_personal ? 'Персональное уведомление' : 'Общее уведомление';
+                    alert(`${messageType} успешно отправлено!`);
                     closeCreateNotificationModal();
                     // Перезагружаем уведомления
                     loadUserNotifications();
@@ -513,7 +673,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 // -----------------------------
 // Инициализация при загрузке
 // -----------------------------

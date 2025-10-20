@@ -33,7 +33,6 @@ def home(request):
 
 
 
-
 @staff_member_required
 @require_POST
 def create_system_notification(request):
@@ -42,34 +41,63 @@ def create_system_notification(request):
         data = json.loads(request.body)
         title = data.get('title')
         message = data.get('message')
+        target_user_id = data.get('target_user_id')  # Новый параметр
         
         if not title or not message:
             return JsonResponse({'success': False, 'error': 'Заполните все поля'})
+        
+        # Обрабатываем целевого пользователя, если указан
+        target_user = None
+        if target_user_id:
+            try:
+                target_user = User.objects.get(id=target_user_id)
+            except User.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Пользователь с указанным ID не найден'})
         
         # Создаем системное уведомление
         notification = SystemNotification.objects.create(
             title=title,
             message=message,
-            created_by=request.user
+            created_by=request.user,
+            target_user=target_user  # Может быть None (для всех) или конкретный пользователь
         )
         
-        # Создаем записи для всех пользователей
-        users = User.objects.all()
-        user_notifications = []
-        for user in users:
-            user_notifications.append(
-                UserNotification(user=user, notification=notification)
+        # Создаем записи UserNotification
+        if target_user:
+            # Персональное уведомление - только для указанного пользователя
+            UserNotification.objects.create(
+                user=target_user,
+                notification=notification
             )
+            users_count = 1
+            message_type = "персональное уведомление отправлено"
+        else:
+            # Общее уведомление - для всех пользователей
+            users = User.objects.all()
+            user_notifications = [
+                UserNotification(user=user, notification=notification)
+                for user in users
+            ]
+            UserNotification.objects.bulk_create(user_notifications)
+            users_count = len(users)
+            message_type = "уведомление отправлено всем пользователям"
         
-        UserNotification.objects.bulk_create(user_notifications)
+        print(f"Created {message_type} '{title}' for {users_count} users")
         
-        print(f"Created system notification '{title}' for {len(users)} users")
-        
-        return JsonResponse({'success': True, 'message': 'Уведомление отправлено всем пользователям'})
+        return JsonResponse({
+            'success': True, 
+            'message': f'{message_type} для {users_count} пользователей',
+            'is_personal': target_user is not None
+        })
         
     except Exception as e:
         print(f"Error creating system notification: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+
+
+
     
 
 @staff_member_required
@@ -99,20 +127,27 @@ def distribute_existing_notifications(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
-
 @login_required
 def get_user_notifications(request):
     """Получение уведомлений пользователя"""
     try:
+        # Получаем уведомления пользователя:
+        # 1. Общие уведомления (target_user=None) 
+        # 2. Персональные уведомления для этого пользователя
         user_notifications = UserNotification.objects.filter(
             user=request.user,
             notification__is_active=True
+        ).filter(
+            Q(notification__target_user=None) |  # Общие уведомления
+            Q(notification__target_user=request.user)  # Персональные для этого пользователя
         ).select_related('notification').order_by('-created_at')
         
         notifications_data = []
         unread_count = 0
         
         for user_notif in user_notifications:
+            notification_type = "personal" if user_notif.notification.target_user else "system"
+            
             notifications_data.append({
                 'id': user_notif.id,
                 'notification_id': user_notif.notification.id,
@@ -120,11 +155,15 @@ def get_user_notifications(request):
                 'message': user_notif.notification.message,
                 'created_at': user_notif.notification.created_at.isoformat(),
                 'is_read': user_notif.is_read,
-                'read_at': user_notif.read_at.isoformat() if user_notif.read_at else None
+                'read_at': user_notif.read_at.isoformat() if user_notif.read_at else None,
+                'type': notification_type,  # 'system' или 'personal'
+                'is_personal': user_notif.notification.target_user is not None
             })
             
             if not user_notif.is_read:
                 unread_count += 1
+        
+        print(f"Found {len(notifications_data)} notifications for user {request.user.username}, {unread_count} unread")
         
         return JsonResponse({
             'success': True,
@@ -133,7 +172,53 @@ def get_user_notifications(request):
         })
         
     except Exception as e:
+        print(f"Error getting notifications for user {request.user.username}: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+@staff_member_required
+@login_required
+def get_personal_notifications(request):
+    """Получение всех персональных уведомлений для админа"""
+    try:
+        # Получаем все персональные уведомления, созданные текущим админом
+        personal_notifications = SystemNotification.objects.filter(
+            created_by=request.user,
+            target_user__isnull=False,
+            is_active=True
+        ).select_related('target_user').order_by('-created_at')
+        
+        notifications_data = []
+        
+        for notification in personal_notifications:
+            # Получаем информацию о пользователе-получателе
+            user_notification = UserNotification.objects.filter(
+                notification=notification
+            ).first()
+            
+            notifications_data.append({
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'created_at': notification.created_at.isoformat(),
+                'target_user': {
+                    'id': notification.target_user.id,
+                    'username': notification.target_user.username,
+                    'email': notification.target_user.email or 'Не указана',
+                },
+                'is_read': user_notification.is_read if user_notification else False,
+                'read_at': user_notification.read_at.isoformat() if user_notification and user_notification.read_at else None,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data
+        })
+        
+    except Exception as e:
+        print(f"Error getting personal notifications for admin {request.user.username}: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 @login_required
 @require_POST
