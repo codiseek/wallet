@@ -266,6 +266,8 @@ function initNoteModal() {
     closeNoteModalBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             animateModal(noteModal, false);
+            document.body.classList.remove('modal-open');
+
         });
     });
 
@@ -278,6 +280,7 @@ function initNoteModal() {
     noteModal.addEventListener('click', function(e) {
         if (e.target === noteModal) {
            animateModal(noteModal, false);
+            document.body.classList.remove('modal-open');
         }
     });
 }
@@ -388,7 +391,7 @@ function proceedWithSave(title, content, reminderDateValue) {
     })
     .then(data => {
         if (data.success) {
-            document.getElementById('noteModal').classList.add('hidden');
+            animateModal(document.getElementById('noteModal'), false);
             loadNotes();
             showNoteNotification(currentEditingNoteId ? 'Заметка обновлена!' : 'Заметка создана!', 'success');
             

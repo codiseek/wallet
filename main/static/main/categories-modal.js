@@ -76,11 +76,8 @@ async function reloadCategoryData(categoryId, filter) {
 // Обновляем функцию openCategoryDetail
 async function openCategoryDetail(categoryElement) {
     const modal = document.getElementById("categoryDetailModal");
-    if (!modal) {
-        return;
-    }
+    if (!modal) return;
 
-    // Получаем данные из data-атрибутов
     const categoryId = categoryElement.dataset.categoryId;
     const categoryName = categoryElement.dataset.categoryName;
     const categoryIcon = categoryElement.dataset.categoryIcon;
@@ -88,41 +85,34 @@ async function openCategoryDetail(categoryElement) {
     
     currentCategoryId = categoryId;
 
-    // Сбрасываем состояние подтверждения удаления
     resetCategoryDeleteConfirmation();
-    
-    // Сбрасываем фильтр к значению по умолчанию
-    currentCategoryFilter = 'month';
-    const currentText = document.getElementById('categoryCurrentFilterText');
-    if (currentText) {
-        currentText.textContent = 'За месяц';
-    }
-    
+
+    // 🔹 Сразу открываем модалку (мгновенно)
+    animateModal(modal, true);
+
+    // 🔹 Показываем "загрузка" с базовой информацией
+    showCategoryLoadingState(categoryName, categoryIcon, categoryColor);
+
     try {
-        // Показываем загрузку с правильными данными категории
-        showCategoryLoadingState(categoryName, categoryIcon, categoryColor);
-
-        // Загружаем данные категории с сервера с фильтром по умолчанию
-        const response = await fetch(`/get_category_stats/${categoryId}/?period=${currentCategoryFilter}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-
-        if (data.success) {
-            showCategoryData(data);
-        } else {
-            showCategoryErrorState('Ошибка загрузки данных: ' + (data.error || 'неизвестная ошибка'));
-        }
+        // 🔹 Чуть позже грузим данные (без блокировки UI)
+        setTimeout(async () => {
+            const response = await fetch(`/get_category_stats/${categoryId}/`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            if (data.success) {
+                showCategoryData(data);
+            } else {
+                showCategoryErrorState('Ошибка загрузки данных: ' + (data.error || 'неизвестная ошибка'));
+            }
+        }, 50);
     } catch (error) {
         showCategoryErrorState('Ошибка соединения с сервером');
     }
-
-    // Показываем модалку с анимацией
-    animateModal(modal, true);
 }
+
+
+
 
 // Обновляем функцию showCategoryLoadingState
 function showCategoryLoadingState(name, icon, color) {

@@ -10,6 +10,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
 }
+
+
 /* Когда модалка открыта — блокируем скролл фона */
 body.modal-open {
     overflow: hidden;
@@ -220,6 +222,17 @@ body.modal-open {
     font-weight: 500;
 }
 
+
+
+
+/* Исправление отступа для вкладки категорий */
+#tab-categories .mobile-section {
+    padding-bottom: 50px; 
+}
+
+
+
+
 /* Сами уведомления */
 .notification-inline {
     position: absolute !important;
@@ -227,7 +240,8 @@ body.modal-open {
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
     pointer-events: auto;
-   
+    background: rgba(73, 37, 235, 0.25);
+    border: 1px solid rgba(59, 130, 246, 0.4);
     color: #fff;
     border-radius: 0.75rem;
     padding: 0.5rem 1.2rem;
