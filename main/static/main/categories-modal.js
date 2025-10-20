@@ -114,29 +114,6 @@ async function openCategoryDetail(categoryElement) {
 
 
 
-// Обновляем функцию showCategoryLoadingState
-function showCategoryLoadingState(name, icon, color) {
-    if (name && icon && color) {
-        updateCategoryDisplay(name, icon, color);
-    }
-    
-    // Показываем состояние загрузки в статистике
-    const statsElements = {
-        'categoryTotalExpense': '0 с',
-        'categoryAverageAmount': '0 с',
-        'categoryTransactionsCount': '0',
-        'categoryExpensePercentage': '0%'
-    };
-
-    Object.keys(statsElements).forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = statsElements[id];
-        }
-    });
-}
-
-
 
 
 // Инициализация модалки категории
@@ -263,8 +240,6 @@ function showCategoryLoadingState(name, icon, color) {
     updateCategoryDisplay(name, icon, color);
     
     const categoryTypeEl = document.getElementById('categoryDetailType');
-    const transactionsList = document.getElementById('categoryTransactionsList');
-    const noTransactions = document.getElementById('categoryNoTransactions');
 
     if (categoryTypeEl) {
         categoryTypeEl.textContent = 'Категория расходов';
@@ -347,8 +322,6 @@ function showCategoryData(data) {
     // НЕПОСРЕДСТВЕННО ОБНОВЛЯЕМ ВСЕ ЭЛЕМЕНТЫ ВРУЧНУЮ
     updateCategoryElementsDirectly(data, formatAmount);
 
-    // Обновляем список транзакций (операции за день)
-    updateTransactionsList(data.transactions || [], data.has_transactions, formatAmount);
 
     // Показываем/скрываем кнопку удаления
     const deleteBtn = document.getElementById('deleteCategoryDetailBtn');
@@ -468,82 +441,21 @@ function updateCategoryStats(stats) {
     }
 }
 
-// Обновить список транзакций
-function updateTransactionsList(transactions, hasTransactions, formatAmount) {
-    const transactionsList = document.getElementById('categoryTransactionsList');
-    const noTransactions = document.getElementById('categoryNoTransactions');
 
-    if (!transactionsList) {
-        return;
-    }
 
-    // Очищаем список
-    transactionsList.innerHTML = '';
-
-    if (!hasTransactions || !transactions || transactions.length === 0) {
-        if (noTransactions) {
-            noTransactions.classList.remove('hidden');
-        }
-        return;
-    }
-
-    if (noTransactions) {
-        noTransactions.classList.add('hidden');
-    }
-
-    let html = '';
-    transactions.forEach((transaction) => {
-        // Безопасное извлечение данных транзакции
-        const amount = parseFloat(transaction.amount) || 0;
-        const description = transaction.description || 'Без описания';
-        let transactionDate;
-        
-        try {
-            transactionDate = new Date(transaction.created_at);
-        } catch (e) {
-            transactionDate = new Date();
-        }
-        
-        const formattedDate = transactionDate.toLocaleDateString('ru-RU');
-        const formattedTime = transactionDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        
-        html += `
-            <div class="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg border border-gray-600 mb-2">
-                <div class="flex-1">
-                    <p class="text-sm text-gray-200">${description}</p>
-                    <p class="text-xs text-gray-400">${formattedDate} ${formattedTime}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-red-400 font-semibold">-${formatAmount(amount)} с</p>
-                </div>
-            </div>
-        `;
-    });
-
-    transactionsList.innerHTML = html;
-}
-
-// Показать состояние ошибки
 function showCategoryErrorState(errorMessage = 'Ошибка загрузки данных') {
-    const transactionsList = document.getElementById('categoryTransactionsList');
-    const noTransactions = document.getElementById('categoryNoTransactions');
-    
-    if (transactionsList) {
-        transactionsList.innerHTML = `
+    const errorContainer = document.getElementById('categoryErrorMessage');
+    if (errorContainer) {
+        errorContainer.innerHTML = `
             <div class="text-center py-4 text-red-400">
                 <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
                 <p>${errorMessage}</p>
             </div>
         `;
     }
-    
-    if (noTransactions) {
-        noTransactions.classList.add('hidden');
-    }
-    
-    // Сбрасываем статистику при ошибке
     resetCategoryStats();
 }
+
 
 // Удаление категории из модалки
 async function deleteCategoryFromModal() {
