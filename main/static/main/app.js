@@ -1887,7 +1887,7 @@ async function loadUserCategories() {
                 
                 categoryElement.innerHTML = `
                     <div class="flex items-center space-x-3 flex-1">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: ${category.color}22; color: ${category.color}">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: ${category.color}22; color: ${category.color}">
                             <i class="${category.icon}"></i>
                         </div>
                         <div class="flex-1">

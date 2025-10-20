@@ -1345,7 +1345,7 @@
                 </div>
 
 
-               <!-- Обновите блок выбора валюты -->
+<!-- Обновите блок выбора валюты -->
 <div class="bg-gray-700/60 rounded-xl p-4 mb-6 border border-gray-600/50">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
@@ -1355,7 +1355,7 @@
             <h3 class="text-base font-semibold text-gray-200">Валюта</h3>
         </div>
         <span id="currentCurrency" class="text-sm text-green-400 font-medium">
-            {% if user_currency == 'c' %}сом
+            {% if user_currency == 'c' %}ом
             {% elif user_currency == 'r' %}рубль
             {% elif user_currency == '$' %}доллар
             {% elif user_currency == '€' %}евро
@@ -1364,25 +1364,24 @@
     </div>
 
     <p class="text-sm text-gray-400 mb-3">
-        Выберите валюту для отображения сумм
+        Выберите валюту для отображения сумм.
     </p>
 
     <div class="grid grid-cols-2 gap-2">
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c">
-            <span class="text-white font-medium text-sm">сом</span>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c" title="Сом">
+            <i class="fa-solid fa-c text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r">
-            <span class="text-white font-medium text-sm">рубль</span>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
+            <i class="fas fa-ruble-sign text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$">
-            <span class="text-white font-medium text-sm">доллар</span>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$" title="Доллар">
+            <i class="fas fa-dollar-sign text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€">
-            <span class="text-white font-medium text-sm">евро</span>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
+            <i class="fas fa-euro-sign text-white text-lg"></i>
         </button>
     </div>
 </div>
-
 
 
   <!-- Настройка процента резерва -->
