@@ -983,17 +983,40 @@ def get_category_stats(request, category_id):
         total_expense = all_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
         print(f"Total expense: {total_expense}")
         
-        # Общие расходы пользователя за все время
-        total_user_expenses = Transaction.objects.filter(
+        # НОВЫЕ РАСЧЕТЫ ДЛЯ СТАТИСТИКИ
+        
+        # Количество операций в категории (за все время)
+        transactions_count = all_expenses.count()
+        print(f"Transactions count: {transactions_count}")
+        
+        # Средний чек (за все время)
+        average_amount = total_expense / transactions_count if transactions_count > 0 else 0
+        print(f"Average amount: {average_amount}")
+        
+        # ИСПРАВЛЕНИЕ: Расходы за текущий месяц и доходы за текущий месяц
+        current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Расходы категории за текущий месяц
+        monthly_category_expenses = Transaction.objects.filter(
             user=request.user,
-            type='expense'
+            category=category,
+            type='expense',
+            created_at__gte=current_month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # ВСЕ ДОХОДЫ пользователя за текущий месяц (для расчета процента)
+        monthly_income = Transaction.objects.filter(
+            user=request.user,
+            type='income',
+            created_at__gte=current_month_start
         ).aggregate(Sum('amount'))['amount__sum'] or 1  # избегаем деления на 0
         
-        print(f"Total user expenses: {total_user_expenses}")
+        print(f"Monthly income: {monthly_income}")
+        print(f"Monthly category expenses: {monthly_category_expenses}")
         
-        # Процент от общих расходов
-        expense_percentage = (total_expense / total_user_expenses * 100) if total_user_expenses > 0 else 0
-        print(f"Expense percentage: {expense_percentage}")
+        # ИСПРАВЛЕНИЕ: Процент от месячных ДОХОДОВ (а не расходов)
+        income_percentage = (monthly_category_expenses / monthly_income * 100) if monthly_income > 0 else 0
+        print(f"Income percentage: {income_percentage}%")
         
         # Подготавливаем данные транзакций за день
         transactions_data = []
@@ -1016,7 +1039,11 @@ def get_category_stats(request, category_id):
                 'color': category.color,
             },
             'total_expense': float(total_expense),
-            'expense_percentage': round(float(expense_percentage), 1),  # Исправлено: убрали Decimal
+            'income_percentage': round(float(income_percentage), 1),  # ПЕРЕИМЕНОВАНО: процент от доходов
+            'transactions_count': transactions_count,
+            'average_amount': round(float(average_amount), 2),
+            'monthly_category_expenses': float(monthly_category_expenses),
+            'monthly_income': float(monthly_income),  # ДЛЯ ОТЛАДКИ
             'transactions': transactions_data,
             'has_transactions': all_expenses.exists(),
             'daily_transactions_count': len(transactions_data)

@@ -1011,49 +1011,59 @@
                 </div>
             </div>
 
-            <!-- Статистика -->
-            <div class="grid grid-cols-2 gap-4">
+  <!-- Основная статистика в карточках -->
+            <div class="grid grid-cols-2 gap-3">
                 <!-- Общие расходы -->
-                <div class="bg-gray-700/40 rounded-xl p-4 text-center border border-gray-600">
-                    <p class="text-gray-400 text-sm mb-1">Всего потрачено</p>
-                    <!-- НОВЫЙ ID -->
-                    <p id="categoryTotalExpense" class="text-2xl font-bold text-red-400">0 с</p>
+                <div class="bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-xl p-4 border border-red-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-red-400 text-sm"></i>
+                        </div>
+                        <i class="fas fa-info-circle text-red-400/60 text-sm cursor-help" title="Общая сумма расходов в этой категории"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Всего потрачено</p>
+                    <p id="categoryTotalExpense" class="text-xl font-bold text-red-400">0 с</p>
                 </div>
 
-                <!-- Процент от общих расходов -->
-                <div class="bg-gray-700/40 rounded-xl p-4 text-center border border-gray-600">
-                    <p class="text-gray-400 text-sm mb-1">От общих доходов</p>
-                    <!-- НОВЫЙ ID -->
-                    <p id="categoryExpensePercentage" class="text-2xl font-bold text-yellow-400">0%</p>
+                <!-- Средний чек -->
+                <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-xl p-4 border border-purple-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <i class="fas fa-receipt text-purple-400 text-sm"></i>
+                        </div>
+                        <i class="fas fa-info-circle text-purple-400/60 text-sm cursor-help" title="Средняя сумма одной операции"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Средний чек</p>
+                    <p id="categoryAverageAmount" class="text-xl font-bold text-purple-400">0 с</p>
+                </div>
+
+                <!-- Количество операций -->
+                <div class="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl p-4 border border-blue-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-calendar-day text-blue-400 text-sm"></i>
+                        </div>
+                        <i class="fas fa-info-circle text-blue-400/60 text-sm cursor-help" title="Количество операций в этой категории"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Всего операций</p>
+                    <p id="categoryTransactionsCount" class="text-xl font-bold text-blue-400">0</p>
+                </div>
+
+                <!-- Процент от расходов -->
+                <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-xl p-4 border border-yellow-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-yellow-400 text-sm"></i>
+                        </div>
+                        <i class="fas fa-info-circle text-yellow-400/60 text-sm cursor-help" title="Доля от общих расходов"></i>
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Доля расходов</p>
+                    <p id="categoryExpensePercentage" class="text-xl font-bold text-yellow-400">0%</p>
                 </div>
             </div>
 
-            <!-- Прогресс-бар -->
-            <div class="space-y-2">
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-400">Заполнение бюджета категории</span>
-                    <!-- НОВЫЙ ID -->
-                    <span id="categoryProgressText" class="text-gray-300">0%</span>
-                </div>
-                <div class="w-full bg-gray-700 rounded-full h-3">
-                    <!-- НОВЫЙ ID -->
-                    <div id="categoryProgressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-            </div>
 
-            <!-- Последние транзакции -->
-            <div class="space-y-3">
-                <h3 class="text-lg font-semibold text-gray-200 border-b border-gray-700 pb-2">Последние операции за день</h3>
-                <!-- НОВЫЙ ID -->
-                <div id="categoryTransactionsList" class="space-y-2 max-h-60 overflow-y-auto">
-                    <!-- Транзакции будут добавляться динамически -->
-                </div>
-                <!-- НОВЫЙ ID -->
-                <div id="categoryNoTransactions" class="text-center py-4 text-gray-500 hidden">
-                    <i class="fas fa-receipt text-2xl mb-2"></i>
-                    <p>Нет операций в этой категории</p>
-                </div>
-            </div>
+          
         </div>
 
         <!-- Кнопки управления -->

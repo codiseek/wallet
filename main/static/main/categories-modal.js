@@ -134,38 +134,8 @@ function showCategoryLoadingState(name, icon, color) {
         categoryTypeEl.textContent = 'Категория расходов';
     }
 
-    // Показываем состояние загрузки для транзакций
-    if (transactionsList) {
-        transactionsList.innerHTML = `
-            <div class="text-center py-4">
-                <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
-                <p class="text-gray-400 text-sm mt-2">Загрузка...</p>
-            </div>
-        `;
-    }
-    
-    if (noTransactions) {
-        noTransactions.classList.add('hidden');
-    }
-    
     // Сбрасываем статистику при загрузке
-    const totalExpenseEl = document.getElementById('categoryTotalExpense');
-    const expensePercentageEl = document.getElementById('categoryExpensePercentage');
-    const progressBar = document.getElementById('categoryProgressBar');
-    const progressText = document.getElementById('categoryProgressText');
-    
-    if (totalExpenseEl) {
-        totalExpenseEl.textContent = '0 с';
-    }
-    if (expensePercentageEl) {
-        expensePercentageEl.textContent = '0%';
-    }
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
-    if (progressText) {
-        progressText.textContent = '0%';
-    }
+    resetCategoryStats();
 }
 
 // Функция для обновления отображения категории
@@ -201,15 +171,29 @@ function updateCategoryDisplay(name, icon, color) {
     }
 }
 
+// Сбросить статистику
+function resetCategoryStats() {
+    const statsElements = {
+        'categoryTotalExpense': '0 с',
+        'categoryAverageAmount': '0 с',
+        'categoryTransactionsCount': '0',
+        'categoryExpensePercentage': '0%'
+    };
+
+    Object.keys(statsElements).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = statsElements[id];
+        }
+    });
+}
+
+
+
 // Показать данные категории
 function showCategoryData(data) {
-    // Безопасное извлечение данных с преобразованием типов
-    const total_expense = parseFloat(data.total_expense) || 0;
-    const expense_percentage = parseFloat(data.expense_percentage) || 0;
-    const transactions = data.transactions || [];
-    const has_transactions = Boolean(data.has_transactions);
-    const category = data.category || {};
-
+    console.log('📊 RAW DATA FROM SERVER:', data);
+    
     // Используем функцию formatAmount из app.js
     const formatAmount = window.formatAmount || function(amount) {
         const number = typeof amount === 'string' ? 
@@ -219,59 +203,133 @@ function showCategoryData(data) {
         return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     };
 
-    // Получаем общие доходы за месяц
-    const monthlyIncome = parseFloat(window.initialBalances?.income) || 50250;
-
-    // Расчет процента как на главной странице: (расходы_категории / общие_доходы) * 100
-    const calculatedPercentage = monthlyIncome > 0 ? (total_expense / monthlyIncome) * 100 : 0;
-
-    // Используем пересчитанный процент
-    const finalPercentage = calculatedPercentage;
-
     // ОБНОВЛЯЕМ ИКОНКУ И НАЗВАНИЕ КАТЕГОРИИ ИЗ ДАННЫХ СЕРВЕРА
-    if (category.name || category.icon || category.color) {
-        updateCategoryDisplay(category.name, category.icon, category.color);
+    if (data.category) {
+        updateCategoryDisplay(data.category.name, data.category.icon, data.category.color);
     }
 
-    // Обновляем статистику - ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЙ ПРОЦЕНТ
-    const totalExpenseEl = document.getElementById('categoryTotalExpense');
-    const expensePercentageEl = document.getElementById('categoryExpensePercentage');
-    
-    if (totalExpenseEl) {
-        const formattedAmount = formatAmount(total_expense) + ' с';
-        totalExpenseEl.textContent = formattedAmount;
-    }
-    
-    if (expensePercentageEl) {
-        const percentageText = finalPercentage.toFixed(1) + '%';
-        expensePercentageEl.textContent = percentageText;
-    }
-
-    // Обновляем прогресс-бар - ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЙ ПРОЦЕНТ
-    const progressPercentage = Math.min(100, finalPercentage);
-    const progressBar = document.getElementById('categoryProgressBar');
-    const progressText = document.getElementById('categoryProgressText');
-    
-    if (progressBar) {
-        progressBar.style.width = `${progressPercentage}%`;
-    }
-    
-    if (progressText) {
-        const progressTextValue = `${progressPercentage.toFixed(1)}%`;
-        progressText.textContent = progressTextValue;
-    }
+    // НЕПОСРЕДСТВЕННО ОБНОВЛЯЕМ ВСЕ ЭЛЕМЕНТЫ ВРУЧНУЮ
+    updateCategoryElementsDirectly(data, formatAmount);
 
     // Обновляем список транзакций (операции за день)
-    updateTransactionsList(transactions, has_transactions, formatAmount);
+    updateTransactionsList(data.transactions || [], data.has_transactions, formatAmount);
 
     // Показываем/скрываем кнопку удаления
     const deleteBtn = document.getElementById('deleteCategoryDetailBtn');
     if (deleteBtn) {
-        if (has_transactions) {
+        if (data.has_transactions) {
             deleteBtn.classList.add('hidden');
         } else {
             deleteBtn.classList.remove('hidden');
         }
+    }
+}
+
+// Прямое обновление элементов (обходной путь)
+function updateCategoryElementsDirectly(data, formatAmount) {
+    console.log('🔄 Directly updating elements...');
+    
+    // Всего потрачено
+    const totalExpenseEl = document.getElementById('categoryTotalExpense');
+    if (totalExpenseEl) {
+        const total = parseFloat(data.total_expense) || 0;
+        totalExpenseEl.textContent = formatAmount(total) + ' с';
+        console.log('✅ Total expense:', totalExpenseEl.textContent);
+    }
+
+    // Средний чек
+    const averageAmountEl = document.getElementById('categoryAverageAmount');
+    if (averageAmountEl) {
+        const average = parseFloat(data.average_amount) || 0;
+        averageAmountEl.textContent = formatAmount(average) + ' с';
+        console.log('✅ Average amount:', averageAmountEl.textContent);
+    }
+
+    // Количество операций
+    const transactionsCountEl = document.getElementById('categoryTransactionsCount');
+    if (transactionsCountEl) {
+        const count = parseInt(data.transactions_count) || 0;
+        transactionsCountEl.textContent = count.toString();
+        console.log('✅ Transactions count:', transactionsCountEl.textContent);
+    }
+
+    // Доля расходов
+    const expensePercentageEl = document.getElementById('categoryExpensePercentage');
+    if (expensePercentageEl) {
+        const percentage = parseFloat(data.income_percentage) || 0;
+        expensePercentageEl.textContent = percentage.toFixed(1) + '%';
+        console.log('✅ Expense percentage:', expensePercentageEl.textContent);
+        
+        // Меняем цвет в зависимости от процента
+        if (percentage > 50) {
+            expensePercentageEl.className = 'text-xl font-bold text-red-400';
+        } else if (percentage > 30) {
+            expensePercentageEl.className = 'text-xl font-bold text-yellow-400';
+        } else {
+            expensePercentageEl.className = 'text-xl font-bold text-green-400';
+        }
+    }
+
+    console.log('🎯 Final check - Elements should be updated');
+}
+
+// Функция для обновления отображения категории (оставляем как есть)
+function updateCategoryDisplay(name, icon, color) {
+    const categoryNameEl = document.getElementById('categoryDetailName');
+    const categoryIconEl = document.getElementById('categoryDetailIcon');
+
+    if (categoryNameEl && name) {
+        categoryNameEl.textContent = name;
+    }
+
+    if (categoryIconEl && icon) {
+        categoryIconEl.innerHTML = '';
+        const iconElement = document.createElement('i');
+        iconElement.className = icon || 'fas fa-tag';
+        categoryIconEl.appendChild(iconElement);
+        
+        if (color) {
+            categoryIconEl.style.backgroundColor = color + '20';
+            categoryIconEl.style.color = color;
+        }
+    }
+}
+
+
+
+
+// Обновить статистику категории
+function updateCategoryStats(stats) {
+    const {
+        total_expense,
+        transactions_count,
+        average_amount,
+        expense_percentage,
+        formatAmount
+    } = stats;
+
+    // Общие расходы
+    const totalExpenseEl = document.getElementById('categoryTotalExpense');
+    if (totalExpenseEl) {
+        totalExpenseEl.textContent = formatAmount(total_expense) + ' с';
+    }
+
+    // Средний чек
+    const averageAmountEl = document.getElementById('categoryAverageAmount');
+    if (averageAmountEl) {
+        averageAmountEl.textContent = formatAmount(average_amount) + ' с';
+    }
+
+    // Количество операций
+    const transactionsCountEl = document.getElementById('categoryTransactionsCount');
+    if (transactionsCountEl) {
+        transactionsCountEl.textContent = transactions_count.toString();
+    }
+
+    // Процент от расходов
+    const expensePercentageEl = document.getElementById('categoryExpensePercentage');
+    if (expensePercentageEl) {
+        expensePercentageEl.textContent = expense_percentage.toFixed(1) + '%';
     }
 }
 
@@ -296,12 +354,6 @@ function updateTransactionsList(transactions, hasTransactions, formatAmount) {
 
     if (noTransactions) {
         noTransactions.classList.add('hidden');
-    }
-
-    // ИЗМЕНИТЕ ЗАГОЛОВОК чтобы не вводить в заблуждение
-    const sectionTitle = transactionsList.previousElementSibling;
-    if (sectionTitle && sectionTitle.tagName === 'H3') {
-        sectionTitle.textContent = `Последние операции (${transactions.length})`;
     }
 
     let html = '';
@@ -355,15 +407,7 @@ function showCategoryErrorState(errorMessage = 'Ошибка загрузки д
     }
     
     // Сбрасываем статистику при ошибке
-    const totalExpenseEl = document.getElementById('categoryTotalExpense');
-    const expensePercentageEl = document.getElementById('categoryExpensePercentage');
-    const progressBar = document.getElementById('categoryProgressBar');
-    const progressText = document.getElementById('categoryProgressText');
-    
-    if (totalExpenseEl) totalExpenseEl.textContent = '0 с';
-    if (expensePercentageEl) expensePercentageEl.textContent = '0%';
-    if (progressBar) progressBar.style.width = '0%';
-    if (progressText) progressText.textContent = '0%';
+    resetCategoryStats();
 }
 
 // Удаление категории из модалки
