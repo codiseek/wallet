@@ -31,6 +31,9 @@ def home(request):
     vapid_key = settings.WEBPUSH_SETTINGS.get("VAPID_PUBLIC_KEY")
     return render(request, "main/index.html", {"vapid_key": vapid_key})
 
+
+
+
 @staff_member_required
 @require_POST
 def create_system_notification(request):
@@ -60,10 +63,42 @@ def create_system_notification(request):
         
         UserNotification.objects.bulk_create(user_notifications)
         
+        print(f"Created system notification '{title}' for {len(users)} users")
+        
         return JsonResponse({'success': True, 'message': 'Уведомление отправлено всем пользователям'})
         
     except Exception as e:
+        print(f"Error creating system notification: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+@staff_member_required
+def distribute_existing_notifications(request):
+    """Распространить все активные уведомления на всех пользователей"""
+    try:
+        active_notifications = SystemNotification.objects.filter(is_active=True)
+        users = User.objects.all()
+        
+        created_count = 0
+        for notification in active_notifications:
+            for user in users:
+                # Создаем запись, если ее еще нет
+                UserNotification.objects.get_or_create(
+                    user=user,
+                    notification=notification,
+                    defaults={'is_read': False}
+                )
+                created_count += 1
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Распространено {created_count} уведомлений на {users.count()} пользователей'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
 
 @login_required
 def get_user_notifications(request):
@@ -139,7 +174,7 @@ def delete_system_notification(request, notification_id):
         return JsonResponse({'success': False, 'error': str(e)})
     
 
-    
+
 
 @require_POST
 @login_required

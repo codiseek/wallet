@@ -87,3 +87,20 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     # Создаем профиль, если его нет
     UserProfile.objects.get_or_create(user=instance)
+
+   # Сигнал для создания уведомлений для нового пользователя
+@receiver(post_save, sender=User)
+def create_notifications_for_new_user(sender, instance, created, **kwargs):
+    if created:
+        # Получаем все активные системные уведомления
+        active_notifications = SystemNotification.objects.filter(is_active=True)
+        
+        # Создаем записи UserNotification для нового пользователя
+        user_notifications = [
+            UserNotification(user=instance, notification=notification)
+            for notification in active_notifications
+        ]
+        
+        if user_notifications:
+            UserNotification.objects.bulk_create(user_notifications)
+            print(f"Created {len(user_notifications)} notifications for new user {instance.username}") 

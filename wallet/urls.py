@@ -51,4 +51,5 @@ urlpatterns = [
     path('notifications/', views.get_user_notifications, name='get_user_notifications'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
     path('notifications/<int:notification_id>/delete/', views.delete_system_notification, name='delete_system_notification'),
+    path('notifications/distribute/', views.distribute_existing_notifications, name='distribute_notifications'),
 ]
