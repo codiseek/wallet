@@ -2214,6 +2214,7 @@ window.initTransactionModal = initTransactionModal;
 window.initTabNavigation = initTabNavigation;
 
 
+
 // -----------------------------
 // Главная инициализация при загрузке
 // -----------------------------
