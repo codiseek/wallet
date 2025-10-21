@@ -1423,6 +1423,7 @@ function initTransactionModal() {
     const modal = document.getElementById("transactionModal");
     const openBtn = document.getElementById("openTransactionModalBtn");
     const closeBtn = document.getElementById("closeTransactionModalBtn");
+    const closeHeaderBtn = document.getElementById("closeTransactionModalHeaderBtn"); // ДОБАВЬТЕ ЭТУ СТРОКУ
 
     if (openBtn && modal) {
         openBtn.addEventListener('click', async function() {
@@ -1431,22 +1432,29 @@ function initTransactionModal() {
             await updateGlobalCategories();
             // если есть функция loadCategories, вызовем её
             if (typeof loadCategoriesForModal === 'function') loadCategoriesForModal();
-
         });
     }
+    
+    // Обработчик для кнопки закрытия внизу
     if (closeBtn && modal) {
         closeBtn.addEventListener('click', () => animateModal(modal, false));
     }
 
+    // Обработчик для кнопки закрытия в шапке
+    if (closeHeaderBtn && modal) {
+        closeHeaderBtn.addEventListener('click', () => animateModal(modal, false));
+    }
+
     // По клику вне модалки
     if (modal) {
-        modal.addEventListener('click', e => { if (e.target === modal) animateModal(modal, false); });
+        modal.addEventListener('click', e => { 
+            if (e.target === modal) animateModal(modal, false); 
+        });
     }
 
     initTypeButtons();
     initKeypad();
     initFormSubmission();
-    
 }
 
 function initTypeButtons() {

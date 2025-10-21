@@ -12,6 +12,7 @@ body {
 }
 
 
+
 /* Когда модалка открыта — блокируем скролл фона */
 body.modal-open {
     overflow: hidden;
@@ -1282,3 +1283,4 @@ backdrop-filter: blur(20px) !important;
 #notificationsList::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+

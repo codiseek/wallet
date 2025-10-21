@@ -80,18 +80,16 @@ function loadNotes() {
                 return;
             }
 
-            // Всегда показываем контейнер заметок
-            notesList.style.display = 'block';
-            
-            // Очищаем только заметки, но не весь контейнер
-            const existingNotes = notesList.querySelectorAll('.note-item');
-            existingNotes.forEach(note => note.remove());
-            
             currentNotes = data.notes || [];
 
             if (currentNotes.length > 0) {
-                // Есть заметки - скрываем пустое состояние
+                // Есть заметки - скрываем пустое состояние и показываем список
                 if (emptyState) emptyState.style.display = 'none';
+                notesList.style.display = 'block';
+                
+                // Очищаем только заметки, но не весь контейнер
+                const existingNotes = notesList.querySelectorAll('.note-item');
+                existingNotes.forEach(note => note.remove());
                 
                 // Добавляем заметки
                 currentNotes.forEach(note => {
@@ -99,16 +97,21 @@ function loadNotes() {
                     notesList.appendChild(noteElement);
                 });
             } else {
-                // Нет заметок - показываем пустое состояние
+                // Нет заметок - показываем пустое состояние и скрываем список
                 if (emptyState) emptyState.style.display = 'block';
+                notesList.style.display = 'none';
             }
         })
         .catch(error => {
-            // В случае ошибки тоже показываем пустое состояние
+            console.error('Ошибка загрузки заметок:', error);
+            // В случае ошибки показываем пустое состояние
             const emptyState = document.getElementById('emptyNotesState');
+            const notesList = document.getElementById('notesList');
             if (emptyState) emptyState.style.display = 'block';
+            if (notesList) notesList.style.display = 'none';
         });
 }
+
 
 function createNoteElement(note) {
     const noteDiv = document.createElement('div');
@@ -134,55 +137,61 @@ function createNoteElement(note) {
     const truncatedTitle =
         note.title.length > 25 ? note.title.substring(0, 25) + '...' : note.title;
 
-    noteDiv.innerHTML = `
-        <div class="flex flex-col space-y-2 main-content">
-            <h3 class="font-semibold text-lg text-white leading-snug">${escapeHtml(
-                truncatedTitle
-            )}</h3>
+   noteDiv.innerHTML = `
+    <div class="flex flex-col space-y-2 main-content">
+        <h3 class="font-semibold text-lg text-white leading-snug">${escapeHtml(
+            truncatedTitle
+        )}</h3>
 
-            <div class="text-xs text-gray-400 flex items-center space-x-1">
-                <i class="fas fa-calendar-alt text-gray-500"></i>
-                <span>${new Date(note.created_at).toLocaleDateString('ru-RU')}</span>
-            </div>
-
-            ${
-                hasReminder
-                    ? `
-                <div class="text-xs text-blue-400 flex items-center space-x-2">
-                    <i class="fas fa-bell ${
-                        isUpcomingReminder ? 'animate-pulse' : ''
-                    }"></i>
-                    <span>${isUpcomingReminder ? 'Запланировано' : 'Напомнено'}</span>
-                </div>
-            `
-                    : ''
-            }
-
-            <div class="relative bg-gray-800/60 rounded-xl p-3 border border-transparent">
-                <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-md"></div>
-                <p class="text-gray-200 text-sm whitespace-pre-wrap ml-3 line-clamp-3">${escapeHtml(note.content || '')}</p>
-
-            </div>
-
-            <div class="text-sm text-gray-400 truncate w-full flex items-center space-x-2">
-                <i class="fas fa-clock text-blue-400"></i>
-                <span class="truncate">${escapeHtml(reminderText)}</span>
-            </div>
+        <div class="text-xs text-gray-400 flex items-center space-x-1">
+            <i class="fas fa-calendar-alt text-gray-500"></i>
+            <span>${new Date(note.created_at).toLocaleDateString('ru-RU')}</span>
         </div>
 
-        <button class="absolute top-3 right-3 text-red-400 hover:text-red-300 p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg delete-note-btn" title="Удалить">
-            <i class="fas fa-trash"></i>
-        </button>
-
-        <!-- Контейнер подтверждения удаления -->
-        <div class="delete-confirm hidden absolute inset-0 bg-gray-900/95 flex flex-col items-center justify-center rounded-2xl border border-red-500/50 text-center p-4">
-            <p class="text-red-400 mb-3 text-sm font-medium">Удалить эту заметку?</p>
-            <div class="flex space-x-3">
-                <button class="confirm-delete bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Удалить</button>
-                <button class="cancel-delete bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium">Отмена</button>
+        ${
+            hasReminder
+                ? `
+            <div class="text-xs text-blue-400 flex items-center space-x-2">
+                <i class="fas fa-bell ${
+                    isUpcomingReminder ? 'animate-pulse' : ''
+                }"></i>
+                <span>${isUpcomingReminder ? 'Запланировано' : 'Напомнено'}</span>
             </div>
+        `
+                : ''
+        }
+
+        <div class="relative bg-gray-800/60 rounded-xl p-3 border border-transparent">
+            <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-md"></div>
+            <p class="text-gray-200 text-sm whitespace-pre-wrap ml-3 line-clamp-3">${escapeHtml(note.content || '')}</p>
         </div>
-    `;
+
+        <div class="text-sm text-gray-400 truncate w-full flex items-center space-x-2">
+            <i class="fas fa-clock text-blue-400"></i>
+            <span class="truncate">${escapeHtml(reminderText)}</span>
+        </div>
+    </div>
+
+    <button class="absolute top-3 right-3 text-red-400 hover:text-red-300 p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg delete-note-btn" title="Удалить">
+        <i class="fas fa-trash"></i>
+    </button>
+
+    <!-- ОБНОВЛЕННЫЙ КОНТЕЙНЕР ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ БЕЗ ПОЛУПРОЗРАЧНОСТИ -->
+    <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10">
+        <div class="text-center mb-3">
+            <p class="text-red-400 font-semibold">Удалить заметку?</p>
+            <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+        </div>
+        <div class="flex space-x-3 w-full">
+            <button class="cancel-delete flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                Отмена
+            </button>
+            <button class="confirm-delete flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                Да, удалить!
+            </button>
+        </div>
+    </div>
+`;
 
     // Открытие при клике
     noteDiv.addEventListener('click', (e) => {
@@ -191,99 +200,149 @@ function createNoteElement(note) {
         }
     });
 
-    // Показ подтверждения удаления
-    const deleteBtn = noteDiv.querySelector('.delete-note-btn');
-    const confirmBox = noteDiv.querySelector('.delete-confirm');
+    // Обновленные обработчики событий (убираем манипуляции с opacity):
+const deleteBtn = noteDiv.querySelector('.delete-note-btn');
+const confirmBox = noteDiv.querySelector('.delete-confirm');
 
-    deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        noteDiv.querySelector('.main-content').classList.add('opacity-30', 'pointer-events-none');
-        confirmBox.classList.remove('hidden');
-        confirmBox.classList.add('animate-fadeIn');
-    });
+deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    confirmBox.classList.remove('hidden');
+    confirmBox.classList.add('animate-fadeIn');
+});
 
-    // Отмена
-    confirmBox.querySelector('.cancel-delete').addEventListener('click', (e) => {
-        e.stopPropagation();
-        confirmBox.classList.add('hidden');
-        noteDiv.querySelector('.main-content').classList.remove('opacity-30', 'pointer-events-none');
-    });
+// Отмена
+confirmBox.querySelector('.cancel-delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    confirmBox.classList.add('hidden');
+});
 
-    // Удаление
-    confirmBox.querySelector('.confirm-delete').addEventListener('click', (e) => {
-        e.stopPropagation();
-        confirmBox.querySelector('.confirm-delete').textContent = 'Удаляется...';
-        confirmBox.querySelector('.confirm-delete').disabled = true;
+// Удаление
+confirmBox.querySelector('.confirm-delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    confirmBox.querySelector('.confirm-delete').textContent = 'Удаляется...';
+    confirmBox.querySelector('.confirm-delete').disabled = true;
 
-        fetch(`/delete_note/${note.id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.success) {
-                    noteDiv.classList.add('opacity-0', 'translate-x-5', 'transition-all');
-                    setTimeout(() => noteDiv.remove(), 300);
-                } else {
-                    confirmBox.querySelector('.confirm-delete').textContent = 'Ошибка';
-                }
-            })
-            .catch(() => {
+    fetch(`/delete_note/${note.id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.success) {
+                noteDiv.classList.add('opacity-0', 'translate-x-5', 'transition-all');
+                setTimeout(() => {
+                    noteDiv.remove();
+                    
+                    // После удаления перезагружаем список заметок
+                    loadNotes();
+                }, 300);
+            } else {
                 confirmBox.querySelector('.confirm-delete').textContent = 'Ошибка';
-            });
-    });
-
+                setTimeout(() => {
+                    confirmBox.querySelector('.confirm-delete').textContent = 'Да, удалить!';
+                    confirmBox.querySelector('.confirm-delete').disabled = false;
+                }, 2000);
+            }
+        })
+        .catch(() => {
+            confirmBox.querySelector('.confirm-delete').textContent = 'Ошибка';
+            setTimeout(() => {
+                confirmBox.querySelector('.confirm-delete').textContent = 'Да, удалить!';
+                confirmBox.querySelector('.confirm-delete').disabled = false;
+            }, 2000);
+        });
+});
     return noteDiv;
 }
 
-// Открытие модалки для добавления заметки
+
+
+// Функция для открытия модалки добавления заметки
+// Функция для открытия модалки добавления заметки
 function openAddNoteModal() {
-    currentEditingNoteId = null;
-    document.getElementById('noteModalTitle').textContent = 'Новая заметка';
-    document.getElementById('noteTitleInput').value = '';
-    document.getElementById('noteContentInput').value = '';
+    const modal = document.getElementById('noteModal');
+    if (!modal) return;
     
-    // УБРАЛИ установку значения по умолчанию - поле будет пустым
-    document.getElementById('reminderDateInput').value = '';
+    // Сбрасываем форму
+    const titleInput = document.getElementById('noteTitleInput');
+    const contentInput = document.getElementById('noteContentInput');
+    const dateInput = document.getElementById('reminderDateInput');
+    const timeInput = document.getElementById('reminderTimeInput');
     
-    animateModal(document.getElementById('noteModal'), true);
+    if (titleInput) titleInput.value = '';
+    if (contentInput) contentInput.value = '';
+    if (dateInput) dateInput.value = '';
+    if (timeInput) timeInput.value = '';
+    
+    // Устанавливаем заголовок модалки
+    const modalTitle = document.getElementById('noteModalTitle');
+    if (modalTitle) {
+        // Обновляем весь HTML заголовка, включая иконку
+        modalTitle.innerHTML = '<i class="fas fa-sticky-note text-blue-400 mr-2"></i>Новая заметка';
+    }
+    
+    // Обновляем текст кнопки сохранения
+    const saveBtn = document.getElementById('saveNoteBtn');
+    if (saveBtn) {
+        saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Сохранить';
+        saveBtn.onclick = saveNote; // Убедимся, что привязана правильная функция
+    }
+    
+    // Сбрасываем текущую редактируемую заметку
+    window.currentEditingNoteId = null;
+    
+    // Показываем модалку
+    animateModal(modal, true);
 }
 
-// Инициализация модального окна заметок
+// Функция для инициализации модалки заметки
 function initNoteModal() {
-    const noteModal = document.getElementById('noteModal');
-    const closeNoteModalBtns = document.querySelectorAll('.close-modal[data-modal="note"]');
-    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    const modal = document.getElementById('noteModal');
+    const saveBtn = document.getElementById('saveNoteBtn');
+    const closeHeaderBtn = document.getElementById('closeNoteModalHeaderBtn');
+    const closeBtns = modal ? modal.querySelectorAll('.close-modal[data-modal="note"]') : [];
 
-    if (!noteModal) {
-        return;
+    // Обработчик для кнопки закрытия в шапке
+    if (closeHeaderBtn && modal) {
+        closeHeaderBtn.addEventListener('click', () => animateModal(modal, false));
     }
 
-    // Закрытие модалки заметки
-    closeNoteModalBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            animateModal(noteModal, false);
-            document.body.classList.remove('modal-open');
+    // Обработчики для других кнопок закрытия
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => animateModal(modal, false));
+    });
 
+    // Закрытие по клику вне модалки
+    if (modal) {
+        modal.addEventListener('click', e => {
+            if (e.target === modal) animateModal(modal, false);
         });
-    });
-
-    // Сохранение заметки
-    if (saveNoteBtn) {
-        saveNoteBtn.addEventListener('click', saveNote);
     }
 
-    // Закрытие по клику вне окна
-    noteModal.addEventListener('click', function(e) {
-        if (e.target === noteModal) {
-           animateModal(noteModal, false);
-            document.body.classList.remove('modal-open');
-        }
-    });
+    // Обработчик сохранения заметки
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveNote);
+    }
+
+    // Обработчик кнопки очистки напоминания
+    const clearReminderBtn = document.getElementById('clearReminderBtn');
+    if (clearReminderBtn) {
+        clearReminderBtn.addEventListener('click', function() {
+            document.getElementById('reminderDateInput').value = '';
+            document.getElementById('reminderTimeInput').value = '';
+        });
+    }
 }
+
+// Убедитесь, что функция инициализации вызывается при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    initNoteModal();
+});
+
+
 
 // Открытие модалки редактирования заметки
 function openEditNoteModal(note) {

@@ -82,7 +82,6 @@ def create_system_notification(request):
             users_count = len(users)
             message_type = "уведомление отправлено всем пользователям"
         
-        print(f"Created {message_type} '{title}' for {users_count} users")
         
         return JsonResponse({
             'success': True, 

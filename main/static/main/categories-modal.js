@@ -129,24 +129,70 @@ function showCategoryDeleteConfirmation() {
     const normalButtons = document.getElementById('categoryNormalButtons');
     const confirmDeleteSection = document.getElementById('categoryConfirmDeleteSection');
     
-    if (normalButtons) normalButtons.classList.add('hidden');
+    if (normalButtons) {
+        normalButtons.classList.add('hidden');
+        normalButtons.style.display = 'none';
+    }
+    
     if (confirmDeleteSection) {
+        // Убеждаемся, что у нас правильный HTML
+        confirmDeleteSection.innerHTML = `
+            <div class="text-center mb-3">
+                <p class="text-red-400 font-semibold">Удалить категорию?</p>
+                <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+            </div>
+            <div class="flex space-x-3">
+                <button id="cancelCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    Отмена
+                </button>
+                <button id="confirmCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                    Да, удалить!
+                </button>
+            </div>
+        `;
         confirmDeleteSection.classList.remove('hidden');
+        confirmDeleteSection.style.display = 'block';
         confirmDeleteSection.classList.add('animate-fadeIn');
     }
 }
 
-// Функция для сброса состояния подтверждения удаления категории
+
+
+
+// Функция для ПОЛНОГО сброса состояния подтверждения удаления категории
 function resetCategoryDeleteConfirmation() {
     const normalButtons = document.getElementById('categoryNormalButtons');
     const confirmDeleteSection = document.getElementById('categoryConfirmDeleteSection');
     
-    if (normalButtons) normalButtons.classList.remove('hidden');
+    if (normalButtons) {
+        normalButtons.classList.remove('hidden');
+        normalButtons.style.display = 'flex';
+    }
+    
     if (confirmDeleteSection) {
+        // ПОЛНОСТЬЮ восстанавливаем оригинальный HTML
+        confirmDeleteSection.innerHTML = `
+            <div class="text-center mb-3">
+                <p class="text-red-400 font-semibold">Удалить категорию?</p>
+                <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+            </div>
+            <div class="flex space-x-3">
+                <button id="cancelCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    Отмена
+                </button>
+                <button id="confirmCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                    Да, удалить!
+                </button>
+            </div>
+        `;
         confirmDeleteSection.classList.add('hidden');
+        confirmDeleteSection.style.display = 'none';
         confirmDeleteSection.classList.remove('animate-fadeIn');
     }
 }
+
+
+
 
 // Функция открытия модалки категории
 async function openCategoryDetail(categoryElement) {
@@ -161,11 +207,15 @@ async function openCategoryDetail(categoryElement) {
     const categoryIcon = categoryElement.dataset.categoryIcon;
     const categoryColor = categoryElement.dataset.categoryColor;
     
-    currentCategoryId = categoryId;
-
-    // Сбрасываем состояние подтверждения удаления
+    // ПОЛНЫЙ сброс перед установкой новых значений
+    currentCategoryId = null;
+    
+    // ПОЛНОСТЬЮ сбрасываем состояние подтверждения удаления
     resetCategoryDeleteConfirmation();
     
+    // Устанавливаем новую категорию
+    currentCategoryId = categoryId;
+
     try {
         // Показываем загрузку с правильными данными категории
         showCategoryLoadingState(categoryName, categoryIcon, categoryColor);
@@ -191,6 +241,13 @@ async function openCategoryDetail(categoryElement) {
     // Показываем модалку с анимацией
     animateModal(modal, true);
 }
+
+
+
+
+
+
+
 
 // Показать состояние загрузки
 function showCategoryLoadingState(name, icon, color) {
@@ -500,9 +557,12 @@ function showCategoryErrorState(errorMessage = 'Ошибка загрузки д
 }
 
 
-// Удаление категории из модалки
+// Функция для удаления категории из модалки
 async function deleteCategoryFromModal() {
     if (!currentCategoryId) {
+        console.error("No category ID found for deletion");
+        alert('Ошибка: ID категории не найден');
+        resetCategoryDeleteConfirmation();
         return;
     }
     
@@ -537,6 +597,10 @@ async function deleteCategoryFromModal() {
                 if (typeof loadUserCategories === 'function') {
                     loadUserCategories();
                 }
+                // Обновляем вкладки категорий
+                if (typeof updateCategoryTabs === 'function') {
+                    updateCategoryTabs();
+                }
             }, 1000);
             
         } else {
@@ -544,6 +608,7 @@ async function deleteCategoryFromModal() {
             resetCategoryDeleteConfirmation();
         }
     } catch (error) {
+        console.error('Delete category error:', error);
         alert('Произошла ошибка при удалении: ' + error.message);
         resetCategoryDeleteConfirmation();
     }
@@ -553,15 +618,40 @@ async function deleteCategoryFromModal() {
 function closeCategoryDetailModal() {
     const modal = document.getElementById("categoryDetailModal");
     if (modal) {
+        // ПОЛНЫЙ сброс всех состояний
         resetCategoryDeleteConfirmation();
+        
+        // Сбрасываем все глобальные переменные
+        currentCategoryId = null;
+        currentCategoryFilter = 'month';
+        
+        // Сбрасываем текст фильтра
+        const currentFilterText = document.getElementById('categoryCurrentFilterText');
+        if (currentFilterText) {
+            currentFilterText.textContent = 'За месяц';
+        }
+        
+        // Закрываем модалку
         animateModal(modal, false);
         
-        // Очищаем ID категории при закрытии
+        // Дополнительный сброс через небольшой таймаут для гарантии
         setTimeout(() => {
-            currentCategoryId = null;
-        }, 300);
+            // Убеждаемся, что все скрыто правильно
+            const confirmDeleteSection = document.getElementById('categoryConfirmDeleteSection');
+            if (confirmDeleteSection) {
+                confirmDeleteSection.classList.add('hidden');
+                confirmDeleteSection.style.display = 'none';
+            }
+            
+            const normalButtons = document.getElementById('categoryNormalButtons');
+            if (normalButtons) {
+                normalButtons.classList.remove('hidden');
+                normalButtons.style.display = 'flex';
+            }
+        }, 50);
     }
 }
+
 
 // Делаем функции глобально доступными
 window.openCategoryDetail = openCategoryDetail;

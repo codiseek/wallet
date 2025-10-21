@@ -73,7 +73,6 @@
        <!-- Заголовок -->
 <div class="p-4 border-b border-gray-700 flex items-center justify-between">
     <h2 class="text-xl font-bold flex items-center">
-        <i class="fas fa-bell text-yellow-400 mr-2"></i>
         Уведомления
     </h2>
     <div class="flex items-center space-x-2">
@@ -287,12 +286,12 @@
         <h2 class="text-lg font-bold">История операций</h2>
         <!-- Кнопка фильтра -->
         <div class="relative ">
-            <button id="filterToggleBtn" class="bg-gray-800 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors ">
+            <button id="filterToggleBtn" class="bg-gray-800 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors">
                 <span id="currentFilterText">За неделю</span>
                 
             </button>
             <!-- Выпадающий список -->
-            <div id="filterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40">
+            <div id="filterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-[100]">
                 <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">
                    За день
                 </button>
@@ -678,21 +677,25 @@
 <!-- Заметки вкладка -->
 <div class="mobile-tab mt-2" id="tab-notes">
     <div class="mobile-section">
-      <div class="mobile-content">
-        <div class="card-gradient rounded-2xl">
-            <div class="flex justify-between items-center -mt-5 mb-4">
-                 <h2 class="text-lg font-bold mb-4 flex items-center">
-                    <i class="fa-solid fa-feather-pointed text-blue-400 mr-2"></i>
-                    Умные заметки
-                </h2>
-               <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3  add-note-btn">
-    <i class="fas fa-plus mr-2"></i>Добавить
-</button>
-            </div>
-            
-            <div class="space-y-3 max-h-96 categories-scroll" id="notesList">
-                <!-- ЗАМЕНИТЕ ЭТОТ БЛОК НА НОВЫЙ ДИЗАЙН -->
-                <div class="text-center py-6 px-4" id="emptyNotesState">
+        <div class="mobile-content">
+            <div class="card-gradient rounded-2xl">
+                <div class="flex justify-between items-center -mt-5 mb-4">
+                    <h2 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fa-solid fa-feather-pointed text-blue-400 mr-2"></i>
+                        Умные заметки
+                    </h2>
+                    <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3 add-note-btn">
+                        <i class="fas fa-plus mr-2"></i>Добавить
+                    </button>
+                </div>
+                
+                <!-- Контейнер для списка заметок -->
+                <div class="space-y-3 max-h-96 categories-scroll" id="notesList">
+                    <!-- Заметки будут добавляться сюда динамически -->
+                </div>
+
+                <!-- Пустое состояние ВНЕ контейнера notesList -->
+                <div class="text-center py-6 px-4" id="emptyNotesState" style="display: none;">
                     <!-- Главная иконка -->
                     <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center">
                         <i class="fas fa-sticky-note text-3xl text-blue-400"></i>
@@ -743,19 +746,15 @@
                     </div>
                     
                     <!-- Призыв к действию -->
-                   <button class="add-note-btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg"
-        onclick="openAddNoteModal()">
-    <i class="fas fa-plus mr-2"></i>
-    Создать первую заметку
-</button>
-                    
-                    <!-- Дополнительная мотивация -->
-                  
+                    <button class="add-note-btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg"
+                            onclick="openAddNoteModal()">
+                        <i class="fas fa-plus mr-2"></i>
+                        Создать первую заметку
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 
 
@@ -803,13 +802,18 @@
     
   
     </div> <!-- Конец .app-container -->
-
-   <!-- В файле index.html замените блок с категориями в модалке транзакции -->
+<!-- Модальное окно добавления записи -->
 <div id="transactionModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
-        <!-- Заголовок -->
-        <div class="p-4 border-b border-gray-700">
-            <h2 class="text-xl font-bold text-center">Добавить запись</h2>
+        <!-- НОВАЯ ШАПКА КАК В УВЕДОМЛЕНИЯХ -->
+        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center">
+               
+                Добавить запись
+            </h2>
+            <button id="closeTransactionModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                Закрыть
+            </button>
         </div>
 
         <form id="transactionForm" class="p-4 space-y-4">
@@ -821,7 +825,6 @@
                 <input id="amountInput" name="amount" type="text" inputmode="decimal" required
                        placeholder="0.00"
                        class="w-full p-4 rounded-lg bg-gray-700 text-white text-center text-3xl font-bold border-2 border-gray-600 focus:border-blue-500 outline-none">
-               
             </div>
 
             <!-- Цифровая клавиатура -->
@@ -854,7 +857,6 @@
 
             <!-- Кнопка выбора категории -->
             <div>
-              
                 <button type="button" id="openCategorySelectionBtn" class="w-full p-4 rounded-lg bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-blue-500 text-white font-semibold transition-all duration-200 flex items-center justify-between">
                     <span id="selectedCategoryDisplay" class="flex items-center">
                         <i class="fas fa-tag mr-2 text-gray-400"></i>
@@ -886,6 +888,8 @@
     </div>
 </div>
 
+
+
 <!-- Новая модалка выбора категории -->
 <div id="categorySelectionModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1100] bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto h-[80vh] flex flex-col">
@@ -913,11 +917,20 @@
     </div>
 </div>
 
+
+
+<!-- Модальное окно добавления заметки -->
 <div id="noteModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
-        <!-- Заголовок -->
-        <div class="p-4 border-b border-gray-700">
-            <h2 class="text-xl font-bold text-center" id="noteModalTitle">Новая заметка</h2>
+        <!-- НОВАЯ ШАПКА КАК В УВЕДОМЛЕНИЯХ -->
+        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 id="noteModalTitle" class="text-xl font-bold flex items-center"> <!-- ДОБАВЛЕН ID -->
+                <i class="fas fa-sticky-note text-blue-400 mr-2"></i>
+                Новая заметка
+            </h2>
+            <button id="closeNoteModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                Закрыть
+            </button>
         </div>
 
         <div class="p-6">
@@ -930,40 +943,38 @@
                     <textarea placeholder="Введите текст заметки" rows="6" class="input-field" id="noteContentInput"></textarea>
                 </div>
                 
-                <!-- Новый красивый интерфейс выбора даты напоминания -->
-                <!-- Обновленный блок выбора напоминания -->
-<div>
-    <label class="block text-gray-300 mb-3">
-        <i class="fas fa-bell mr-2 text-blue-400"></i>
-        Напоминание (необязательно)
-    </label>
-    
-    <!-- Основное поле выбора даты и времени -->
-    <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-2">
-            <div>
-                <label class="block text-gray-400 text-xs mb-1">Дата</label>
-                <input type="date" id="reminderDateInput" 
-                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-xs mb-1">Время</label>
-                <input type="time" id="reminderTimeInput" 
-                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
-            </div>
-        </div>
-        
-        <!-- Кнопка очистки -->
-        <button type="button" id="clearReminderBtn" 
-                class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors">
-            <i class="fas fa-times mr-1"></i> Без напоминания
-        </button>
-    </div>
-    
-    <p class="text-xs text-gray-400 mt-2">
-        Оставьте пустым, если напоминание не нужно.
-    </p>
-</div>
+                <!-- Напоминание -->
+                <div>
+                    <label class="block text-gray-300 mb-3 flex items-center">
+                        <i class="fas fa-bell text-blue-400 mr-2"></i>
+                        Напоминание (необязательно)
+                    </label>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-gray-400 text-xs mb-1">Дата</label>
+                                <input type="date" id="reminderDateInput" 
+                                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-xs mb-1">Время</label>
+                                <input type="time" id="reminderTimeInput" 
+                                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопка очистки -->
+                        <button type="button" id="clearReminderBtn" 
+                                class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors">
+                            <i class="fas fa-times mr-1"></i> Без напоминания
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs text-gray-400 mt-2">
+                        Оставьте пустым, если напоминание не нужно.
+                    </p>
+                </div>
             </div>
             
             <div class="flex justify-end gap-3 mt-6">
@@ -971,12 +982,16 @@
                     Отмена
                 </button>
                 <button class="btn-primary w-full py-3" id="saveNoteBtn">
-                    Сохранить
+                    <i class="fas fa-save mr-2"></i>Сохранить
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
 
   <!-- Модальное окно просмотра заметки -->
 <div id="viewNoteModal" class="modal hidden fixed inset-0 z-50 overflow-y-auto">
@@ -1014,50 +1029,55 @@
 
 
 
+<!-- Модальное окно добавления категории -->
+<div id="categoryModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
+        <!-- НОВАЯ ШАПКА КАК В УВЕДОМЛЕНИЯХ -->
+        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center">
+                Новая категория
+            </h2>
+            <button class="close-modal text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center" data-modal="category">
+                Закрыть
+            </button>
+        </div>
 
- <div id="categoryModal" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto">
+        <div class="p-6">
+            <div class="space-y-4">
+                <!-- Поле названия категории -->
+                <div>
+                    <input type="text" placeholder="Название категории" class="input-field" id="categoryNameInput">
+                </div>
 
-            <!-- Заголовок -->
-            <div class="p-4 border-b border-gray-700">
-                <h2 class="text-xl font-bold text-center">Добавить категорию</h2>
+                <!-- Выбор иконки -->
+                <div>
+                
+                    <div class="grid grid-cols-4 gap-2" id="iconsGrid">
+                        <!-- Иконки будут добавляться динамически -->
+                    </div>
+                </div>
+
+                <!-- Выбор цвета -->
+                <div>
+                    
+                    <div class="grid grid-cols-5 gap-2" id="colorsGrid">
+                        <!-- Цвета будут добавляться динамически -->
+                    </div>
+                </div>
             </div>
 
-            <div class="p-6">
-
-
-                <div class="space-y-4">
-                    <div>
-
-                        <input type="text" placeholder="Название категории" class="input-field" id="categoryNameInput">
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-300 mb-2">Иконка</label>
-                        <div class="grid grid-cols-4 gap-2" id="iconsGrid">
-                            <!-- Иконки будут добавляться динамически -->
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-300 mb-2">Цвет</label>
-                        <div class="grid grid-cols-5 gap-2" id="colorsGrid">
-                            <!-- Цвета будут добавляться динамически -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 mt-6">
-                    <button class="btn-secondary close-modal" data-modal="category">
-                        Отмена
-                    </button>
-                    <button class="btn-primary" id="saveCategoryBtn" type="button">
-                        Сохранить
-                    </button>
-                </div>
+            <!-- Кнопки сохранения -->
+            <div class="flex justify-end gap-3 mt-6">
+                <button class="btn-secondary close-modal" data-modal="category">
+                    Отмена
+                </button>
+                <button class="btn-primary" id="saveCategoryBtn" type="button">
+                    <i class="fas fa-save mr-2"></i>Сохранить
+                </button>
             </div>
         </div>
     </div>
+</div>
 
 
 <div id="transactionDetailModal" class="fixed inset-0 z-[9999] bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
@@ -1291,7 +1311,7 @@
         <!-- НОВАЯ ШАПКА КАК В УВЕДОМЛЕНИЯХ -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between">
             <h2 class="text-xl font-bold flex items-center">
-                <i class="fas fa-cog text-blue-400 mr-2"></i>
+                
                 Панель управления
             </h2>
             <button onclick="toggleMenuModal()" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
@@ -1435,6 +1455,7 @@
                         </div>
                         <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} с</span>
                     </div>
+
 
                     <p class="text-sm text-gray-400 mb-3">
                         Укажите сумму, которую хотите накопить.
