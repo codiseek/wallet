@@ -143,7 +143,7 @@ function updateBalanceDisplay() {
 // -----------------------------
 
 
-// Обновленная функция для отображения сбережений
+
 // Обновленная функция для отображения сбережений
 function updateSavingsDisplay() {
     try {
@@ -229,6 +229,11 @@ function updateSavingsDisplay() {
         if (targetProgressPercentEl) {
             targetProgressPercentEl.textContent = `${progressPercentage.toFixed(1)}%`;
         }
+        // В функцию updateSavingsDisplay добавьте этот код в конец try блока:
+const currentTargetReserveMenu = document.getElementById('currentTargetReserve');
+if (currentTargetReserveMenu) {
+    currentTargetReserveMenu.textContent = formatAmount(targetReserveValue);
+}
 
         // ОБНОВЛЯЕМ МОТИВАЦИОННОЕ СООБЩЕНИЕ
         updateMotivationMessage(progressPercentage);
@@ -336,27 +341,37 @@ function formatAmount(amount) {
     return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-// Сделаем функцию глобально доступной
-window.formatAmount = formatAmount;
 
 
+
+
+// Функция для обновления отображения резерва в интерфейсе
 function updateReserveDisplay() {
     try {
         const reserveAmountEl = document.getElementById('reserveAmount');
-        const reservePercentDisplay = document.getElementById('reservePercentageDisplay') || document.getElementById('currentReservePercent');
+        const reservePercentDisplay = document.getElementById('reservePercentageDisplay');
+        const currentReservePercent = document.getElementById('currentReservePercent');
         
-        if (!reserveAmountEl) return;
+        // Обновляем сумму резерва
+        if (reserveAmountEl && window.initialBalances) {
+            const reserveValue = window.initialBalances.total_reserve || 0;
+            reserveAmountEl.textContent = formatAmount(reserveValue);
+            reserveAmountEl.setAttribute('data-raw-value', reserveValue);
+        }
         
-        // Используем фактический резерв из initialBalances
-        const reserveValue = window.initialBalances.total_reserve || 0;
-        
-        // Форматируем значение резерва
-        reserveAmountEl.textContent = formatAmount(reserveValue);
-        reserveAmountEl.setAttribute('data-raw-value', reserveValue);
+        // Обновляем отображение процента в разных местах
+        const reservePercentage = window.initialReservePercentage || 0;
         
         if (reservePercentDisplay) {
-            reservePercentDisplay.textContent = window.initialReservePercentage + '%';
+            reservePercentDisplay.textContent = reservePercentage;
         }
+        
+        if (currentReservePercent) {
+            currentReservePercent.textContent = reservePercentage + '%';
+        }
+        
+        // Обновляем уведомление о резерве
+        updateReserveNotification();
         
     } catch (e) {
         console.error('updateReserveDisplay error', e);
@@ -2146,21 +2161,35 @@ function initMenuModal() {
         return;
     }
 
-    // Создаём глобальную функцию для совместимости с onclick в HTML
     window.toggleMenuModal = function(show) {
         if (!modal) return;
 
         const isVisible = !modal.classList.contains('hidden');
         if (show === true || (!isVisible && show !== false)) {
+            // ОБНОВЛЯЕМ ЗНАЧЕНИЯ ПОЛЕЙ ПЕРЕД ОТКРЫТИЕМ
+            const reserveInput = document.getElementById('reservePercentageInput');
+            const targetReserveInput = document.getElementById('targetReserveInput');
+            
+            if (reserveInput) {
+                reserveInput.value = window.initialReservePercentage || 0;
+            }
+            
+            if (targetReserveInput) {
+                targetReserveInput.value = window.initialTargetReserve || 0;
+            }
+            
             animateModal(modal, true);
-            // ИНИЦИАЛИЗИРУЕМ ОБРАБОТЧИКИ ВАЛЮТЫ ПРИ ОТКРЫТИИ МОДАЛКИ
+            
             setTimeout(() => {
                 initCurrencyHandlers();
+                initReserveHandlers();
             }, 100);
         } else {
             animateModal(modal, false);
         }
     };
+
+
 
     // Открытие панели (по кнопке ⚙️)
     if (openBtn) {
@@ -2182,9 +2211,11 @@ function initMenuModal() {
     // ... остальной существующий код ...
 
     // ИНИЦИАЛИЗИРУЕМ ОБРАБОТЧИКИ ВАЛЮТЫ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-    setTimeout(() => {
-        initCurrencyHandlers();
-    }, 1000);
+setTimeout(() => {
+    initCurrencyHandlers();
+    initReserveHandlers();
+   
+}, 100);
 }
 
 // -----------------------------
@@ -2258,13 +2289,13 @@ async function updateCurrency(currency) {
             updateBalanceCurrencyIcon(currency);
             updateCurrencySymbols(currency);
             updateCurrentCurrencyDisplay(currency);
-            updateAllCurrencyButtons(currency);
+            updateAllCurrencyButtons(currency); // Используем обновленную функцию с иконками
             updateBalanceDisplay();
             
-            // ОБНОВЛЯЕМ ОТКРЫТУЮ МОДАЛКУ ТРАНЗАКЦИИ
+            // Обновляем открытую модалку транзакции
             updateTransactionDetailModal();
             
-            // ПЕРЕЗАГРУЖАЕМ ТРАНЗАКЦИИ С НОВЫМ СИМВОЛОМ ВАЛЮТЫ
+            // Перезагружаем транзакции с новым символом валюты
             currentPage = 1;
             hasMoreTransactions = true;
             loadTransactions();
@@ -2273,20 +2304,23 @@ async function updateCurrency(currency) {
             
         } else {
             showErrorNotification(data.error || 'Ошибка при изменении валюты');
+            // Восстанавливаем кнопки с иконками
+            restoreCurrencyButtons();
         }
     } catch (error) {
         console.error('Ошибка:', error);
         showErrorNotification('Ошибка соединения');
+        // Восстанавливаем кнопки с иконками
+        restoreCurrencyButtons();
     } finally {
-        // Восстанавливаем все кнопки
+        // Восстанавливаем все кнопки с иконками
         restoreCurrencyButtons();
     }
 }
 
 
 
-
-
+// Функция для обновления стилей кнопок валюты (с иконками)
 function updateAllCurrencyButtons(selectedCurrency) {
     const buttons = document.querySelectorAll('.currency-btn');
     
@@ -2305,12 +2339,25 @@ function updateAllCurrencyButtons(selectedCurrency) {
         } else {
             btn.classList.add('border', 'border-gray-600');
         }
+        
+        // Убеждаемся, что содержимое - это иконка, а не текст
+        let iconClass = '';
+        switch(currency) {
+            case 'c': iconClass = 'fa-solid fa-c'; break;
+            case 'r': iconClass = 'fas fa-ruble-sign'; break;
+            case '$': iconClass = 'fas fa-dollar-sign'; break;
+            case '€': iconClass = 'fas fa-euro-sign'; break;
+        }
+        
+        // Если кнопка содержит текст вместо иконки, заменяем на иконку
+        if (!btn.innerHTML.includes('fa-') || btn.querySelector('span')) {
+            btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
+        }
     });
 }
 
 
-
-// Функция для восстановления кнопок валюты
+// Функция для восстановления кнопок валюты (с иконками)
 function restoreCurrencyButtons() {
     const buttons = document.querySelectorAll('.currency-btn');
     const currentCurrency = window.currentCurrency || 'c';
@@ -2318,7 +2365,17 @@ function restoreCurrencyButtons() {
     buttons.forEach(btn => {
         btn.disabled = false;
         const currency = btn.dataset.currency;
-        btn.innerHTML = `<span class="text-white font-medium text-sm">${getCurrencyButtonText(currency)}</span>`;
+        
+        // ВОССТАНАВЛИВАЕМ ИКОНКИ ВМЕСТО ТЕКСТА
+        let iconClass = '';
+        switch(currency) {
+            case 'c': iconClass = 'fa-solid fa-c'; break;
+            case 'r': iconClass = 'fas fa-ruble-sign'; break;
+            case '$': iconClass = 'fas fa-dollar-sign'; break;
+            case '€': iconClass = 'fas fa-euro-sign'; break;
+        }
+        
+        btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
         
         // Восстанавливаем правильные стили
         btn.classList.remove(
@@ -2333,7 +2390,6 @@ function restoreCurrencyButtons() {
         }
     });
 }
-
 
 
 // Функция для обновления стилей кнопок валюты
@@ -2358,23 +2414,31 @@ function updateCurrencyButtons(selectedCurrency) {
     });
 }
 
-// Функция для инициализации кнопок валюты при загрузке
+// Функция для инициализации кнопок валюты при загрузке (с иконками)
 function initCurrencyButtons() {
     // Используем валюту из Django или по умолчанию 'c'
     const currentCurrency = window.currentCurrency || 'c';
+    
+    const buttons = document.querySelectorAll('.currency-btn');
+    buttons.forEach(btn => {
+        const currency = btn.dataset.currency;
+        
+        // Убеждаемся, что каждая кнопка имеет иконку
+        let iconClass = '';
+        switch(currency) {
+            case 'c': iconClass = 'fa-solid fa-c'; break;
+            case 'r': iconClass = 'fas fa-ruble-sign'; break;
+            case '$': iconClass = 'fas fa-dollar-sign'; break;
+            case '€': iconClass = 'fas fa-euro-sign'; break;
+        }
+        
+        // Если кнопка не содержит иконку, устанавливаем её
+        if (!btn.innerHTML.includes('fa-')) {
+            btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
+        }
+    });
+    
     updateAllCurrencyButtons(currentCurrency);
-}
-
-
-// Функция для получения текста кнопки валюты
-function getCurrencyButtonText(currency) {
-    switch(currency) {
-        case 'c': return 'сом';
-        case 'r': return 'рубль';
-        case '$': return 'доллар';
-        case '€': return 'евро';
-        default: return 'сом';
-    }
 }
 
 
@@ -2475,10 +2539,10 @@ function updateCurrentCurrencyDisplay(currency) {
     
     let currencyName = '';
     switch(currency) {
-        case 'c': currencyName = 'сом'; break;
-        case 'r': currencyName = 'рубль'; break;
-        case '$': currencyName = 'доллар'; break;
-        case '€': currencyName = 'евро'; break;
+        case 'c': currencyName = 'Сом'; break;
+        case 'r': currencyName = 'Рубль'; break;
+        case '$': currencyName = 'Доллар'; break;
+        case '€': currencyName = 'Евро'; break;
     }
     
     currentCurrencyEl.textContent = currencyName;
@@ -2555,6 +2619,219 @@ setTimeout(() => {
 }, 100);
 
 
+// -----------------------------
+// Обработчики для сохранения резерва и целевого резерва
+// -----------------------------
+function initReserveHandlers() {
+    // Обработчик для сохранения процента резерва
+    const saveReserveBtn = document.getElementById('saveReserveBtn');
+    if (saveReserveBtn) {
+        // Удаляем существующие обработчики чтобы избежать дублирования
+        saveReserveBtn.replaceWith(saveReserveBtn.cloneNode(true));
+        const newSaveReserveBtn = document.getElementById('saveReserveBtn');
+        
+        newSaveReserveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveReservePercentage();
+        });
+    }
+
+    // Обработчик для сохранения целевого резерва
+    const saveTargetReserveBtn = document.getElementById('saveTargetReserveBtn');
+    if (saveTargetReserveBtn) {
+        // Удаляем существующие обработчики чтобы избежать дублирования
+        saveTargetReserveBtn.replaceWith(saveTargetReserveBtn.cloneNode(true));
+        const newSaveTargetReserveBtn = document.getElementById('saveTargetReserveBtn');
+        
+        newSaveTargetReserveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveTargetReserve();
+        });
+    }
+}
+
+
+// Функция сохранения процента резерва
+async function saveReservePercentage() {
+    const input = document.getElementById('reservePercentageInput');
+    const button = document.getElementById('saveReserveBtn');
+    
+    if (!input || !button) {
+        console.error('Элементы резерва не найдены');
+        return;
+    }
+    
+    const percentage = parseInt(input.value);
+    
+    // Валидация
+    if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+        showErrorNotification('Введите процент от 0 до 100');
+        return;
+    }
+
+    // Сохраняем оригинальное состояние кнопки
+    const originalHTML = button.innerHTML;
+    const originalClasses = button.className;
+
+    // Показываем состояние загрузки
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
+    button.className = originalClasses.replace('bg-blue-600', 'bg-blue-400') + ' cursor-not-allowed';
+    button.disabled = true;
+
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('reserve_percentage', percentage);
+
+        const response = await fetch('/update_reserve_percentage/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Обновляем глобальные переменные
+            window.initialReservePercentage = percentage;
+            
+            // Обновляем отображение резерва
+            updateReserveDisplay();
+            updateSavingsDisplay();
+            
+            // Показываем успешное состояние
+            button.innerHTML = '<i class="fas fa-check mr-2"></i>Сохранено!';
+            button.className = originalClasses.replace('bg-blue-600', 'bg-green-500') + ' cursor-not-allowed';
+            
+            // Показываем успешное уведомление
+            showSuccessNotification('Процент резерва обновлен!');
+            
+            // Возвращаем исходное состояние через 2 секунды
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.className = originalClasses;
+                button.disabled = false;
+            }, 2000);
+            
+        } else {
+            showErrorNotification(data.error || 'Ошибка при сохранении');
+            // Восстанавливаем кнопку при ошибке
+            button.innerHTML = originalHTML;
+            button.className = originalClasses;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showErrorNotification('Ошибка соединения');
+        // Восстанавливаем кнопку при ошибке
+        button.innerHTML = originalHTML;
+        button.className = originalClasses;
+        button.disabled = false;
+    }
+}
+
+
+// Функция сохранения целевого резерва
+async function saveTargetReserve() {
+    console.log('=== Сохраняю целевой резерв ===');
+
+    const input = document.getElementById('targetReserveInput');
+    const button = document.getElementById('saveTargetReserveBtn');
+    
+    if (!input || !button) {
+        console.error('Элементы целевого резерва не найдены');
+        return;
+    }
+    
+    const target = parseFloat(input.value);
+    if (isNaN(target) || target < 0) {
+        showErrorNotification('Введите положительное значение цели');
+        return;
+    }
+
+    // Сохраняем оригинальное состояние кнопки
+    const originalHTML = button.innerHTML;
+    const originalClasses = button.className;
+
+    // Показываем состояние загрузки
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
+    button.className = originalClasses.replace('bg-blue-600', 'bg-blue-400') + ' cursor-not-allowed';
+    button.disabled = true;
+
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('target_reserve', target);
+
+        console.log('Отправляю на сервер:', formData.get('target_reserve'));
+
+        const response = await fetch('/update_target_reserve/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+
+        console.log('Ответ сервера:', response.status);
+        const data = await response.json();
+        console.log('Ответ JSON:', data);
+
+        if (data.success) {
+            // Обновляем глобальные данные и UI
+            window.initialTargetReserve = target;
+            showSuccessNotification('Целевой резерв сохранён!');
+
+            document.getElementById('currentTargetReserve').textContent = formatAmount(target);
+            updateSavingsDisplay();
+
+            // Кнопка — зелёная и с галочкой
+            button.innerHTML = '<i class="fas fa-check mr-2"></i>Сохранено!';
+            button.className = originalClasses.replace('bg-blue-600', 'bg-green-500') + ' cursor-not-allowed';
+
+            // Возврат к исходному состоянию через 2 секунды
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.className = originalClasses;
+                button.disabled = false;
+            }, 2000);
+        } else {
+            showErrorNotification(data.error || 'Ошибка при сохранении');
+            button.innerHTML = originalHTML;
+            button.className = originalClasses;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showErrorNotification('Ошибка соединения');
+        button.innerHTML = originalHTML;
+        button.className = originalClasses;
+        button.disabled = false;
+    }
+}
+
+
+// Функция для обновления уведомления о резерве
+function updateReserveNotification() {
+    const reserveNotification = document.getElementById('reserveNotification');
+    if (!reserveNotification) return;
+    
+    const reservePercentage = window.initialReservePercentage || 0;
+    
+    if (reservePercentage === 0) {
+        reserveNotification.classList.remove('hidden');
+    } else {
+        reserveNotification.classList.add('hidden');
+    }
+}
+
+
 
 // -----------------------------
 // Экспортируем необходимые функции в global
@@ -2566,7 +2843,8 @@ window.checkEmptyStatesAfterChange = checkEmptyStatesAfterChange;
 window.updateGlobalCategories = updateGlobalCategories;
 window.initTransactionModal = initTransactionModal;
 window.initTabNavigation = initTabNavigation;
-
+// Сделаем функцию глобально доступной
+window.formatAmount = formatAmount;
 
 
 // -----------------------------
@@ -2605,7 +2883,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateAllCurrencyButtons(currentCurrency);
         }, 100);
 
-
+        initReserveHandlers();
         // Инициализируем модалки и интерфейс
         initTabNavigation();
         initTransactionModal();

@@ -46,7 +46,7 @@ class UserProfile(models.Model):
     password_changed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     reserve_percentage = models.PositiveSmallIntegerField(default=0) 
-    target_reserve = models.DecimalField(max_digits=10, decimal_places=2, default=0),
+    target_reserve = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     default_categories_created = models.BooleanField(default=False)
 
     CURRENCY_CHOICES = [
@@ -61,7 +61,7 @@ class UserProfile(models.Model):
     default='c'
 )
     
-    
+
     def __str__(self):
         return f"{self.user.username} Profile"
 
