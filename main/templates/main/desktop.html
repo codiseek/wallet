@@ -1,0 +1,827 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coinza - Управление финансами стало проще</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+        
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.7) 100%);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(71, 85, 105, 0.2);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+        }
+        
+        .float-animation {
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-spacing {
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+        
+        .social-icon {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .social-icon:hover {
+            transform: translateY(-3px) scale(1.1);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .open-source-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .mockup-container {
+            perspective: 1000px;
+        }
+        
+        .phone-mockup {
+            transform: rotateY(-10deg) rotateX(5deg);
+            transition: all 0.5s ease;
+            box-shadow: -25px 25px 60px rgba(0, 0, 0, 0.4);
+        }
+        
+        .phone-mockup:hover {
+            transform: rotateY(-5deg) rotateX(2deg);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .sticky-nav {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .interface-showcase {
+            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .floating-elements .float-1 {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-elements .float-2 {
+            animation: float 7s ease-in-out infinite 1s;
+        }
+        .floating-elements .float-3 {
+            animation: float 8s ease-in-out infinite 2s;
+        }
+
+        /* Ограничение максимальной ширины */
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Для очень больших экранов - центрируем контент */
+        @media (min-width: 1920px) {
+            .content-container {
+                max-width: 1600px;
+            }
+        }
+
+        /* Ограничение ширины текстового контента */
+        .text-content {
+            max-width: 800px;
+        }
+
+        /* Центрирование широких секций */
+        .wide-section {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="gradient-bg text-gray-100">
+
+<!-- Навигация -->
+<nav class="fixed top-0 left-0 right-0 z-50 sticky-nav">
+    <div class="content-container px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'main/logo.svg' %}" alt="Coinza" class="h-8">
+               
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#features" class="text-gray-300 hover:text-white transition-colors duration-300">Возможности</a>
+                <a href="#interface" class="text-gray-300 hover:text-white transition-colors duration-300">Интерфейс</a>
+                <a href="#stats" class="text-gray-300 hover:text-white transition-colors duration-300">Статистика</a>
+                <a href="#download" class="text-gray-300 hover:text-white transition-colors duration-300">Скачать</a>
+            </div>
+            <a href="#download" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm">
+                Попробовать бесплатно
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero секция с полным мокапом -->
+<section class="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-cyan-900/20"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent"></div>
+    
+    <!-- Плавающие элементы -->
+    <div class="floating-elements absolute inset-0 overflow-hidden">
+        <div class="float-1 absolute top-1/4 left-1/4 w-4 h-4 bg-blue-400/30 rounded-full blur-xl"></div>
+        <div class="float-2 absolute top-1/3 right-1/3 w-6 h-6 bg-purple-400/20 rounded-full blur-xl"></div>
+        <div class="float-3 absolute bottom-1/4 left-1/3 w-5 h-5 bg-cyan-400/25 rounded-full blur-xl"></div>
+    </div>
+
+    <div class="content-container px-6 py-16 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="fade-in text-content">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                    Финансовая ясность — 
+                    <span class="gradient-text">теперь это просто!</span>
+                </h1>
+                <p class="text-xl text-gray-300 mb-8 leading-relaxed">
+                    Coinza - это современное веб приложение для учета личных финансов. 
+                    Бесплатно, удобно и полностью адаптировано для вашего смартфона.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                    <a href="#download" class="btn-primary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
+                        <i class="fas fa-rocket mr-3"></i>
+                        Начать использовать
+                    </a>
+                    <a href="#features" class="btn-secondary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
+                        <i class="fas fa-play-circle mr-3"></i>
+                        Узнать больше
+                    </a>
+                </div>
+                <div class="grid grid-cols-3 gap-6 text-center max-w-md">
+                    <div>
+                        <div class="text-2xl font-bold text-white">100%</div>
+                        <div class="text-gray-400 text-sm">Бесплатно</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white">PWA</div>
+                        <div class="text-gray-400 text-sm">Работает везде</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white">OPS</div>
+                        <div class="text-gray-400 text-sm">Открытый код</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fade-in mockup-container flex justify-center lg:justify-end">
+                <!-- Полный мокап как в hello.html -->
+                <div class="phone-mockup bg-gradient-to-br from-gray-900 to-gray-800 rounded-[2.5rem] p-6 border border-gray-700/50 relative overflow-hidden w-full max-w-xs">
+                    <!-- Верхний бар -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center">
+                            <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-8 w-8">
+                        </div>
+                        <button class="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors">
+                            <i class="fas fa-ellipsis-v text-gray-300 text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Карточка баланса -->
+                    <div class="relative bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-2xl p-4 mb-6 border border-blue-800/30 overflow-hidden">
+                        <i class="fas fa-dollar-sign text-[80px] text-blue-800/20 absolute top-2 right-3"></i>
+                        
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="text-gray-300 text-sm mb-1">Текущий баланс</p>
+                                    <p class="text-2xl font-bold text-white">15,430 с</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-gray-300 text-sm mb-1">Резерв</p>
+                                    <p class="text-blue-400 font-semibold">5,000 с</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between text-xs">
+                                <div>
+                                    <p class="text-gray-400">Доходы</p>
+                                    <p class="text-green-400 font-semibold">+25,000 с</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-gray-400">Расходы</p>
+                                    <p class="text-red-400 font-semibold">-9,570 с</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Прогресс-бар -->
+                            <div class="w-full bg-gray-700/50 rounded-full h-1.5 mt-2 overflow-hidden">
+                                <div class="flex h-1.5 rounded-full">
+                                    <div class="bg-green-500 h-1.5 rounded-l-full" style="width: 72%"></div>
+                                    <div class="bg-red-500 h-1.5 rounded-r-full" style="width: 28%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Вкладки категорий -->
+                    <div class="flex gap-2 mb-6 justify-center">
+                        <div class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
+                            Все
+                        </div>
+                        <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
+                            Еда
+                        </div>
+                        <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
+                            Жильё
+                        </div>
+                        <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
+                            Работа
+                        </div>
+                    </div>
+
+                    <!-- История операций -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-utensils text-red-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-white text-sm">Продукты</p>
+                                    <p class="text-gray-400 text-xs">Супермаркет</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-red-400 font-bold text-sm">-1,250 с</p>
+                                <p class="text-gray-400 text-xs">Сегодня</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-money-bill-wave text-green-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-white text-sm">Зарплата</p>
+                                    <p class="text-gray-400 text-xs">Работа</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-green-400 font-bold text-sm">+25,000 с</p>
+                                <p class="text-gray-400 text-xs">2 дня назад</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-gray-800/40 rounded-xl border border-gray-700/30">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-gas-pump text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-white text-sm">Топливо</p>
+                                    <p class="text-gray-400 text-xs">АЗС</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-red-400 font-bold text-sm">-2,800 с</p>
+                                <p class="text-gray-400 text-xs">3 дня назад</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Нижняя навигация -->
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-700/50">
+                        <div class="text-center">
+                            <i class="fas fa-home text-blue-400 text-lg"></i>
+                            <p class="text-blue-400 text-xs mt-1">Главная</p>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-tags text-gray-400 text-lg"></i>
+                            <p class="text-gray-400 text-xs mt-1">Категории</p>
+                        </div>
+                        <div class="text-center transform -translate-y-2">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-plus text-white text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-chart-pie text-gray-400 text-lg"></i>
+                            <p class="text-gray-400 text-xs mt-1">Статистика</p>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-sticky-note text-gray-400 text-lg"></i>
+                            <p class="text-gray-400 text-xs mt-1">Заметки</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Мощные возможности -->
+<section id="features" class="section-spacing interface-showcase">
+    <div class="content-container px-6">
+        <div class="text-center mb-16 fade-in text-content mx-auto">
+            <h2 class="text-4xl font-bold mb-4">Мощные возможности в вашем кармане</h2>
+            <p class="text-xl text-gray-400">
+                Coinza объединяет все необходимое для полного контроля над вашими финансами в одном элегантном приложении
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto">
+            <!-- Статистика и аналитика -->
+            <div class="feature-card rounded-2xl p-8 fade-in">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6">
+                    <i class="fas fa-chart-pie text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Детальная статистика</h3>
+                <p class="text-gray-300 mb-6">
+                    Наглядные графики и диаграммы показывают ваши финансовые привычки. 
+                    Анализируйте расходы по категориям, отслеживайте тенденции и планируйте бюджет.
+                </p>
+                <ul class="space-y-3 text-gray-400">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Круговые диаграммы расходов
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Сравнение периодов
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Прогресс финансовых целей
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Умные заметки -->
+            <div class="feature-card rounded-2xl p-8 fade-in">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mb-6">
+                    <i class="fas fa-sticky-note text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Умные заметки</h3>
+                <p class="text-gray-300 mb-6">
+                    Создавайте заметки с напоминаниями о важных платежах и финансовых целях. 
+                    Никогда не забывайте о счетах и обязательствах.
+                </p>
+                <ul class="space-y-3 text-gray-400">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Напоминания о платежах
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Финансовые цели
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Быстрый доступ к заметкам
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Мультивалютность -->
+            <div class="feature-card rounded-2xl p-8 fade-in">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-6">
+                    <i class="fas fa-money-bill-wave text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Мультивалютность</h3>
+                <p class="text-gray-300 mb-6">
+                    Работайте с разными валютами: сомы, рубли, доллары, евро. 
+                    Приложение автоматически учитывает все операции в выбранной валюте.
+                </p>
+                <ul class="space-y-3 text-gray-400">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        4 основные валюты
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Быстрое переключение
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-400 mr-3"></i>
+                        Автоматический учет
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Дополнительные фичи в виде сетки -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-blue-500/30 transition-all duration-300">
+                <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-piggy-bank text-blue-400 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-white mb-2">Авторезерв</h4>
+                <p class="text-gray-400 text-sm">Автоматическое накопление процента от доходов</p>
+            </div>
+
+            <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-green-500/30 transition-all duration-300">
+                <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-tags text-green-400 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-white mb-2">Категории</h4>
+                <p class="text-gray-400 text-sm">Гибкая система категорий с иконками</p>
+            </div>
+
+            <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
+                <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bell text-purple-400 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-white mb-2">Уведомления</h4>
+                <p class="text-gray-400 text-sm">Система умных уведомлений и напоминаний</p>
+            </div>
+
+            <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-yellow-500/30 transition-all duration-300">
+                <div class="w-12 h-12 rounded-lg bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-mobile-alt text-yellow-400 text-xl"></i>
+                </div>
+                <h4 class="font-bold text-white mb-2">PWA</h4>
+                <p class="text-gray-400 text-sm">Установите как нативное приложение</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Демонстрация интерфейса -->
+<section id="interface" class="section-spacing bg-gradient-to-b from-gray-900/50 to-transparent">
+    <div class="content-container px-6">
+        <div class="text-center mb-16 fade-in text-content mx-auto">
+            <h2 class="text-4xl font-bold mb-4">Элегантный и интуитивный интерфейс</h2>
+            <p class="text-xl text-gray-400">
+                Каждый экран тщательно продуман для максимального удобства использования на мобильных устройствах
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16 max-w-6xl mx-auto">
+            <div class="fade-in">
+                <h3 class="text-2xl font-bold mb-4">Главный экран</h3>
+                <p class="text-gray-400 mb-6">
+                    Все ключевые финансовые показатели собраны в одном месте. Быстрый доступ к балансу, 
+                    доходам, расходам и резервам с интуитивно понятной визуализацией.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                            <i class="fas fa-chart-line text-blue-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white">Визуальная статистика</h4>
+                            <p class="text-gray-400 text-sm">Прогресс-бары и цветовые индикаторы</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                            <i class="fas fa-history text-green-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white">История операций</h4>
+                            <p class="text-gray-400 text-sm">Последние транзакции с детализацией</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                            <i class="fas fa-filter text-purple-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white">Быстрая фильтрация</h4>
+                            <p class="text-gray-400 text-sm">Сортировка по категориям и периодам</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mockup-container flex justify-center">
+                <div class="phone-mockup bg-gradient-to-br from-gray-900 to-gray-800 rounded-[2.5rem] p-6 border border-gray-700/50 relative overflow-hidden w-full max-w-xs">
+                    <!-- Главный экран интерфейса -->
+                    <div class="flex justify-between items-center mb-6">
+                        <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-8 w-8">
+                        <div class="text-xs text-gray-400">Главная</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-2xl p-4 mb-6">
+                        <p class="text-gray-300 text-sm mb-1">Текущий баланс</p>
+                        <p class="text-2xl font-bold text-white">24,850 с</p>
+                    </div>
+                    
+                    <div class="flex gap-2 mb-6 overflow-x-auto">
+                        <div class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Все</div>
+                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Еда</div>
+                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Транспорт</div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-800/40 rounded-xl">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-money-bill-wave text-green-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-white text-sm">Зарплата</p>
+                                    <p class="text-gray-400 text-xs">Работа</p>
+                                </div>
+                            </div>
+                            <p class="text-green-400 font-bold text-sm">+30,000 с</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Второй ряд - Статистика и Заметки -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- Статистика -->
+            <div class="feature-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-chart-pie text-blue-400"></i>
+                    </div>
+                    <h4 class="text-xl font-bold">Детальная статистика</h4>
+                </div>
+                <p class="text-gray-400 mb-4">
+                    Анализируйте свои финансовые привычки с помощью интерактивных графиков и диаграмм. 
+                    Отслеживайте тенденции и оптимизируйте расходы.
+                </p>
+                <div class="bg-gray-800/40 rounded-xl p-4 border border-gray-700/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-400 text-sm">Еда</span>
+                        <span class="text-red-400 font-bold">12,450 с (35%)</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: 35%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Заметки -->
+            <div class="feature-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-sticky-note text-green-400"></i>
+                    </div>
+                    <h4 class="text-xl font-bold">Умные заметки</h4>
+                </div>
+                <p class="text-gray-400 mb-4">
+                    Создавайте заметки с напоминаниями о важных финансовых событиях. 
+                    Планируйте платежи и никогда не забывайте о финансовых обязательствах.
+                </p>
+                <div class="bg-gradient-to-r from-green-500/10 to-green-600/10 rounded-xl p-4 border border-green-500/20">
+                    <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-semibold text-white text-sm">Оплата интернета</h5>
+                        <span class="text-green-400 text-xs">до 15 числа</span>
+                    </div>
+                    <p class="text-gray-400 text-xs">Не забыть оплатить интернет до 15 числа каждого месяца</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Статистика и цифры -->
+<section id="stats" class="section-spacing">
+    <div class="content-container px-6">
+        <div class="text-center mb-16 fade-in text-content mx-auto">
+            <h2 class="text-4xl font-bold mb-4">Постоянное развитие</h2>
+            <p class="text-xl text-gray-400">
+                Приложение регулярно обновляется с учетом пожеланий пользователей. 
+                Мы постоянно добавляем новые функции и улучшаем существующие.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16 max-w-4xl mx-auto">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-blue-400 mb-2">10K+</div>
+                <div class="text-gray-400">Пользователей</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-green-400 mb-2">50+</div>
+                <div class="text-gray-400">Обновлений</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-purple-400 mb-2">4.8★</div>
+                <div class="text-gray-400">Рейтинг</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-yellow-400 mb-2">24/7</div>
+                <div class="text-gray-400">Поддержка</div>
+            </div>
+        </div>
+
+        <!-- Open Source секция -->
+        <div class="open-source-card rounded-2xl p-8 md:p-12 text-center max-w-4xl mx-auto">
+            <div class="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6 border border-green-500/30">
+                <i class="fab fa-github text-green-400 text-2xl"></i>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Открытый исходный код</h2>
+            <p class="text-xl text-gray-300 mb-8 leading-relaxed">
+                Coinza - это проект с открытым исходным кодом. Мы верим в прозрачность и сообщество. 
+                Любой может посмотреть код, предложить улучшения или создать свою версию.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/codifuse/wallet" class="btn-secondary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
+                    <i class="fab fa-github mr-3"></i>
+                    GitHub репозиторий
+                </a>
+                <a href="https://t.me/codifuse" class="btn-primary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
+                    <i class="fab fa-telegram mr-3"></i>
+                    Наш Telegram
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Загрузка -->
+<section id="download" class="section-spacing bg-gradient-to-b from-gray-900/50 to-transparent">
+    <div class="content-container px-6 text-center">
+        <div class="max-w-2xl mx-auto fade-in">
+            <h2 class="text-4xl font-bold mb-6">Начните управлять финансами сегодня</h2>
+            <p class="text-xl text-gray-400 mb-8">
+                Сканируйте QR-код чтобы открыть приложение на вашем смартфоне
+            </p>
+            
+           <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 inline-block border border-gray-700/50 qr-code mb-8">
+    <div class="bg-white p-4 rounded-lg inline-block">
+        <!-- Реальный QR-код -->
+        <div class="w-48 h-48 rounded flex items-center justify-center">
+            <img src="{% static 'main/icons/qr.png' %}" alt="QR Code для Coinza" class="w-full h-full object-contain">
+        </div>
+    </div>
+    <p class="text-gray-400 mt-4 text-sm">Наведите камеру смартфона</p>
+</div>
+        
+        </div>
+    </div>
+</section>
+
+<!-- Футер -->
+<footer class="py-12 border-t border-gray-800/50">
+    <div class="content-container px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <img src="{% static 'main/ico.svg' %}" alt="Coinza" class="h-8">
+                   
+                </div>
+                <p class="text-gray-400 text-sm">
+                    Простое и удобное приложение для управления личными финансами
+                </p>
+            </div>
+            
+            <div>
+                <h4 class="font-bold text-white mb-4">Приложение</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="#features" class="hover:text-white transition-colors">Возможности</a></li>
+                    <li><a href="#interface" class="hover:text-white transition-colors">Интерфейс</a></li>
+                    <li><a href="#stats" class="hover:text-white transition-colors">Статистика</a></li>
+                    <li><a href="#download" class="hover:text-white transition-colors">Скачать</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-bold text-white mb-4">Поддержка</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="https://t.me/codifuse" class="hover:text-white transition-colors">Telegram</a></li>
+                    <li><a href="https://github.com/codifuse/wallet" class="hover:text-white transition-colors">GitHub</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Помощь</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-bold text-white mb-4">О проекте</h4>
+                <p class="text-gray-400 text-sm mb-4">
+                    Открытый исходный код. Разрабатывается с любовью к сообществу.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="https://t.me/codifuse" class="social-icon w-10 h-10 rounded-xl flex items-center justify-center">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="https://github.com/codifuse" class="social-icon w-10 h-10 rounded-xl flex items-center justify-center">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-800/50 mt-8 pt-8 text-center text-gray-500 text-sm">
+            &copy; 2025 Coinza. Open Source проект.
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Анимация появления элементов при скролле
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    // Наблюдаем за всеми элементами с классом fade-in
+    document.querySelectorAll('.fade-in').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Плавная прокрутка для навигации
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

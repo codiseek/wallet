@@ -54,4 +54,5 @@ urlpatterns = [
     path('notifications/distribute/', views.distribute_existing_notifications, name='distribute_notifications'),
     path('notifications/personal/', views.get_personal_notifications, name='get_personal_notifications'),
     path('update_currency/', views.update_currency, name='update_currency'),
+    path('desktop/', views.desktop, name='desktop'),
 ]

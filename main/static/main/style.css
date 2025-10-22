@@ -22,6 +22,7 @@ body.modal-open {
 
 /* Основной контейнер */
 .app-container {
+
     min-height: 100vh; /* замени height на min-height */
     display: flex;
     flex-direction: column;
@@ -55,7 +56,7 @@ body.modal-open {
 .mobile-content {
     background: transparent !important;
     overflow-y: visible; /* чтобы фон не обрезался */
-    padding: 20px 0.25rem 90px !important;
+    padding: 20px 0.25rem 55px !important;
 }
 
 .mobile-section {
@@ -82,7 +83,7 @@ body.modal-open {
     align-items: center;
     justify-content: space-around;
     height: 70px;
-    padding: 0.5rem 0.75rem;
+     padding: 0.5rem 0.75rem 0.75rem;
     
     /* Новый “стеклянный” стиль */
     background: transparent !important;
@@ -549,7 +550,7 @@ body.modal-open {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     border-top: 1px solid #475569;
     z-index: 40;
-    padding: 0.5rem 0.75rem;
+padding: 0.5rem 0.75rem 1rem;
     align-items: center;
     height: 70px;
 }

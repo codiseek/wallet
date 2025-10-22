@@ -16,7 +16,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User 
 from django.core.paginator import Paginator
 from django.conf import settings
-
+from django_user_agents.utils import get_user_agent
 from django.db.models import Sum, Count, Q
 from webpush import send_user_notification
 from webpush import send_group_notification
@@ -26,10 +26,6 @@ from django.utils import timezone
 from .models import SystemNotification, UserNotification
 from django.contrib.admin.views.decorators import staff_member_required
 
-
-def home(request):
-    vapid_key = settings.WEBPUSH_SETTINGS.get("VAPID_PUBLIC_KEY")
-    return render(request, "main/index.html", {"vapid_key": vapid_key})
 
 
 
@@ -372,21 +368,29 @@ def create_default_categories(user):
         user.userprofile.default_categories_created = True
         user.userprofile.save()
 
+from django_user_agents.utils import get_user_agent
+
 @login_required
 def index(request):
+    user_agent = get_user_agent(request)
+    
+    # Если это ПК - перенаправляем на презентацию
+    if not (user_agent.is_mobile or user_agent.is_tablet):
+        return render(request, 'main/desktop.html')
+    
+    # Остальной ваш существующий код для мобильных устройств
     # Создаем категории по умолчанию
     create_default_categories(request.user)
     
     categories = Category.objects.filter(user=request.user)
     transactions = Transaction.objects.filter(user=request.user).order_by('-created_at')
     
-
-     # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
+    # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
     if not hasattr(request.user, 'userprofile'):
         from .models import UserProfile
         UserProfile.objects.create(user=request.user)
 
-
+    # ... остальной ваш существующий код ...
     # РАСЧЕТ БАЛАНСОВ С УЧЕТОМ РЕЗЕРВА
     income_result = transactions.filter(type='income').aggregate(total=Sum('amount'))
     expense_result = transactions.filter(type='expense').aggregate(total=Sum('amount'))
@@ -399,13 +403,11 @@ def index(request):
     # ОСНОВНОЙ БАЛАНС: общая сумма минус накопленный резерв
     total = income - expense - total_reserve
     
-     # Получаем валюту из профиля пользователя
+    # Получаем валюту из профиля пользователя
     try:
         user_currency = request.user.userprofile.currency
     except (AttributeError, ValueError):
         user_currency = 'c'
-    
-
 
     # Получаем процент резерва из профиля пользователя
     try:
@@ -473,6 +475,10 @@ def index(request):
         'remaining_to_target': remaining_to_target,
         'user_currency': user_currency,
     })
+
+# Добавьте эту новую функцию для desktop страницы
+def desktop(request):
+    return render(request, 'main/desktop.html')
 
 
 @login_required
@@ -634,12 +640,20 @@ def add_transaction(request):
 
 
 
-# Приветственная страница
 def hello(request):
-    # Если пользователь уже авторизован, сразу перенаправляем на index
+    user_agent = get_user_agent(request)
+    
+    # Если это ПК - показываем презентацию даже для неавторизованных
+    if not (user_agent.is_mobile or user_agent.is_tablet):
+        return render(request, 'main/desktop.html')
+    
+    # Для мобильных показываем обычную страницу hello
     if request.user.is_authenticated:
         return redirect('index')
+    
     return render(request, 'hello.html')
+
+
 
 # Авторизация (через AJAX или форму)
 def login_view(request):

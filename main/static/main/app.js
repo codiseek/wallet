@@ -2162,69 +2162,68 @@ async function saveCategory() {
 function initMenuModal() {
     const modal = document.getElementById('menuModal');
     const openBtn = document.getElementById('menuBtn');
-    const closeBtn = modal ? modal.querySelector('button[onclick="toggleMenuModal()"]') : null;
 
     if (!modal) {
         console.warn('menuModal не найден');
         return;
     }
 
+    // --- Глобальная функция открытия/закрытия ---
     window.toggleMenuModal = function(show) {
         if (!modal) return;
 
         const isVisible = !modal.classList.contains('hidden');
+
         if (show === true || (!isVisible && show !== false)) {
-            // ОБНОВЛЯЕМ ЗНАЧЕНИЯ ПОЛЕЙ ПЕРЕД ОТКРЫТИЕМ
+            // Открытие модалки
             const reserveInput = document.getElementById('reservePercentageInput');
             const targetReserveInput = document.getElementById('targetReserveInput');
-            
-            if (reserveInput) {
-                reserveInput.value = window.initialReservePercentage || 0;
-            }
-            
-            if (targetReserveInput) {
-                targetReserveInput.value = window.initialTargetReserve || 0;
-            }
-            
-            animateModal(modal, true);
-            
+
+            if (reserveInput) reserveInput.value = window.initialReservePercentage || 0;
+            if (targetReserveInput) targetReserveInput.value = window.initialTargetReserve || 0;
+
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('opacity-100'));
+            document.body.style.overflow = 'hidden';
+
+            // Подгружаем обработчики после открытия
             setTimeout(() => {
                 initCurrencyHandlers();
                 initReserveHandlers();
             }, 100);
         } else {
-            animateModal(modal, false);
+            // Закрытие модалки
+            modal.classList.remove('opacity-100');
+            document.body.style.overflow = '';
+            setTimeout(() => modal.classList.add('hidden'), 150);
         }
     };
 
-
-
-    // Открытие панели (по кнопке ⚙️)
+    // --- Кнопка открытия ⚙️ ---
     if (openBtn) {
-        openBtn.addEventListener('click', () => {
-            toggleMenuModal(true);
-        });
+        openBtn.addEventListener('click', () => toggleMenuModal(true));
     }
 
-    // Кнопка "Закрыть"
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => toggleMenuModal(false));
-    }
+    // --- Кнопки закрытия (с data-close="menuModal") ---
+    const closeBtns = modal.querySelectorAll('[data-close="menuModal"]');
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => toggleMenuModal(false));
+    });
 
-    // Закрытие по клику вне окна
+    // --- Клик по фону для закрытия ---
     modal.addEventListener('click', e => {
         if (e.target === modal) toggleMenuModal(false);
     });
 
-    // ... остальной существующий код ...
-
-    // ИНИЦИАЛИЗИРУЕМ ОБРАБОТЧИКИ ВАЛЮТЫ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-setTimeout(() => {
-    initCurrencyHandlers();
-    initReserveHandlers();
-   
-}, 100);
+    // --- Первичная инициализация ---
+    setTimeout(() => {
+        initCurrencyHandlers();
+        initReserveHandlers();
+    }, 100);
 }
+
+
+
 
 // -----------------------------
 // Уведомления (успех / ошибка)
