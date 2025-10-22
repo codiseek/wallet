@@ -118,16 +118,21 @@
         </div>
 
         <!-- Нижняя панель -->
-        <div class="p-3 border-t border-gray-700 bg-gray-800/80">
-            <div class="flex items-center justify-between text-xs text-gray-400">
-                <span>Всего уведомлений: <span id="notificationsCount2">0</span></span>
-                {% if user.is_staff %}
-                <button onclick="openCreateNotificationModal()" class="text-blue-400 hover:text-blue-300 transition-colors text-xs">
-                    <i class="fas fa-plus mr-1"></i> Создать уведомление
-                </button>
-                {% endif %}
-            </div>
-        </div>
+     <!-- В блоке нижней панели модалки уведомлений -->
+<div class="p-3 border-t border-gray-700 bg-gray-800/80">
+    <div class="flex items-center justify-between text-xs text-gray-400">
+        <span>Всего уведомлений: <span id="notificationsCount2">0</span></span>
+        {% if user.is_staff %}
+        <button onclick="openCreateNotificationModal()" class="text-blue-400 hover:text-blue-300 transition-colors text-xs">
+            <i class="fas fa-plus mr-1"></i> Создать уведомление
+        </button>
+        {% else %}
+        <button id="markAllAsReadBtn" class="text-green-400 hover:text-green-300 transition-colors text-xs">
+            <i class="fas fa-check-double mr-1"></i> Сделать все прочитанными
+        </button>
+        {% endif %}
+    </div>
+</div>
     </div>
 </div>
 

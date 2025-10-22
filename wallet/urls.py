@@ -55,4 +55,5 @@ urlpatterns = [
     path('notifications/personal/', views.get_personal_notifications, name='get_personal_notifications'),
     path('update_currency/', views.update_currency, name='update_currency'),
     path('desktop/', views.desktop, name='desktop'),
+    path('notifications/mark_all_as_read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

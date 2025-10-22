@@ -83,35 +83,42 @@ function initNotificationsModal2() {
         });
     });
 
-// В обработчике кликов по уведомлениям добавьте проверку на активную вкладку
-document.addEventListener('click', function(e) {
-    const activeFilter = document.querySelector('.filter-notification-btn.bg-blue-600').dataset.filter;
-    
-    // Для обычных вкладок обрабатываем отметку как прочитанное
-    if (activeFilter !== 'personal') {
-        const notificationItem = e.target.closest('.notification-item');
-        if (notificationItem) {
-            const notificationId = notificationItem.dataset.id;
-            markNotificationAsRead2(notificationId, notificationItem);
+    // Обработчик для кнопки "Сделать все прочитанными" - ВЫНЕСЕНО ИЗ ЦИКЛА
+    const markAllAsReadBtn = document.getElementById('markAllAsReadBtn');
+    if (markAllAsReadBtn) {
+        markAllAsReadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            markAllNotificationsAsRead2();
+        });
+    }
+
+    // В обработчике кликов по уведомлениям добавьте проверку на активную вкладку
+    document.addEventListener('click', function(e) {
+        const activeFilter = document.querySelector('.filter-notification-btn.bg-blue-600').dataset.filter;
+        
+        // Для обычных вкладок обрабатываем отметку как прочитанное
+        if (activeFilter !== 'personal') {
+            const notificationItem = e.target.closest('.notification-item');
+            if (notificationItem) {
+                const notificationId = notificationItem.dataset.id;
+                markNotificationAsRead2(notificationId, notificationItem);
+            }
         }
-    }
-    
-    // Обработка удаления уведомления (для админа)
-    const deleteBtn = e.target.closest('.delete-notification-btn');
-    if (deleteBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const notificationId = deleteBtn.dataset.notificationId;
-        deleteSystemNotification(notificationId, deleteBtn.closest('.notification-item'));
-    }
-});
-
-
+        
+        // Обработка удаления уведомления (для админа)
+        const deleteBtn = e.target.closest('.delete-notification-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const notificationId = deleteBtn.dataset.notificationId;
+            deleteSystemNotification(notificationId, deleteBtn.closest('.notification-item'));
+        }
+    });
 
     // Инициализация счетчика уведомлений
     updateNotificationsCounter2();
 }
-
 // -----------------------------
 // Загрузка уведомлений пользователя
 // -----------------------------
@@ -404,6 +411,144 @@ async function markNotificationAsRead2(notificationId, notificationElement) {
         console.error('Ошибка при отметке уведомления как прочитанного:', error);
     }
 }
+
+
+
+// -----------------------------
+// Пометить ВСЕ уведомления как прочитанные
+// -----------------------------
+// -----------------------------
+// Пометить ВСЕ уведомления как прочитанные
+// -----------------------------
+async function markAllNotificationsAsRead2() {
+    const markAllAsReadBtn = document.getElementById('markAllAsReadBtn');
+    if (!markAllAsReadBtn) return;
+    
+    // Сохраняем оригинальный текст кнопки
+    const originalText = markAllAsReadBtn.innerHTML;
+    
+    try {
+        // Меняем текст кнопки на "Обработка..."
+        markAllAsReadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Обработка...';
+        markAllAsReadBtn.disabled = true;
+        
+        const response = await fetch('/notifications/mark_all_as_read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем все уведомления в интерфейсе
+            const notificationItems = document.querySelectorAll('.notification-item[data-unread="true"]');
+            
+            notificationItems.forEach(notificationElement => {
+                // Обновляем стиль уведомления
+                notificationElement.classList.remove('bg-blue-500/10', 'border-blue-500/20');
+                notificationElement.classList.add('bg-gray-700/30', 'border-gray-600/30');
+                notificationElement.setAttribute('data-unread', 'false');
+                
+                // Убираем индикатор нового сообщения
+                const newIndicator = notificationElement.querySelector('.bg-blue-400');
+                if (newIndicator && newIndicator.parentElement) {
+                    newIndicator.parentElement.remove();
+                }
+                
+                // Обновляем заголовок
+                const title = notificationElement.querySelector('h3');
+                if (title) {
+                    title.classList.remove('text-white');
+                    title.classList.add('text-gray-300');
+                }
+                
+                // Обновляем текст
+                const message = notificationElement.querySelector('p');
+                if (message) {
+                    message.classList.remove('text-gray-300');
+                    message.classList.add('text-gray-400');
+                }
+                
+                // Обновляем время
+                const time = notificationElement.querySelector('span.text-blue-400');
+                if (time) {
+                    time.classList.remove('text-blue-400');
+                    time.classList.add('text-gray-500');
+                }
+                
+                // Обновляем иконку
+                const icon = notificationElement.querySelector('.fa-bullhorn');
+                const iconContainer = notificationElement.querySelector('.w-8.h-8.rounded-full');
+                if (icon && iconContainer) {
+                    icon.classList.remove('text-blue-400');
+                    icon.classList.add('text-gray-400');
+                    iconContainer.classList.remove('bg-blue-500/20');
+                    iconContainer.classList.add('bg-gray-600/20');
+                }
+            });
+
+            // Обновляем счетчик
+            unreadCount = 0;
+            updateNotificationsCounter2();
+
+            // Показываем успешное сообщение в самой кнопке
+            markAllAsReadBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Все успешно прочитано!';
+            markAllAsReadBtn.classList.remove('text-green-400', 'hover:text-green-300');
+            markAllAsReadBtn.classList.add('text-blue-400');
+            
+            // Анимация успеха
+            markAllAsReadBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                markAllAsReadBtn.style.transform = 'scale(1)';
+                markAllAsReadBtn.style.transition = 'all 0.3s ease';
+            }, 150);
+            
+            // Возвращаем исходное состояние через 2 секунды
+            setTimeout(() => {
+                markAllAsReadBtn.innerHTML = originalText;
+                markAllAsReadBtn.classList.remove('text-blue-400');
+                markAllAsReadBtn.classList.add('text-green-400', 'hover:text-green-300');
+                markAllAsReadBtn.disabled = false;
+                markAllAsReadBtn.style.transform = '';
+                markAllAsReadBtn.style.transition = '';
+            }, 2000);
+            
+        } else {
+            // В случае ошибки
+            markAllAsReadBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Ошибка!';
+            markAllAsReadBtn.classList.remove('text-green-400', 'hover:text-green-300');
+            markAllAsReadBtn.classList.add('text-red-400');
+            
+            setTimeout(() => {
+                markAllAsReadBtn.innerHTML = originalText;
+                markAllAsReadBtn.classList.remove('text-red-400');
+                markAllAsReadBtn.classList.add('text-green-400', 'hover:text-green-300');
+                markAllAsReadBtn.disabled = false;
+            }, 2000);
+            
+            console.error('Ошибка при отметке всех уведомлений как прочитанных:', data.error);
+        }
+    } catch (error) {
+        // В случае ошибки сети
+        markAllAsReadBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Ошибка сети!';
+        markAllAsReadBtn.classList.remove('text-green-400', 'hover:text-green-300');
+        markAllAsReadBtn.classList.add('text-red-400');
+        
+        setTimeout(() => {
+            markAllAsReadBtn.innerHTML = originalText;
+            markAllAsReadBtn.classList.remove('text-red-400');
+            markAllAsReadBtn.classList.add('text-green-400', 'hover:text-green-300');
+            markAllAsReadBtn.disabled = false;
+        }, 2000);
+        
+        console.error('Ошибка при отметке всех уведомлений как прочитанных:', error);
+    }
+}
+
+
 
 // -----------------------------
 // Удаление системного уведомления (для админа)

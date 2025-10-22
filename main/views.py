@@ -1339,3 +1339,28 @@ def get_category_stats(request, category_id):
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+@require_POST
+@login_required
+def mark_all_notifications_read(request):
+    try:
+        # Помечаем все непрочитанные уведомления пользователя как прочитанные
+        updated_count = UserNotification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Отмечено как прочитано: {updated_count} уведомлений',
+            'updated_count': updated_count
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
