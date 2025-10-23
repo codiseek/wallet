@@ -36,14 +36,15 @@
         </div>
         
         <!-- Футер модалки -->
-        <div class="flex justify-end gap-3 p-4 border-t border-gray-700 bg-gray-800/50">
-            <button class="btn-secondary" id="discussNotificationBtn">
-                <i class="fas fa-comments mr-2"></i>Обсудить
-            </button>
-            <button class="btn-primary" onclick="closeNotificationDetailModal()">
-                <i class="fas fa-times mr-2"></i>Закрыть
-            </button>
-        </div>
+     <!-- В модалке детального просмотра уведомления -->
+<div class="flex justify-end gap-3 p-4 border-t border-gray-700 bg-gray-800/50">
+    <button class="btn-secondary" onclick="closeNotificationDetailModal()">
+       Закрыть
+    </button>
+    <button id="discussNotificationBtn" class="btn-primary hidden">
+        Обсудить
+    </button>
+</div>
     </div>
 </div>
 

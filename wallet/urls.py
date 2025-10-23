@@ -57,4 +57,9 @@ urlpatterns = [
     path('desktop/', views.desktop, name='desktop'),
     path('notifications/mark_all_as_read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_as_read, name='mark_notification_read'),
+    path('notifications/<int:notification_id>/chat/', views.get_chat_messages, name='get_chat_messages'),
+    path('notifications/<int:notification_id>/chat/send/', views.send_chat_message, name='send_chat_message'),
+    path('notifications/admin/chats/', views.get_admin_chats, name='get_admin_chats'),
+    path('notifications/<int:notification_id>/chat/send/', views.send_chat_message, name='send_chat_message'),
+
 ]

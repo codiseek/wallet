@@ -3,7 +3,34 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+class NotificationChat(models.Model):
+    notification = models.OneToOneField(
+        'SystemNotification', 
+        on_delete=models.CASCADE,
+        related_name='chat'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Chat for {self.notification.title}"
+
+class ChatMessage(models.Model):
+    chat = models.ForeignKey(
+        NotificationChat, 
+        on_delete=models.CASCADE, 
+        related_name='messages'
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.user.username}: {self.message[:50]}"
 
 class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -74,6 +101,7 @@ class SystemNotification(models.Model):
     is_chat = models.BooleanField(default=False) 
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     # Новое поле - для персональных уведомлений
+    has_chat = models.BooleanField(default=False)
     target_user = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
