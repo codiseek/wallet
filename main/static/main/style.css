@@ -82,8 +82,8 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    height: 70px;
-     padding: 0.5rem 0.75rem 0.75rem;
+    height: 60px !important;
+     padding: 0.5rem 0.5rem 0.5rem 0.5rem !important;
     
     /* Новый “стеклянный” стиль */
     background: transparent !important;
@@ -95,17 +95,11 @@ body.modal-open {
 
 
 .mobile-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 0.25rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    color: #94a3b8;
-    cursor: pointer;
-    height: 100%;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    height: 100% !important;
 }
 
 .mobile-nav-item.active {
@@ -114,8 +108,7 @@ body.modal-open {
 }
 
 .mobile-nav-item i {
-    font-size: 1.25rem;
-    margin-bottom: 0.25rem;
+    margin: 0 !important; /* убираем нижний отступ у иконок */
 }
 
 .mobile-nav-item span {
