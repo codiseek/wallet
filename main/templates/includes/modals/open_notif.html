@@ -1,0 +1,55 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}notificationDetailModal{% endblock %}
+
+{% block modal_content %}
+
+
+<!-- Модалка для детального просмотра уведомления -->
+
+<div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center" id="notificationModalTitle">
+                <!-- Заголовок будет установлен через JS -->
+            </h2>
+            <button data-close="notificationDetailModal" 
+                    class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                Закрыть
+            </button>
+        </div>
+        
+        <!-- Контент уведомления -->
+        <div class="p-4 overflow-y-auto max-h-[60vh]">
+            <!-- Заголовок новости жирным текстом -->
+            <h3 class="text-lg font-bold text-white mb-4" id="notificationDetailTitle"></h3>
+            
+            <!-- Дата уведомления -->
+            <div class="flex items-center space-x-2 mb-4">
+                <i class="fas fa-calendar text-gray-400 text-sm"></i>
+                <span id="notificationDetailDate" class="text-sm text-gray-400"></span>
+            </div>
+            
+            <!-- Текст уведомления -->
+            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30">
+                <p class="text-gray-300 whitespace-pre-wrap leading-relaxed" id="notificationDetailMessage"></p>
+            </div>
+        </div>
+        
+        <!-- Футер модалки -->
+        <div class="flex justify-end gap-3 p-4 border-t border-gray-700 bg-gray-800/50">
+            <button class="btn-secondary" id="discussNotificationBtn">
+                <i class="fas fa-comments mr-2"></i>Обсудить
+            </button>
+            <button class="btn-primary" onclick="closeNotificationDetailModal()">
+                <i class="fas fa-times mr-2"></i>Закрыть
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}
+
+

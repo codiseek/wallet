@@ -1,43 +1,38 @@
 // -----------------------------
 // Модалки
 // -----------------------------
-function animateModal(modalEl, show = true) {
-    if (!modalEl) {
-        console.error('Modal element not found');
-        return;
-    }
-
+// modals.js - базовая функция для анимации модалок
+function animateModal(modal, show) {
+    if (!modal) return;
+    
     if (show) {
-        modalEl.style.display = 'flex';
+        modal.style.display = 'flex';
         setTimeout(() => {
-            modalEl.classList.remove('hidden');
-            modalEl.classList.add('animate-overlayFadeIn');
+            modal.classList.remove('hidden');
+            modal.classList.add('animate-overlayFadeIn');
             
-            // Блокируем скролл фона
-            document.body.classList.add('modal-open');
-            
-            const content = modalEl.querySelector('.modal-content');
+            const content = modal.querySelector('.modal-content');
             if (content) {
                 content.classList.remove('animate-modalHide');
                 content.classList.add('animate-modalShow');
             }
+            
+            document.body.classList.add('modal-open');
         }, 10);
     } else {
-        const content = modalEl.querySelector('.modal-content');
+        const content = modal.querySelector('.modal-content');
         if (content) {
             content.classList.remove('animate-modalShow');
             content.classList.add('animate-modalHide');
         }
         
-        // Уменьшаем таймаут для более быстрого скрытия (было 200, стало 150)
         setTimeout(() => {
-            modalEl.classList.add('hidden');
-            modalEl.style.display = 'none';
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
             document.body.classList.remove('modal-open');
-        }, 150); // Уменьшили с 200ms до 150ms
+        }, 150);
     }
 }
-
 
 // -----------------------------
 // МОДАЛКА МЕНЮ / ПАНЕЛЬ УПРАВЛЕНИЯ

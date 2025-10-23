@@ -1278,3 +1278,57 @@ backdrop-filter: blur(20px) !important;
     background: rgba(255, 255, 255, 0.3);
 }
 
+
+
+/* Ограничение текста до 5 строк */
+.line-clamp-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Анимации для модалок */
+.animate-overlayFadeIn {
+    animation: overlayFadeIn 0.2s ease-out;
+}
+
+.animate-modalShow {
+    animation: modalShow 0.3s ease-out;
+}
+
+.animate-modalHide {
+    animation: modalHide 0.15s ease-in;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalShow {
+    from { 
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes modalHide {
+    from { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to { 
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+}
+
+/* Блокировка скролла при открытой модалке */
+.modal-open {
+    overflow: hidden;
+}

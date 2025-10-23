@@ -8,7 +8,7 @@ let notificationLogoBtn2 = null;
 let notificationIndicator2 = null;
 let userNotifications = [];
 let unreadCount = 0;
-
+let currentNotificationDetail = null;
 
 // -----------------------------
 // Система проверки уведомлений
@@ -144,52 +144,305 @@ function renderNotificationsList2() {
         const isUnread = !notif.is_read;
         const timeAgo = getTimeAgo(notif.created_at);
         
-        // Исправленный блок - убраны лишние обратные кавычки
-       // В блоке создания HTML для каждого уведомления замените на:
-notificationsHTML += `
-    <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
-         data-id="${notif.id}" data-unread="${isUnread}" data-notification-id="${notif.notification_id}">
-        <div class="flex items-start space-x-3">
-            <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
-                <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between mb-1">
-                    <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                    <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
-                </div>
-                <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
-                    ${escapeHtml(notif.message)}
-                </p>
-                <div class="flex items-center justify-between mt-2">
-                    <div class="flex items-center space-x-2">
-                        ${isUnread ? `
-                        <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                        <span class="text-xs text-blue-400">Новое</span>
-                        ` : ''}
-                        ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+        // Обрезаем текст до 5 строк (примерно 200 символов)
+        const truncatedMessage = truncateMessage(notif.message, 200);
+        
+        notificationsHTML += `
+            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
+                 data-id="${notif.id}" 
+                 data-unread="${isUnread}" 
+                 data-notification-id="${notif.notification_id}"
+                 onclick="openNotificationDetail(${notif.id})">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
+                        <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
                     </div>
-                    <!-- Кнопка удаления для админа -->
-                    ${window.isAdmin ? `
-                    <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
-                            data-notification-id="${notif.notification_id}"
-                            title="Удалить уведомление">
-                        <i class="fas fa-trash"></i> Удалить
-                    </button>
-                    ` : ''}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                            <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+                        </div>
+                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-5">
+                            ${escapeHtml(truncatedMessage)}
+                        </p>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center space-x-2">
+                                ${isUnread ? `
+                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                                <span class="text-xs text-blue-400">Новое</span>
+                                ` : ''}
+                                ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                            </div>
+                            <!-- Кнопка удаления для админа -->
+                            ${window.isAdmin ? `
+                            <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
+                                    data-notification-id="${notif.notification_id}"
+                                    title="Удалить уведомление"
+                                    onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-`;
+        `;
     });
     
     notificationsList2.innerHTML = notificationsHTML;
-    applyNotificationsFilter2('all'); // Применяем фильтр по умолчанию
+    applyNotificationsFilter2('all');
+}
+
+
+function truncateMessage(message, maxLength) {
+    if (!message) return '';
+    if (message.length <= maxLength) return message;
+    
+    // Обрезаем до максимальной длины, но стараемся обрезать на пробеле
+    let truncated = message.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    if (lastSpace > maxLength * 0.7) { // Если пробел находится в разумной позиции
+        truncated = truncated.substring(0, lastSpace);
+    }
+    
+    return truncated + '...';
 }
 
 
 
+// -----------------------------
+// Открытие детального просмотра уведомления
+// -----------------------------
+function openNotificationDetail(notificationId) {
+    // Находим уведомление в массиве
+    const notification = userNotifications.find(n => n.id == notificationId);
+    if (!notification) return;
+    
+    currentNotificationDetail = notification;
+    
+    // Устанавливаем заголовок модалки (тип уведомления)
+    const modalTitle = document.getElementById('notificationModalTitle');
+    if (notification.is_personal) {
+        modalTitle.innerHTML = '<i class="fas fa-user text-green-400 mr-2"></i>Персональное уведомление';
+    } else {
+        modalTitle.innerHTML = '<i class="fas fa-bullhorn text-blue-400 mr-2"></i>Системное';
+    }
+    
+    // Заполняем заголовок новости
+    document.getElementById('notificationDetailTitle').textContent = notification.title;
+    
+    // Заполняем текст уведомления
+    document.getElementById('notificationDetailMessage').textContent = notification.message;
+    
+    // Устанавливаем дату
+    const dateElement = document.getElementById('notificationDetailDate');
+    const date = new Date(notification.created_at);
+    dateElement.textContent = date.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Настройка кнопки "Обсудить"
+    const discussBtn = document.getElementById('discussNotificationBtn');
+    if (notification.is_personal) {
+        discussBtn.classList.remove('hidden');
+        discussBtn.onclick = function() {
+            // Здесь можно добавить функционал обсуждения
+            alert('Функция обсуждения уведомления будет реализована в будущем');
+        };
+    } else {
+        discussBtn.classList.add('hidden');
+    }
+    
+    // Показываем модалку
+    const modal = document.getElementById('notificationDetailModal');
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.classList.remove('hidden');
+        modal.classList.add('animate-overlayFadeIn');
+        
+        const content = modal.querySelector('.modal-content');
+        if (content) {
+            content.classList.remove('animate-modalHide');
+            content.classList.add('animate-modalShow');
+        }
+        
+        // Блокируем скролл фона
+        document.body.classList.add('modal-open');
+    }, 10);
+    
+    // Если уведомление не прочитано, помечаем как прочитанное
+    if (!notification.is_read) {
+        markNotificationAsRead2(notificationId);
+    }
+}
+
+// -----------------------------
+// Закрытие модалки детального просмотра
+// -----------------------------
+function closeNotificationDetailModal() {
+    const modal = document.getElementById('notificationDetailModal');
+    if (!modal) return;
+    
+    const content = modal.querySelector('.modal-content');
+    if (content) {
+        content.classList.remove('animate-modalShow');
+        content.classList.add('animate-modalHide');
+    }
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        currentNotificationDetail = null;
+    }, 150);
+}
+
+
+// -----------------------------
+// Обновленная функция пометки уведомления как прочитанного
+// -----------------------------
+async function markNotificationAsRead2(notificationId) {
+    try {
+        const response = await fetch(`/notifications/${notificationId}/read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем данные в локальном массиве
+            const notificationIndex = userNotifications.findIndex(n => n.id == notificationId);
+            if (notificationIndex !== -1) {
+                userNotifications[notificationIndex].is_read = true;
+                userNotifications[notificationIndex].read_at = new Date().toISOString();
+            }
+            
+            // Обновляем интерфейс
+            const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+            if (notificationElement) {
+                updateNotificationElementStyle(notificationElement, false);
+            }
+            
+            // Обновляем счетчик
+            unreadCount = Math.max(0, unreadCount - 1);
+            updateNotificationsCounter2();
+        }
+    } catch (error) {
+        console.error('Ошибка при отметке уведомления как прочитанного:', error);
+    }
+}
+
+
+// -----------------------------
+// Вспомогательная функция для обновления стиля элемента уведомления
+// -----------------------------
+function updateNotificationElementStyle(element, isUnread) {
+    if (isUnread) {
+        element.classList.add('border-blue-500/20', 'bg-blue-500/10');
+        element.classList.remove('border-gray-600/30', 'bg-gray-700/30');
+        
+        // Обновляем внутренние элементы для непрочитанного состояния
+        const title = element.querySelector('h3');
+        if (title) {
+            title.classList.add('text-white');
+            title.classList.remove('text-gray-300');
+        }
+        
+        const message = element.querySelector('p');
+        if (message) {
+            message.classList.add('text-gray-300');
+            message.classList.remove('text-gray-400');
+        }
+        
+        const time = element.querySelector('span.text-blue-400, span.text-gray-500');
+        if (time) {
+            time.classList.add('text-blue-400');
+            time.classList.remove('text-gray-500');
+        }
+        
+        const iconContainer = element.querySelector('.w-8.h-8.rounded-full');
+        if (iconContainer) {
+            iconContainer.classList.add('bg-blue-500/20');
+            iconContainer.classList.remove('bg-gray-600/20');
+        }
+    } else {
+        element.classList.remove('border-blue-500/20', 'bg-blue-500/10');
+        element.classList.add('border-gray-600/30', 'bg-gray-700/30');
+        
+        // Обновляем внутренние элементы для прочитанного состояния
+        const title = element.querySelector('h3');
+        if (title) {
+            title.classList.remove('text-white');
+            title.classList.add('text-gray-300');
+        }
+        
+        const message = element.querySelector('p');
+        if (message) {
+            message.classList.remove('text-gray-300');
+            message.classList.add('text-gray-400');
+        }
+        
+        const time = element.querySelector('span.text-blue-400, span.text-gray-500');
+        if (time) {
+            time.classList.remove('text-blue-400');
+            time.classList.add('text-gray-500');
+        }
+        
+        const iconContainer = element.querySelector('.w-8.h-8.rounded-full');
+        if (iconContainer) {
+            iconContainer.classList.remove('bg-blue-500/20');
+            iconContainer.classList.add('bg-gray-600/20');
+        }
+        
+        // Убираем индикатор нового сообщения
+        const newIndicator = element.querySelector('.bg-blue-400');
+        if (newIndicator && newIndicator.parentElement) {
+            newIndicator.parentElement.remove();
+        }
+    }
+    
+    element.setAttribute('data-unread', isUnread.toString());
+}
+
+
+// -----------------------------
+// Инициализация модалки детального просмотра
+// -----------------------------
+function initNotificationDetailModal() {
+    const modal = document.getElementById('notificationDetailModal');
+    if (!modal) return;
+    
+    // Обработчики закрытия
+    const closeBtns = modal.querySelectorAll('[data-close="notificationDetailModal"]');
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', closeNotificationDetailModal);
+    });
+    
+    // Закрытие по клику вне модалки
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeNotificationDetailModal();
+        }
+    });
+    
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeNotificationDetailModal();
+        }
+    });
+}
 
 // -----------------------------
 // Загрузка персональных уведомлений для админа
@@ -256,57 +509,47 @@ function renderPersonalNotificationsList(personalNotifications) {
         const timeAgo = getTimeAgo(notif.created_at);
         
         notificationsHTML += `
-            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-green-500/20 bg-green-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all">
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-green-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
-                        <i class="fas fa-user text-green-400 text-sm"></i>
+    <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
+         data-id="${notif.id}" 
+         data-unread="${isUnread}" 
+         data-notification-id="${notif.notification_id}"
+         onclick="openNotificationDetail(${notif.id})">
+        <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
+                <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="text-sm font-bold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                    <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+                </div>
+                <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
+                    ${escapeHtml(truncatedMessage)}
+                </p>
+                <div class="flex items-center justify-between mt-3">
+                    <div class="flex items-center space-x-2">
+                        ${isUnread ? `
+                        <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                        <span class="text-xs text-blue-400">Новое</span>
+                        ` : ''}
+                        ${notif.is_personal ? 
+                          '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : 
+                          '<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Системное</span>'}
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between mb-1">
-                            <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                            <span class="text-xs ${isUnread ? 'text-green-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
-                        </div>
-                        
-                        <!-- Информация о пользователе -->
-                        <div class="mb-2 p-2 bg-gray-800/50 rounded-lg border border-gray-700/50">
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                    <span class="text-gray-400">ID:</span>
-                                    <span class="text-white font-mono ml-1">${notif.target_user.id}</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Логин:</span>
-                                    <span class="text-white ml-1">${escapeHtml(notif.target_user.username)}</span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span class="text-gray-400">Почта:</span>
-                                    <span class="text-white ml-1">${escapeHtml(notif.target_user.email)}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
-                            ${escapeHtml(notif.message)}
-                        </p>
-                        
-                        <div class="flex items-center justify-between mt-2">
-                            <div class="flex items-center space-x-2">
-                                ${isUnread ? `
-                                <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                                <span class="text-xs text-green-400">Новое</span>
-                                ` : ''}
-                                <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>
-                            </div>
-                            <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
-                                    data-notification-id="${notif.id}"
-                                    title="Удалить уведомление">
-                                <i class="fas fa-trash"></i> Удалить
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Кнопка удаления для админа -->
+                    ${window.isAdmin ? `
+                    <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
+                            data-notification-id="${notif.notification_id}"
+                            title="Удалить уведомление"
+                            onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    ` : ''}
                 </div>
             </div>
-        `;
+        </div>
+    </div>
+`;
     });
     
     notificationsList2.innerHTML = notificationsHTML;
@@ -797,22 +1040,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-
-// -----------------------------
-// Инициализация при загрузке
 // -----------------------------
 // Обновленная функция инициализации
+// -----------------------------
 function initNotifications2() {
     console.log('DOM loaded - initializing notifications system 2');
     initNotificationsModal2();
-    initNotificationsPolling(); // Добавляем инициализацию опроса
+    initNotificationDetailModal(); // Добавляем инициализацию модалки деталей
+    initNotificationsPolling();
     
-    // Для демонстрации - показываем индикатор уведомлений через небольшую задержку
     setTimeout(() => {
         updateNotificationsCounter2();
     }, 1000);
 }
-
 
 
 // Ожидаем полной загрузки DOM
