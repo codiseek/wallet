@@ -1,0 +1,43 @@
+{% load static %}
+<div class="mobile-nav">
+    <div class="mobile-nav-item active" data-tab="home">
+        <i class="fas fa-home"></i>
+      
+    </div>
+    
+    <div class="mobile-nav-item" data-tab="categories">
+       <i class="fa-solid fa-icons"></i>
+      
+    </div>
+    
+    <div class="mobile-nav-center">
+        <!-- Подсказка для нового пользователя -->
+       <!-- Просто замените блок welcomeHint на этот -->
+{% if not has_transactions %}
+<!-- Просто замените блок welcomeHint на этот -->
+<div id="welcomeHint" class="fixed bottom-20 inset-x-0 text-center animate-bounce z-50 {% if has_transactions %}hidden{% endif %}">
+    <div class="bg-blue-600 text-white text-sm rounded-lg py-2 px-3 mb-1 inline-block shadow-lg">
+        Сделай первую транзакцию!
+    </div>
+    <div class="text-white text-2xl">↓</div>
+</div>
+{% endif %}
+        
+        <div class="mobile-nav-item-center" id="openTransactionModalBtn">
+            <i class="fas fa-plus"></i>
+        </div>
+    </div>
+    
+    <div class="mobile-nav-item" data-tab="stats">
+        <i class="fa-solid fa-ranking-star"></i>
+       
+    </div>
+    
+    <div class="mobile-nav-item" data-tab="notes">
+        <i class="fa-solid fa-feather-pointed"></i>
+        
+</div>
+
+    
+  
+    </div>

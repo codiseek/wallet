@@ -1,0 +1,37 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}viewNoteModal{% endblock %}
+
+{% block modal_content %}
+
+
+ <div class="modal-content max-w-lg w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <!-- Заголовок -->
+            <div class="modal-header px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 id="viewNoteTitle" class="text-lg font-semibold text-gray-900 dark:text-white"></h2>
+                <button class="close-modal text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" data-modal="viewNote">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Тело модалки -->
+            <div class="modal-body p-6 space-y-4">
+                <!-- Информация о заметке -->
+                <div id="viewNoteInfo" class="flex flex-wrap gap-2"></div>
+
+                <!-- Блок напоминания -->
+                <div id="viewNoteReminderInfo" class="hidden"></div>
+
+                <!-- Контент заметки -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-md p-4 border border-gray-200 dark:border-gray-700">
+                    <p id="viewNoteContent" class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
+                </div>
+
+                <!-- Контейнер для кнопок действий -->
+                <div class="modal-actions mt-6"></div>
+            </div>
+        </div>
+
+
+{% endblock %}

@@ -1,0 +1,82 @@
+<!-- Заметки вкладка -->
+<div class="mobile-tab mt-2" id="tab-notes">
+    <div class="mobile-section">
+        <div class="mobile-content">
+            <div class="card-gradient rounded-2xl">
+                <div class="flex justify-between items-center -mt-5 mb-4">
+                    <h2 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fa-solid fa-feather-pointed text-blue-400 mr-2"></i>
+                        Умные заметки
+                    </h2>
+                    <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3 add-note-btn">
+                        <i class="fas fa-plus mr-2"></i>Добавить
+                    </button>
+                </div>
+                
+                <!-- Контейнер для списка заметок -->
+                <div class="space-y-3 max-h-96 categories-scroll" id="notesList">
+                    <!-- Заметки будут добавляться сюда динамически -->
+                </div>
+
+                <!-- Пустое состояние ВНЕ контейнера notesList -->
+                <div class="text-center py-6 px-4" id="emptyNotesState" style="display: none;">
+                    <!-- Главная иконка -->
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center">
+                        <i class="fas fa-sticky-note text-3xl text-blue-400"></i>
+                    </div>
+                    
+                    <!-- Заголовок -->
+                    <h3 class="text-xl font-bold text-white mb-3">Ваши умные заметки</h3>
+                    
+                    <!-- Описание -->
+                    <p class="text-gray-400 text-sm mb-6 max-w-sm mx-auto">
+                        Создавайте заметки с напоминаниями и никогда не упускайте важное
+                    </p>
+                    
+                    <!-- Преимущества в виде карточек -->
+                    <div class="grid gap-3 mb-6">
+                        <!-- Напоминания -->
+                        <div class="flex items-start space-x-3 p-3 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-bell text-blue-400 text-sm"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-white text-sm font-semibold">Умные напоминания</h4>
+                                <p class="text-gray-400 text-xs">Получайте уведомления точно в срок</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Организация -->
+                        <div class="flex items-start space-x-3 p-3 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                            <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-layer-group text-green-400 text-sm"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-white text-sm font-semibold">Все под контролем</h4>
+                                <p class="text-gray-400 text-xs">Просматривайте и редактируйте в любое время</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Быстрый доступ -->
+                        <div class="flex items-start space-x-3 p-3 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-rocket text-purple-400 text-sm"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-white text-sm font-semibold">Мгновенный доступ</h4>
+                                <p class="text-gray-400 text-xs">Ваши мысли всегда под рукой</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Призыв к действию -->
+                    <button class="add-note-btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg"
+                            onclick="openAddNoteModal()">
+                        <i class="fas fa-plus mr-2"></i>
+                        Создать первую заметку
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

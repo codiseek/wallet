@@ -1,0 +1,190 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}menuModal{% endblock %}
+
+{% block modal_content %}
+
+<div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center">
+                
+                Панель управления
+            </h2>
+<button data-close="menuModal"
+    class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+    Закрыть
+</button>
+
+        </div>
+
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            <!-- Уведомление о необходимости смены пароля -->
+            {% if not user.userprofile.password_changed %}
+            <div class="bg-red-500/20 border border-red-500/30 rounded-xl p-4 mb-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                    <div>
+                        <p class="text-red-400 font-semibold text-sm">Смените пароль!</p>
+                        <p class="text-red-300 text-xs mt-1">
+                            Система создала временный пароль. Придумайте свой, чтобы не потерять доступ к данным.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Блок информации о пользователе -->
+            <div class="bg-gray-700 rounded-xl p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <!-- Левая часть: аватар и информация -->
+                    <div class="flex items-center space-x-3">
+                        <!-- Аватар -->
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-user text-white text-lg"></i>
+                        </div>
+                        
+                        <!-- Информация -->
+                        <div>
+                            <p class="font-bold text-white text-lg">{{ user.username }}</p>
+                            <p class="text-gray-300 text-sm">
+                                {% if user.email %}
+                                    {{ user.email }}
+                                {% else %}
+                                    email не указан
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Правая часть: иконки действий -->
+                    <div class="flex items-center space-x-2">
+                        <!-- Иконка настроек (смена пароля) -->
+                        <button id="changePasswordBtn" class="w-10 h-10 rounded-full bg-gray-600 hover:bg-blue-600 flex items-center justify-center transition-colors group" title="Сменить пароль">
+                            <i class="fas fa-cog text-gray-300 group-hover:text-white transition-colors"></i>
+                        </button>
+                        
+                        <!-- Иконка выхода -->
+                        <a href="{% url 'logout' %}" class="w-10 h-10 rounded-full bg-gray-600 hover:bg-red-600 flex items-center justify-center transition-colors group" title="Выйти">
+                            <i class="fas fa-sign-out-alt text-gray-300 group-hover:text-white transition-colors"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок выбора валюты -->
+            <div class="bg-gray-700/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-green-400 text-sm"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-200">Валюта</h3>
+                    </div>
+                    <span id="currentCurrency" class="text-sm text-green-400 font-medium">
+                        {% if user_currency == 'c' %}сом
+                        {% elif user_currency == 'r' %}рубль
+                        {% elif user_currency == '$' %}доллар
+                        {% elif user_currency == '€' %}евро
+                        {% else %}сом{% endif %}
+                    </span>
+                </div>
+
+                <p class="text-sm text-gray-400 mb-3">
+                    Выберите валюту для отображения сумм.
+                </p>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c" title="Сом">
+                        <i class="fa-solid fa-c text-white text-lg"></i>
+                    </button>
+                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
+                        <i class="fas fa-ruble-sign text-white text-lg"></i>
+                    </button>
+                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$" title="Доллар">
+                        <i class="fas fa-dollar-sign text-white text-lg"></i>
+                    </button>
+                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
+                        <i class="fas fa-euro-sign text-white text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Настройка процента резерва -->
+            <div class="bg-gray-700/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-200">Резерв</h3>
+                    </div>
+                    <span id="currentReservePercent" class="text-sm text-blue-400 font-medium">{{ reserve_percentage }}%</span>
+                </div>
+
+                <p class="text-sm text-gray-400 mb-3">
+                    Укажите, сколько процентов от доходов автоматически откладывать в резерв.
+                </p>
+
+                <div class="flex items-center space-x-3 mb-4">
+                    <input
+                        type="number"
+                        id="reservePercentageInput"
+                        min="0"
+                        max="100"
+                        class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-blue-500 focus:ring-0 outline-none transition-all"
+                        value="{{ reserve_percentage }}" 
+                    >
+                    <button
+                        id="saveReserveBtn"
+                        class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
+                    >
+                        <i class="fas fa-save mr-2"></i>Сохранить
+                    </button>
+                </div>
+
+                <!-- Блок для целевого резерва -->
+                <div class="pt-4 border-t border-gray-600/50">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                <i class="fas fa-bullseye text-purple-400 text-sm"></i>
+                            </div>
+                            <h3 class="text-base font-semibold text-gray-200">Целевой резерв</h3>
+                        </div>
+                        <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} с</span>
+                    </div>
+
+
+                    <p class="text-sm text-gray-400 mb-3">
+                        Укажите сумму, которую хотите накопить.
+                    </p>
+
+                    <div class="flex items-center space-x-3">
+                        <input
+                            type="number"
+                            id="targetReserveInput"
+                            min="0"
+                            step="1000"
+                            class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-purple-500 focus:ring-0 outline-none transition-all"
+                            value="{{ target_reserve|floatformat:0 }}"
+                        >
+                        <button
+                            id="saveTargetReserveBtn"
+                            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
+                        >
+                            <i class="fas fa-save mr-2"></i>Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка закрытия внизу (ОСТАВЛЯЕМ) -->
+         <button data-close="menuModal"
+    class="mt-6 w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
+    Закрыть
+</button>
+
+        </div>
+
+
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}noteModal{% endblock %}
+
+{% block modal_content %}
+
+
+
+<div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 id="noteModalTitle" class="text-xl font-bold flex items-center"> <!-- ДОБАВЛЕН ID -->
+                <i class="fas fa-sticky-note text-blue-400 mr-2"></i>
+                Новая заметка
+            </h2>
+            <button id="closeNoteModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                Закрыть
+            </button>
+        </div>
+
+        <div class="p-6">
+            <div class="space-y-4">
+                <div>
+                    <input type="text" placeholder="Введите название" class="input-field" id="noteTitleInput">
+                </div>
+                
+                <div>
+                    <textarea placeholder="Введите текст заметки" rows="6" class="input-field" id="noteContentInput"></textarea>
+                </div>
+                
+                <!-- Напоминание -->
+                <div>
+                    <label class="block text-gray-300 mb-3 flex items-center">
+                        <i class="fas fa-bell text-blue-400 mr-2"></i>
+                        Напоминание (необязательно)
+                    </label>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-gray-400 text-xs mb-1">Дата</label>
+                                <input type="date" id="reminderDateInput" 
+                                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-xs mb-1">Время</label>
+                                <input type="time" id="reminderTimeInput" 
+                                       class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white text-sm focus:border-blue-500 outline-none">
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопка очистки -->
+                        <button type="button" id="clearReminderBtn" 
+                                class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors">
+                            <i class="fas fa-times mr-1"></i> Без напоминания
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs text-gray-400 mt-2">
+                        Оставьте пустым, если напоминание не нужно.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button class="btn-secondary close-modal" data-modal="note">
+                    Отмена
+                </button>
+                <button class="btn-primary w-full py-3" id="saveNoteBtn">
+                    <i class="fas fa-save mr-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+
+
+
+
+
+{% endblock %}
+
+

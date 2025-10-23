@@ -1,0 +1,21 @@
+{% load static %}
+<!-- Верхний бар с логотипом, уведомлением и меню -->
+<div class="mobile-header px-4 h-14 flex items-center justify-between">
+  <div class="flex items-center h-full">
+
+    <!-- Кнопка логотипа с индикатором уведомлений -->
+    <button id="notificationLogoBtn2" class="relative flex items-center justify-center h-10 w-10 focus:outline-none bg-transparent border-none p-0 hover:bg-gray-700/30 rounded-lg transition-colors">
+        <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-7">
+
+        <!-- Индикатор новых уведомлений -->
+        <div id="notificationIndicator2" class="absolute top-3.3 -right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-lg pulse-indicator hidden"></div>
+    </button>
+  </div>
+
+  <!-- Контейнер уведомлений ВНУТРИ хедера -->
+  <div id="notificationContainer"></div>
+  
+  <button id="menuBtn" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors">
+    <i class="fas fa-ellipsis-v text-gray-300 text-sm"></i>
+  </button>
+</div>

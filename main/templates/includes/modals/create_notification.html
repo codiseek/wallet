@@ -1,0 +1,56 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+{% block modal_id %}createNotificationModal{% endblock %}
+{% block modal_content %}
+
+<div class="p-4 border-b border-gray-700 flex-shrink-0">
+    <h2 class="text-xl font-bold text-center">Создать уведомление</h2>
+</div>
+
+<div class="flex-1 overflow-y-auto p-6 min-h-0">
+    <form id="createNotificationForm" class="space-y-4">
+        {% csrf_token %}
+        
+        <!-- Поле для User ID -->
+        <div>
+            <label class="block text-gray-300 mb-2">
+                <i class="fas fa-user mr-2 text-blue-400"></i>
+                User ID (необязательно)
+            </label>
+            <input 
+                type="number" 
+                id="targetUserId" 
+                class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" 
+                placeholder="Оставьте пустым для уведомления всем"
+                min="1"
+            >
+            <p class="text-xs text-gray-400 mt-1">
+                Если указать ID пользователя - уведомление отправится только ему
+            </p>
+        </div>
+        
+        <div>
+            <label class="block text-gray-300 mb-2">Заголовок</label>
+            <input type="text" id="notificationTitle" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" placeholder="Введите заголовок" required>
+        </div>
+        
+        <div>
+            <label class="block text-gray-300 mb-2">Сообщение</label>
+            <textarea id="notificationMessage" rows="4" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 outline-none" placeholder="Введите текст сообщения" required></textarea>
+        </div>
+    </form>
+</div>
+
+<!-- Футер с кнопками - ФИКСИРОВАННЫЙ -->
+<div class="p-4 border-t border-gray-700 flex-shrink-0">
+    <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeCreateNotificationModal()" class="flex-1 py-3 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-semibold">
+            Отмена
+        </button>
+        <button type="submit" form="createNotificationForm" class="flex-1 py-3 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold transition-colors">
+            Отправить
+        </button>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,5 @@
+<div id="{% block modal_id %}{% endblock %}" class="fixed inset-0 backdrop-blur-sm hidden z-[1000] bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div class="modal-content bg-gray-800 rounded-2xl w-full max-w-sm mx-auto {% block modal_container_class %}{% endblock %}">
+        {% block modal_content %}{% endblock %}
+    </div>
+</div>

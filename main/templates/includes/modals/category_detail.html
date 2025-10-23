@@ -1,0 +1,130 @@
+{% extends "main/includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_content %}
+
+
+<div class="p-6 space-y-6 text-white overflow-y-auto">
+            <!-- Заголовок с иконкой, названием и кнопкой сортировки -->
+            <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-4 flex-1">
+                    <div id="categoryDetailIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"></div>
+                    <div class="flex-1">
+                        <h2 id="categoryDetailName" class="font-semibold text-lg text-gray-200 truncate w-[10ch]"></h2>
+                        <p class="text-gray-400 text-sm">Статистика</p>
+                    </div>
+                </div>
+                <!-- Кнопка фильтра периода -->
+                <div class="relative">
+                    <button id="categoryFilterToggleBtn" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors">
+                        <span id="categoryCurrentFilterText">За месяц</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <!-- Выпадающий список -->
+                    <div id="categoryFilterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-10">
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">
+                            За день
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">
+                            За неделю
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="month">
+                            За месяц
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="3months">
+                            За 3 месяца
+                        </button>
+                        <button class="category-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="year">
+                            За год
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Основная статистика в карточках -->
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Общие расходы -->
+                <div class="bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-xl p-4 border border-red-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-red-400 text-sm"></i>
+                        </div>
+                        
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Всего потрачено</p>
+                   <p id="categoryTotalExpense" class="text-xl font-bold text-red-400">
+    0 <span class="category-currency-symbol">с</span>
+</p>
+                </div>
+
+                <!-- Средний чек -->
+                <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-xl p-4 border border-purple-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <i class="fas fa-receipt text-purple-400 text-sm"></i>
+                        </div>
+                        
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Средний чек</p>
+                    <p id="categoryAverageAmount" class="text-xl font-bold text-purple-400">
+    0 <span class="category-currency-symbol">с</span>
+</p>
+                </div>
+
+                <!-- Количество операций -->
+                <div class="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl p-4 border border-blue-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-calendar-day text-blue-400 text-sm"></i>
+                        </div>
+                        
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Всего операций</p>
+                    <p id="categoryTransactionsCount" class="text-xl font-bold text-blue-400">0</p>
+                </div>
+
+                <!-- Процент от расходов -->
+                <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-xl p-4 border border-yellow-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-yellow-400 text-sm"></i>
+                        </div>
+                        
+                    </div>
+                    <p class="text-gray-400 text-xs mb-1">Доля расходов</p>
+                    <p id="categoryExpensePercentage" class="text-xl font-bold text-yellow-400">0%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки управления -->
+        <div class="p-4 border-t border-gray-700">
+            <!-- Состояние 1: Обычные кнопки -->
+            <div id="categoryNormalButtons" class="flex space-x-3">
+                <button id="closeCategoryDetailModal" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    Закрыть
+                </button>
+                <button id="deleteCategoryDetailBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors hidden">
+                    Удалить
+                </button>
+            </div>
+            
+            <!-- Состояние 2: Подтверждение удаления -->
+            <div id="categoryConfirmDeleteSection" class="hidden">
+                <div class="text-center mb-3">
+                    <p class="text-red-400 font-semibold">Удалить категорию?</p>
+                    <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="cancelCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                        Отмена
+                    </button>
+                    <button id="confirmCategoryDeleteBtn" class="flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                        Да, удалить!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock %}
