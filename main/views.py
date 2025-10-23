@@ -121,14 +121,11 @@ def distribute_existing_notifications(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-
 @login_required
 def get_user_notifications(request):
     """Получение уведомлений пользователя"""
     try:
         # Получаем уведомления пользователя:
-        # 1. Общие уведомления (target_user=None) 
-        # 2. Персональные уведомления для этого пользователя
         user_notifications = UserNotification.objects.filter(
             user=request.user,
             notification__is_active=True
@@ -151,14 +148,12 @@ def get_user_notifications(request):
                 'created_at': user_notif.notification.created_at.isoformat(),
                 'is_read': user_notif.is_read,
                 'read_at': user_notif.read_at.isoformat() if user_notif.read_at else None,
-                'type': notification_type,  # 'system' или 'personal'
+                'type': notification_type,
                 'is_personal': user_notif.notification.target_user is not None
             })
             
             if not user_notif.is_read:
                 unread_count += 1
-        
-        print(f"Found {len(notifications_data)} notifications for user {request.user.username}, {unread_count} unread")
         
         return JsonResponse({
             'success': True,
@@ -167,7 +162,6 @@ def get_user_notifications(request):
         })
         
     except Exception as e:
-        print(f"Error getting notifications for user {request.user.username}: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
     
 

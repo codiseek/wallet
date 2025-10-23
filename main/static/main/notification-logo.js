@@ -10,11 +10,80 @@ let userNotifications = [];
 let unreadCount = 0;
 
 
+// -----------------------------
+// Система проверки уведомлений
+// -----------------------------
+function initNotificationsPolling() {
+    // Проверяем сразу при загрузке
+    checkForNewNotifications();
+    
+    // Проверяем каждые 30 секунд
+    setInterval(checkForNewNotifications, 30000);
+    
+    // Дополнительная проверка при фокусе на вкладке
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkForNewNotifications();
+        }
+    });
+}
+
+// Проверка новых уведомлений
+async function checkForNewNotifications() {
+    try {
+        const response = await fetch('/notifications/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const previousUnreadCount = unreadCount;
+            unreadCount = data.unread_count;
+            
+            // Если количество непрочитанных изменилось
+            if (previousUnreadCount !== unreadCount) {
+                updateNotificationsCounter2();
+                
+                // Если появились новые уведомления и модалка закрыта - показываем индикатор
+                if (unreadCount > previousUnreadCount && notificationsModal2.classList.contains('hidden')) {
+                    showNewNotificationsIndicator();
+                }
+                
+                // Если модалка открыта - обновляем список
+                if (!notificationsModal2.classList.contains('hidden')) {
+                    renderNotificationsList2();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке уведомлений:', error);
+    }
+}
+
+// Показать индикатор новых уведомлений
+function showNewNotificationsIndicator() {
+    if (!notificationIndicator2) return;
+    
+    // Добавляем анимацию пульсации для привлечения внимания
+    notificationIndicator2.classList.remove('hidden');
+    notificationIndicator2.classList.add('animate-ping', 'bg-red-500');
+    
+    // Убираем анимацию через 2 секунды
+    setTimeout(() => {
+        notificationIndicator2.classList.remove('animate-ping', 'bg-red-500');
+    }, 2000);
+}
+
 
 
 // -----------------------------
 // Загрузка уведомлений пользователя
 // -----------------------------
+// Обновленная функция загрузки уведомлений
 async function loadUserNotifications() {
     try {
         const response = await fetch('/notifications/', {
@@ -31,6 +100,11 @@ async function loadUserNotifications() {
             unreadCount = data.unread_count;
             renderNotificationsList2();
             updateNotificationsCounter2();
+            
+            // Если есть непрочитанные и модалка открыта - убираем анимацию
+            if (unreadCount > 0 && !notificationsModal2.classList.contains('hidden')) {
+                notificationIndicator2.classList.remove('animate-ping');
+            }
         } else {
             console.error('Ошибка загрузки уведомлений:', data.error);
         }
@@ -38,6 +112,8 @@ async function loadUserNotifications() {
         console.error('Ошибка при загрузке уведомлений:', error);
     }
 }
+
+
 
 // -----------------------------
 // Отображение списка уведомлений
@@ -307,9 +383,7 @@ async function markNotificationAsRead2(notificationId, notificationElement) {
 
 
 
-// -----------------------------
-// Пометить ВСЕ уведомления как прочитанные
-// -----------------------------
+
 // -----------------------------
 // Пометить ВСЕ уведомления как прочитанные
 // -----------------------------
@@ -582,8 +656,17 @@ function openNotificationsModal2() {
         
         // Блокируем скролл фона
         document.body.classList.add('modal-open');
+        
+        // Загружаем актуальные уведомления при открытии
+        loadUserNotifications();
+        
+        // Убираем анимацию пульсации при открытии
+        if (notificationIndicator2) {
+            notificationIndicator2.classList.remove('animate-ping');
+        }
     }, 10);
 }
+
 
 // -----------------------------
 // Закрытие модалки уведомлений
@@ -718,15 +801,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // -----------------------------
 // Инициализация при загрузке
 // -----------------------------
+// Обновленная функция инициализации
 function initNotifications2() {
     console.log('DOM loaded - initializing notifications system 2');
     initNotificationsModal2();
+    initNotificationsPolling(); // Добавляем инициализацию опроса
     
     // Для демонстрации - показываем индикатор уведомлений через небольшую задержку
     setTimeout(() => {
         updateNotificationsCounter2();
     }, 1000);
 }
+
+
 
 // Ожидаем полной загрузки DOM
 if (document.readyState === 'loading') {
