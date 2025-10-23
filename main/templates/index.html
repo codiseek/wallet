@@ -82,6 +82,7 @@
     {% include "includes/modals/transaction_detail.html" %}
     {% include "includes/modals/transaction.html" %}
     {% include "includes/modals/category_selection.html" %}
+    {% include "includes/modals/category_detail.html" %}
     {% include "includes/modals/category.html" %}
     {% include "includes/modals/note.html" %}
     {% include "includes/modals/view_note.html" %}
@@ -99,58 +100,6 @@
 </script>
 
 
-<script>
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-  navigator.serviceWorker.register("{% static 'service-worker.js' %}")
-    .then(() => {
-
-      // Ждём пока он станет активным
-      return navigator.serviceWorker.ready;
-    })
-    .then(async (reg) => {
-
-      const appServerKey = urlBase64ToUint8Array("{{ vapid_key|safe }}");
-
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: appServerKey
-      });
-
-
-     await fetch("/webpush/save_information/?group=notes", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-CSRFToken": "{{ csrf_token }}"
-  },
-  body: JSON.stringify(subscription)
-});
-
-
-    })
-    .catch(err => console.error("❌ Ошибка подписки:", err));
-}
-
-</script>
-
-
-
-
-
 
 <!-- index.html - обновляем блок с балансом -->
 <script>
@@ -166,12 +115,19 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
 </script>
 
 <!-- Подключение Tailwind и JS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-<!-- После подключения app.js -->
-<script src="{% static 'main/app.js' %}"></script>
-<script src="{% static 'main/categories-modal.js' %}"></script>
-<script src="{% static 'main/notes.js' %}"></script>
-<script src="{% static 'main/notification-logo.js' %}"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/static/main/utils.js"></script>
+<script src="/static/main/modals.js"></script>
+<script src="/static/main/notification-logo.js"></script>
+<script src="/static/main/currency.js"></script>
+<script src="/static/main/balance.js"></script>
+<script src="/static/main/categories.js"></script>
+<script src="/static/main/categories-modal.js"></script>
+<script src="/static/main/notes.js"></script>     <!-- updateGlobalCategories здесь -->
+<script src="/static/main/transactions.js"></script>
+<script src="/static/main/savings.js"></script>
+<script src="/static/main/navigation.js"></script>
+<script src="/static/main/app.js"></script>
 
     <script>
         // Переменная для отслеживания первой смены пароля

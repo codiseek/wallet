@@ -260,7 +260,7 @@ confirmBox.querySelector('.confirm-delete').addEventListener('click', (e) => {
 
 
 
-// Функция для открытия модалки добавления заметки
+
 // Функция для открытия модалки добавления заметки
 function openAddNoteModal() {
     const modal = document.getElementById('noteModal');
