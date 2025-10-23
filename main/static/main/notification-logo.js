@@ -768,6 +768,7 @@ function closeCreateNotificationModal() {
 }
 
 // Обработчик формы создания уведомления
+// Обработчик формы создания уведомления
 document.addEventListener('DOMContentLoaded', function() {
     const createNotificationForm = document.getElementById('createNotificationForm');
     if (createNotificationForm) {
@@ -781,7 +782,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Подготавливаем данные
             const formData = {
                 title: title,
-                message: message
+                message: message,
+                is_chat: false  // Добавляем обязательное поле
             };
             
             // Добавляем target_user_id только если указан
@@ -818,6 +820,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
 // -----------------------------
 // Инициализация при загрузке
 // -----------------------------

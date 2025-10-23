@@ -71,6 +71,7 @@ class SystemNotification(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    is_chat = models.BooleanField(default=False) 
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     # Новое поле - для персональных уведомлений
     target_user = models.ForeignKey(
