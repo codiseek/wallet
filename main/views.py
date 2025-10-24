@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from .models import Category, Transaction
 from decimal import Decimal, InvalidOperation
 from django.db.models import Sum
+from django.db import transaction
 import random
 import string
 from django.core.cache import cache
@@ -22,6 +23,7 @@ from webpush import send_user_notification
 from webpush import send_group_notification
 from .models import Note
 from django.utils import timezone
+from django.core.cache import cache
 
 from .models import SystemNotification, UserNotification
 from django.contrib.admin.views.decorators import staff_member_required
@@ -128,7 +130,14 @@ def distribute_existing_notifications(request):
 
 @login_required
 def get_user_notifications(request):
-    """Получение уведомлений пользователя"""
+    """Получение уведомлений пользователя с кэшированием"""
+    cache_key = f'user_notifications_{request.user.id}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        # Возвращаем JsonResponse с данными из кэша
+        return JsonResponse(cached_data)
+    
     try:
         user_notifications = UserNotification.objects.filter(
             user=request.user,
@@ -157,23 +166,35 @@ def get_user_notifications(request):
                 'read_at': user_notif.read_at.isoformat() if user_notif.read_at else None,
                 'type': "personal" if user_notif.notification.target_user else "system",
                 'is_personal': user_notif.notification.target_user is not None,
-                'has_chat': has_chat  # Добавляем информацию о наличии чата
+                'has_chat': has_chat,
+                'is_admin_chat': False
             })
             
             if not user_notif.is_read:
                 unread_count += 1
         
-        return JsonResponse({
+        # Сортируем: сначала непрочитанные, потом по дате (новые сверху)
+        notifications_data.sort(key=lambda x: (not x['is_read'], x['created_at']), reverse=True)
+        
+        # Подготавливаем данные для кэширования и ответа
+        result_data = {
             'success': True,
             'notifications': notifications_data,
             'unread_count': unread_count
-        })
+        }
+        
+        # Сохраняем в кэш на 30 секунд
+        cache.set(cache_key, result_data, 30)
+        
+        return JsonResponse(result_data)
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        # Краткое сообщение об ошибке вместо полного traceback
+        return JsonResponse({'success': False, 'error': 'Ошибка загрузки уведомлений'})
 
 
-# views.py - обновленная функция get_chat_messages с лучшей отладкой
+
+
 
 @login_required
 def get_chat_messages(request, notification_id):
@@ -235,7 +256,7 @@ def get_chat_messages(request, notification_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-        
+
     
 
 
@@ -331,21 +352,22 @@ def send_chat_message(request, notification_id):
 @staff_member_required
 @login_required
 def get_admin_chats(request):
-    """Получение списка чатов для админа"""
+    """Получение списка чатов для админа с правильной сортировкой"""
     try:
-        # Чаты, где админ создал уведомление
-        admin_notifications = SystemNotification.objects.filter(
-            created_by=request.user,
-            target_user__isnull=False
-        ).prefetch_related('chat__messages').order_by('-chat__updated_at')
+        # Оптимизированный запрос
+        admin_chats = NotificationChat.objects.filter(
+            notification__created_by=request.user,
+            notification__target_user__isnull=False
+        ).select_related(
+            'notification',
+            'notification__target_user'
+        ).prefetch_related(
+            'messages'
+        ).order_by('-updated_at')
         
         chats_data = []
         
-        for notification in admin_notifications:
-            chat = getattr(notification, 'chat', None)
-            if not chat:
-                continue
-                
+        for chat in admin_chats:
             last_message = chat.messages.last()
             
             # Считаем непрочитанные сообщения (от пользователя)
@@ -356,60 +378,53 @@ def get_admin_chats(request):
             ).count()
             
             chats_data.append({
-                'notification_id': notification.id,
+                'notification_id': chat.notification.id,
                 'target_user': {
-                    'id': notification.target_user.id,
-                    'username': notification.target_user.username,
+                    'id': chat.notification.target_user.id,
+                    'username': chat.notification.target_user.username,
                 },
-                'notification_title': notification.title,
+                'notification_title': chat.notification.title,
                 'last_message': {
                     'text': last_message.message if last_message else 'Чат начат',
-                    'created_at': last_message.created_at.isoformat() if last_message else notification.created_at.isoformat(),
+                    'created_at': last_message.created_at.isoformat() if last_message else chat.notification.created_at.isoformat(),
                     'is_own': last_message.user == request.user if last_message else False
                 },
                 'unread_count': unread_count,
                 'updated_at': chat.updated_at.isoformat()
             })
         
+        # Сортируем: сначала с непрочитанными, потом по дате обновления
+        chats_data.sort(key=lambda x: (x['unread_count'] > 0, x['updated_at']), reverse=True)
+        
         return JsonResponse({'success': True, 'chats': chats_data})
         
     except Exception as e:
-        print(f"Ошибка в get_admin_chats: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
     
 
 
+# В get_admin_chats и других функциях убираем отладочный вывод
 @staff_member_required
 @login_required
 def get_admin_chats(request):
     """Получение списка чатов для админа"""
     try:
-        print(f"=== GET_ADMIN_CHATS ===")
-        print(f"User: {request.user.username}")
+       
         
-        # Ищем все уведомления, созданные этим админом
-        admin_notifications = SystemNotification.objects.filter(
-            created_by=request.user,
-            target_user__isnull=False
-        )
-        
-        print(f"Найдено уведомлений админа: {admin_notifications.count()}")
+        admin_chats = NotificationChat.objects.filter(
+            notification__created_by=request.user,
+            notification__target_user__isnull=False
+        ).select_related(
+            'notification',
+            'notification__target_user'
+        ).prefetch_related(
+            'messages'
+        ).order_by('-updated_at')
         
         chats_data = []
         
-        for notification in admin_notifications:
-            print(f"Обрабатываем уведомление: {notification.id} - {notification.title}")
-            
-            # Проверяем, есть ли чат для этого уведомления
-            try:
-                chat = notification.chat
-                print(f"Найден чат для уведомления {notification.id}")
-            except NotificationChat.DoesNotExist:
-                print(f"Чат для уведомления {notification.id} не найден, пропускаем")
-                continue
-            
+        for chat in admin_chats:
             last_message = chat.messages.last()
-            print(f"Последнее сообщение: {last_message}")
             
             # Считаем непрочитанные сообщения (от пользователя)
             unread_count = chat.messages.filter(
@@ -418,34 +433,29 @@ def get_admin_chats(request):
                 user=request.user
             ).count()
             
-            print(f"Непрочитанных сообщений: {unread_count}")
-            
             chats_data.append({
-                'notification_id': notification.id,
+                'notification_id': chat.notification.id,
                 'target_user': {
-                    'id': notification.target_user.id,
-                    'username': notification.target_user.username,
+                    'id': chat.notification.target_user.id,
+                    'username': chat.notification.target_user.username,
                 },
-                'notification_title': notification.title,
+                'notification_title': chat.notification.title,
                 'last_message': {
                     'text': last_message.message if last_message else 'Чат начат',
-                    'created_at': last_message.created_at.isoformat() if last_message else notification.created_at.isoformat(),
+                    'created_at': last_message.created_at.isoformat() if last_message else chat.notification.created_at.isoformat(),
                     'is_own': last_message.user == request.user if last_message else False
                 },
                 'unread_count': unread_count,
                 'updated_at': chat.updated_at.isoformat()
             })
         
-        print(f"Возвращаем чатов: {len(chats_data)}")
-        print(f"=======================")
+  
         
         return JsonResponse({'success': True, 'chats': chats_data})
         
     except Exception as e:
-        print(f"❌ Ошибка в get_admin_chats: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'success': False, 'error': str(e)})
+        # Заменяем подробный вывод на краткий
+        return JsonResponse({'success': False, 'error': 'Ошибка загрузки чатов'})
     
 
 
@@ -1511,7 +1521,7 @@ def get_pending_reminders(request):
                 'created_at': reminder.created_at.isoformat()
             })
             
-        print(f"Найдено напоминаний для пользователя {request.user.username}: {len(reminders_data)}")
+       
             
         return JsonResponse({
             'success': True,
@@ -2012,4 +2022,29 @@ def create_system_notification(request):
         print(f"Error creating system notification: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
+
+@staff_member_required
+@require_POST
+def delete_chat_completely(request, notification_id):
+    """Полное удаление чата, сообщений и уведомления"""
+    try:
+        notification = SystemNotification.objects.get(id=notification_id, created_by=request.user)
+        
+        # Удаляем все связанные данные
+        with transaction.atomic():
+            # Удаляем чат и сообщения
+            NotificationChat.objects.filter(notification=notification).delete()
+            
+            # Удаляем UserNotification для всех пользователей
+            UserNotification.objects.filter(notification=notification).delete()
+            
+            # Удаляем само уведомление
+            notification.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Чат полностью удален'})
+        
+    except SystemNotification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Уведомление не найдено'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 

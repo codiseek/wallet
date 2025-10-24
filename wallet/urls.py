@@ -70,4 +70,6 @@ urlpatterns = [
     path('todo/delete/<int:todo_id>/', views.delete_todo, name='delete_todo'),
     path('todo/toggle/<int:todo_id>/', views.toggle_todo, name='toggle_todo'),
     path('notifications/delete_all/', views.delete_all_notifications, name='delete_all_notifications'),
+    path('notifications/<int:notification_id>/delete_chat/', views.delete_chat_completely, name='delete_chat_completely'),
+
 ]

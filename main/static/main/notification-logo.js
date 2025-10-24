@@ -18,20 +18,52 @@ let chatPollingInterval = null;
 // notification-logo.js - обновляем систему опроса
 
 function initNotificationsPolling() {
-    // Проверяем сразу при загрузке
-    checkForNewNotifications();
+    // Проверяем счетчик непрочитанных при загрузке
+    checkUnreadCountOnly();
     
-    // Проверяем каждые 10 секунд (чаще для чатов)
-    setInterval(checkForNewNotifications, 10000);
+    // Проверяем счетчик каждые 60 секунд (только для индикатора)
+    setInterval(checkUnreadCountOnly, 60000);
     
     // Дополнительная проверка при фокусе на вкладке
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
-            checkForNewNotifications();
+            checkUnreadCountOnly();
         }
     });
 }
 
+
+
+// Функция для проверки только счетчика непрочитанных
+async function checkUnreadCountOnly() {
+    try {
+        const response = await fetch('/notifications/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const previousUnreadCount = unreadCount;
+            unreadCount = data.unread_count;
+            
+            // Если количество непрочитанных изменилось
+            if (previousUnreadCount !== unreadCount) {
+                updateNotificationsCounter2();
+                
+                // Если появились новые уведомления и модалка закрыта - показываем индикатор
+                if (unreadCount > previousUnreadCount && !isNotificationsModalOpen) {
+                    showNewNotificationsIndicator();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке уведомлений:', error);
+    }
+}
 
 
 async function checkForNewNotifications() {
@@ -196,87 +228,48 @@ function showNewNotificationsIndicator() {
 
 // Обновленная функция openChatModal
 async function openChatModal(notificationId) {
-    console.log('💬 Открытие модалки чата для:', notificationId);
-    
     // Находим уведомление в массиве, чтобы получить system_notification_id
     let systemNotificationId = notificationId;
-    let adminUsername = null;
     
     // Если передан ID UserNotification, находим соответствующий SystemNotification
     if (window.isAdmin) {
-        // Для админа используем переданный ID напрямую (это уже SystemNotification ID)
         currentChatNotificationId = notificationId;
-        
-        // Для админа находим имя пользователя из списка чатов
-        const chatItem = document.querySelector(`.chat-item[data-notification-id="${notificationId}"]`);
-        if (chatItem) {
-            const usernameElement = chatItem.querySelector('h3');
-            if (usernameElement) {
-                adminUsername = usernameElement.textContent.trim();
-            }
-        }
     } else {
-        // Для пользователя находим SystemNotification ID и имя админа
         const userNotification = userNotifications.find(n => n.id == notificationId);
         if (userNotification) {
             systemNotificationId = userNotification.notification_id;
             currentChatNotificationId = systemNotificationId;
-            
-            // Получаем имя админа из данных уведомления
-            // Если нет в данных, будем получать при загрузке сообщений
         }
     }
     
-    console.log('🔍 ID для загрузки чата:', systemNotificationId);
-    
-    // Загружаем сообщения
+    // Загружаем сообщения сразу при открытии
     await loadChatMessages(systemNotificationId);
     
     // Устанавливаем заголовок
     const chatTitle = document.getElementById('chatTitle');
     if (chatTitle) {
         if (window.isAdmin) {
-            // Для админа: "Чат с [логин пользователя]"
-            if (adminUsername) {
-                chatTitle.textContent = `Чат с ${adminUsername}`;
-            } else {
-                // Если не нашли в DOM, попробуем найти в данных
-                const notification = SystemNotification.objects.get(id=systemNotificationId);
-                if (notification && notification.target_user) {
-                    chatTitle.textContent = `Чат с ${notification.target_user.username}`;
-                } else {
-                    chatTitle.textContent = `Чат с `;
-                }
-            }
+            chatTitle.textContent = `Чат с пользователем`;
         } else {
-            // Для пользователя: "Чат с Администратором"
-            chatTitle.textContent = `Техподдержка`;
+            chatTitle.textContent = `Чат с Администратором`;
         }
     }
     
     // Показываем модалку чата
     const modal = document.getElementById('chatModal');
-    if (!modal) {
-        console.error('❌ Модалка чата не найдена!');
-        return;
-    }
+    if (!modal) return;
     
-    console.log('✅ Показываем модалку чата');
     modal.style.display = 'flex';
     
-    // Небольшая задержка для начала анимации
     setTimeout(() => {
         modal.classList.remove('hidden');
-        
-        // Блокируем скролл фона
         document.body.classList.add('modal-open');
         
-        // Запускаем опрос новых сообщений
+        // Запускаем опрос новых сообщений (60 секунд)
         startChatPolling();
-        
-        console.log('🎉 Модалка чата открыта');
     }, 50);
 }
+
 
 // Обновленная функция openAdminChat
 function openAdminChat(notificationId) {
@@ -289,8 +282,6 @@ function openAdminChat(notificationId) {
 // Обновленная функция loadChatMessages с получением информации об админе
 async function loadChatMessages(notificationId) {
     try {
-        console.log('Загрузка сообщений для уведомления:', notificationId);
-        
         const response = await fetch(`/notifications/${notificationId}/chat/`, {
             method: 'GET',
             headers: {
@@ -299,19 +290,9 @@ async function loadChatMessages(notificationId) {
         });
         
         const data = await response.json();
-        console.log('Получены данные чата:', data);
         
         if (data.success) {
             chatMessages = data.messages || [];
-            
-            // Обновляем заголовок, если это пользователь и у нас есть информация об админе
-            if (!window.isAdmin && data.admin_username) {
-                const chatTitle = document.getElementById('chatTitle');
-                if (chatTitle) {
-                    chatTitle.textContent = `Чат с ${data.admin_username}`;
-                }
-            }
-            
             renderChatMessages();
             scrollChatToBottom();
         } else {
@@ -321,8 +302,6 @@ async function loadChatMessages(notificationId) {
         console.error('Ошибка при загрузке сообщений:', error);
     }
 }
-
-
 
 
 
@@ -438,20 +417,9 @@ async function sendChatMessage() {
     const input = document.getElementById('chatMessageInput');
     const message = input.value.trim();
     
-    console.log('Попытка отправки сообщения:', {
-        message: message,
-        systemNotificationId: currentChatNotificationId,
-        csrfToken: getCSRFToken() ? 'есть' : 'нет'
-    });
-    
-    if (!message) {
-        console.error('Сообщение пустое');
-        alert('Введите сообщение');
-        return;
-    }
+    if (!message) return;
     
     if (!currentChatNotificationId) {
-        console.error('ID уведомления не установлен');
         alert('Ошибка: уведомление не выбрано');
         return;
     }
@@ -467,10 +435,7 @@ async function sendChatMessage() {
             body: JSON.stringify({ message: message })
         });
         
-        console.log('Статус ответа:', response.status);
-        
         const data = await response.json();
-        console.log('Данные ответа:', data);
         
         if (data.success) {
             // Добавляем сообщение в список
@@ -481,16 +446,19 @@ async function sendChatMessage() {
             // Очищаем поле ввода
             input.value = '';
             
-            console.log('Сообщение успешно отправлено');
+            // ПРИНУДИТЕЛЬНО ПЕРЕЗАПУСКАЕМ ОПРОС ЧАТА
+            stopChatPolling();
+            startChatPolling();
         } else {
-            console.error('Ошибка отправки сообщения:', data.error);
             alert('Ошибка: ' + data.error);
         }
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
-        alert('Ошибка сети: ' + error.message);
+        alert('Ошибка сети');
     }
 }
+
+
 
 // Прокрутка чата вниз
 function scrollChatToBottom() {
@@ -502,12 +470,24 @@ function scrollChatToBottom() {
 
 // Опрос новых сообщений
 function startChatPolling() {
+    // Останавливаем предыдущий интервал если есть
+    stopChatPolling();
+    
+    // Загружаем сообщения сразу при открытии
+    if (currentChatNotificationId) {
+        loadChatMessages(currentChatNotificationId);
+    }
+    
+    // Запускаем опрос каждые 60 секунд
     chatPollingInterval = setInterval(async () => {
         if (currentChatNotificationId) {
             await loadChatMessages(currentChatNotificationId);
         }
-    }, 3000); // Опрос каждые 3 секунды
+    }, 60000); // 60 секунд вместо 3
 }
+
+
+
 
 function stopChatPolling() {
     if (chatPollingInterval) {
@@ -525,7 +505,6 @@ async function loadAdminChats() {
     if (!window.isAdmin) return;
     
     try {
-        console.log('🔄 Загрузка чатов для админа...');
         const response = await fetch('/notifications/admin/chats/', {
             method: 'GET',
             headers: {
@@ -533,24 +512,29 @@ async function loadAdminChats() {
             }
         });
         
-        console.log('📡 Ответ сервера:', response);
         const data = await response.json();
-        console.log('📊 Данные чатов админа:', data);
         
         if (data.success) {
-            console.log(`✅ Найдено чатов: ${data.chats.length}`);
-            console.log('📋 Содержимое чатов:', data.chats);
-            renderAdminChatsList(data.chats);
+            // Сортируем чаты: сначала с непрочитанными, потом по дате обновления (свежие сверху)
+            const sortedChats = data.chats.sort((a, b) => {
+                // Сначала чаты с непрочитанными сообщениями
+                if (a.unread_count > 0 && b.unread_count === 0) return -1;
+                if (a.unread_count === 0 && b.unread_count > 0) return 1;
+                
+                // Потом по дате обновления (новые сверху)
+                return new Date(b.updated_at) - new Date(a.updated_at);
+            });
+            
+            renderAdminChatsList(sortedChats);
         } else {
-            console.error('❌ Ошибка загрузки чатов админа:', data.error);
+            console.error('Ошибка загрузки чатов админа:', data.error);
             showEmptyChatsState();
         }
     } catch (error) {
-        console.error('❌ Ошибка при загрузке чатов админа:', error);
+        console.error('Ошибка при загрузке чатов админа:', error);
         showEmptyChatsState();
     }
 }
-
 
 // -----------------------------
 // Отображение списка чатов для админа
@@ -560,16 +544,7 @@ function renderAdminChatsList(chats) {
     const emptyChatsState = document.getElementById('emptyChatsState');
     const chatsCount = document.getElementById('chatsCount');
     
-    console.log('🎨 Рендерим список чатов:', {
-        container: adminChatsList,
-        chatsCount: chats.length,
-        chats: chats
-    });
-    
-    if (!adminChatsList) {
-        console.error('❌ Контейнер adminChatsList не найден!');
-        return;
-    }
+    if (!adminChatsList) return;
 
     // Обновляем счетчик в футере
     if (chatsCount) {
@@ -593,7 +568,7 @@ function renderAdminChatsList(chats) {
         const hasUnread = chat.unread_count > 0;
         
         chatsHTML += `
-            <div class="chat-item bg-gray-700/30 border ${hasUnread ? 'border-green-500/20 bg-green-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
+            <div class="chat-item bg-gray-700/30 border ${hasUnread ? 'border-green-500/20 bg-green-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
                  data-notification-id="${chat.notification_id}">
                 <div class="flex items-start space-x-3">
                     <div class="w-8 h-8 rounded-full ${hasUnread ? 'bg-green-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
@@ -612,11 +587,17 @@ function renderAdminChatsList(chats) {
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex items-center space-x-2">
                                 ${hasUnread ? `
-                                <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                <span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span>
                                 <span class="text-xs text-green-400">${chat.unread_count} новое</span>
                                 ` : ''}
                                 <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Чат</span>
                             </div>
+                            <!-- Кнопка удаления чата -->
+                            <button class="delete-chat-btn px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
+                                    onclick="event.stopPropagation(); deleteChatCompletely(${chat.notification_id}, this.closest('.chat-item'))">
+                                <i class="fas fa-trash"></i>
+                                <span>Удалить чат</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -626,16 +607,13 @@ function renderAdminChatsList(chats) {
     
     adminChatsList.innerHTML = chatsHTML;
     
- adminChatsList.innerHTML = chatsHTML;
-    
-    // Инициализируем обработчики после рендеринга
+    // Инициализируем обработчики клика для открытия чатов
     setTimeout(() => {
         initChatsClickHandlers();
     }, 100);
-    
-    console.log(`✅ Отрендерено элементов чатов: ${adminChatsList.querySelectorAll('.chat-item').length}`);
 }
-    
+
+
     
 
 // Альтернативная версия - гарантированные обработчики
@@ -756,12 +734,17 @@ async function loadUserNotifications() {
             userNotifications = data.notifications;
             unreadCount = data.unread_count;
             
-            // Используем плавное обновление если модалка открыта
-            if (isNotificationsModalOpen) {
-                smoothRenderNotificationsList2();
-            } else {
-                renderNotificationsList2();
-            }
+            // Сортируем уведомления: сначала непрочитанные, потом по дате (свежие сверху)
+            userNotifications.sort((a, b) => {
+                // Сначала непрочитанные
+                if (!a.is_read && b.is_read) return -1;
+                if (a.is_read && !b.is_read) return 1;
+                
+                // Потом по дате (новые сверху)
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            
+            renderNotificationsList2();
             updateNotificationsCounter2();
         } else {
             console.error('Ошибка загрузки уведомлений:', data.error);
@@ -770,7 +753,6 @@ async function loadUserNotifications() {
         console.error('Ошибка при загрузке уведомлений:', error);
     }
 }
-
 
 
 // -----------------------------
@@ -835,11 +817,8 @@ function renderNotificationsList2() {
         const timeAgo = getTimeAgo(notif.created_at);
         const hasChat = notif.has_chat || false;
         
-        // УБИРАЕМ ОБРЕЗКУ ТЕКСТА ДЛЯ ВСЕХ УВЕДОМЛЕНИЙ
-        const messageText = notif.message;
-        
         notificationsHTML += `
-            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
+            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
                  data-id="${notif.id}" 
                  data-unread="${isUnread}" 
                  data-notification-id="${notif.notification_id}"
@@ -855,7 +834,7 @@ function renderNotificationsList2() {
                             <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                         </div>
                         <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
-                            ${escapeHtml(messageText)}
+                            ${escapeHtml(notif.message)}
                         </p>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex items-center space-x-2">
@@ -874,8 +853,30 @@ function renderNotificationsList2() {
     });
     
     notificationsList2.innerHTML = notificationsHTML;
-    applyNotificationsFilter2('all');
+    applyNotificationsFilter2(getCurrentFilter());
 }
+
+// Вспомогательные функции для обновления интерфейса
+function updateNotificationsCounters() {
+    const counterElement2 = document.getElementById('notificationsCount2');
+    if (counterElement2) {
+        counterElement2.textContent = document.querySelectorAll('.notification-item').length;
+    }
+}
+
+function checkEmptyState() {
+    const notificationsList2 = document.getElementById('notificationsList2');
+    const emptyState2 = document.getElementById('emptyNotificationsState2');
+    
+    if (notificationsList2 && emptyState2) {
+        const remainingItems = notificationsList2.querySelectorAll('.notification-item').length;
+        if (remainingItems === 0) {
+            emptyState2.classList.remove('hidden');
+        }
+    }
+}
+
+
 
 // Функция удаления всех уведомлений (для админа)
 async function deleteAllNotifications() {
@@ -921,17 +922,26 @@ async function deleteAllNotifications() {
 // -----------------------------
 // Обработчик клика по уведомлению
 // -----------------------------
+// Обновленная функция обработки клика по уведомлению
 function handleNotificationClick(notificationId, hasChat) {
     console.log('🖱️ Клик по уведомлению:', { notificationId, hasChat });
     
-    if (hasChat) {
-        // Если есть чат - сразу открываем чат
+    // Находим уведомление в массиве
+    const notification = userNotifications.find(n => n.id == notificationId);
+    if (!notification) return;
+    
+    // Проверяем, является ли это админским чатом
+    const isAdminChat = notification.is_admin_chat || false;
+    
+    if (hasChat || isAdminChat) {
+        // Если есть чат или это админский чат - сразу открываем чат
         openChatFromNotification(notificationId);
     } else {
         // Если чата нет - открываем детальное view
         openNotificationDetail(notificationId);
     }
 }
+
 
 // Обновленная функция открытия чата из уведомления
 function openChatFromNotification(userNotificationId) {
@@ -960,6 +970,61 @@ function openChatFromNotification(userNotificationId) {
         openChatModal(userNotificationId);
     }, 300);
 }
+
+// Функция полного удаления чата
+// Функция полного удаления чата
+async function deleteChatCompletely(notificationId, element) {
+    if (!confirm('Вы уверены, что хотите полностью удалить этот чат? Это действие нельзя отменить.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/notifications/${notificationId}/delete_chat/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Плавно удаляем элемент из DOM
+            element.style.opacity = '0';
+            element.style.transform = 'translateX(-100%)';
+            setTimeout(() => {
+                element.remove();
+                
+                // Обновляем счетчик чатов
+                const chatsCount = document.getElementById('chatsCount');
+                if (chatsCount) {
+                    const currentCount = parseInt(chatsCount.textContent);
+                    chatsCount.textContent = Math.max(0, currentCount - 1);
+                }
+                
+                // Проверяем пустой список
+                const adminChatsList = document.getElementById('adminChatsList');
+                const emptyChatsState = document.getElementById('emptyChatsState');
+                if (adminChatsList && emptyChatsState) {
+                    const remainingChats = adminChatsList.querySelectorAll('.chat-item').length;
+                    if (remainingChats === 0) {
+                        emptyChatsState.classList.remove('hidden');
+                    }
+                }
+            }, 300);
+            
+            alert('Чат успешно удален');
+        } else {
+            alert('Ошибка при удалении чата: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении чата:', error);
+        alert('Ошибка при удалении чата');
+    }
+}
+
+
 
 
 
@@ -1608,6 +1673,8 @@ async function deleteSystemNotification(notificationId, notificationElement) {
 // -----------------------------
 // Обновленная функция применения фильтра
 // -----------------------------
+// Обновленная функция applyNotificationsFilter2
+// Обновленная функция применения фильтра
 function applyNotificationsFilter2(filter) {
     const notificationsContent = document.getElementById('notificationsContent');
     const adminChatsContent = document.getElementById('adminChatsContent');
@@ -1637,15 +1704,10 @@ function applyNotificationsFilter2(filter) {
             applyNotificationsContentFilter(filter);
             break;
             
-        case 'personal':
-            if (window.isAdmin) {
-                loadPersonalNotifications();
-            }
-            break;
-            
         case 'chats':
             if (window.isAdmin && adminChatsContent) {
                 adminChatsContent.classList.remove('hidden');
+                // ЗАГРУЖАЕМ АКТУАЛЬНЫЕ ЧАТЫ ПРИ ПЕРЕКЛЮЧЕНИИ НА ВКЛАДКУ
                 loadAdminChats();
             }
             break;
@@ -1654,8 +1716,6 @@ function applyNotificationsFilter2(filter) {
     // Обновляем активные кнопки фильтров
     updateFilterButtons(filter);
 }
-
-
 
 // -----------------------------
 // Фильтрация контента уведомлений
@@ -1733,8 +1793,9 @@ function openNotificationsModal2() {
     console.log('Opening notifications modal 2');
     if (!notificationsModal2) return;
     
-    isNotificationsModalOpen = true; // Устанавливаем флаг
+    isNotificationsModalOpen = true;
     notificationsModal2.style.display = 'flex';
+    
     setTimeout(() => {
         notificationsModal2.classList.remove('hidden');
         notificationsModal2.classList.add('animate-overlayFadeIn');
@@ -1748,8 +1809,16 @@ function openNotificationsModal2() {
         // Блокируем скролл фона
         document.body.classList.add('modal-open');
         
-        // Загружаем актуальные уведомления при открытии
+        // ЗАГРУЖАЕМ АКТУАЛЬНЫЕ УВЕДОМЛЕНИЯ ПРИ ОТКРЫТИИ
         loadUserNotifications();
+        
+        // Если это админ, загружаем актуальные чаты если открыта вкладка чатов
+        if (window.isAdmin) {
+            const chatsTab = document.querySelector('.filter-notification-btn[data-filter="chats"]');
+            if (chatsTab && chatsTab.classList.contains('bg-blue-600')) {
+                loadAdminChats();
+            }
+        }
         
         // Убираем анимацию пульсации при открытии
         if (notificationIndicator2) {
@@ -1757,7 +1826,6 @@ function openNotificationsModal2() {
         }
     }, 10);
 }
-
 function closeNotificationsModal2() {
     console.log('🔒 Закрытие модалки уведомлений');
     if (!notificationsModal2) return;

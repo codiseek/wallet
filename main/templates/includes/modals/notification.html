@@ -27,9 +27,7 @@
             Непрочитанные
         </button>
         {% if user.is_staff %}
-        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="personal">
-            Персональные
-        </button>
+        <!-- УБИРАЕМ КНОПКУ ПЕРСОНАЛЬНЫЕ -->
         <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="chats">
             Чаты
         </button>
@@ -80,10 +78,10 @@
         <span id="footerCounter">Всего уведомлений: <span id="notificationsCount2">0</span></span>
         <div class="flex items-center space-x-2">
             {% if user.is_staff %}
-            <button onclick="openCreateNotificationModal()" class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 transition-colors">
+            <button onclick="openCreateNotificationModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 transition-colors">
                 <i class="fas fa-plus text-sm"></i>
             </button>
-            <button onclick="deleteAllNotifications()" class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors">
+            <button onclick="deleteAllNotifications()" class="w-8 h-8 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors">
                 <i class="fas fa-trash text-sm"></i>
             </button>
             {% else %}
