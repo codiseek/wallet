@@ -146,7 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Форматируем все элементы резерва при загрузке страницы
         formatAllReserveElements();
-        
+         initCurrencyHandlers();
+    initCurrencyOnLoad();
         // Обновляем отображение сбережений при загрузке
         updateSavingsDisplay();
         initCategorySelectionModal();
@@ -161,6 +162,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.isNewUser) {
             setTimeout(() => { showSuccessNotification('Добро пожаловать!'); }, 800);
         }
+
+          // ДОБАВЬ ЭТОТ ВЫЗОВ
+        setTimeout(() => {
+            if (typeof initNotesIcon === 'function') {
+                initNotesIcon();
+            }
+            if (typeof loadNotes === 'function') {
+                loadNotes(); // Это обновит иконку
+            }
+        }, 500);
 
 
         // Инициализация валюты при загрузке

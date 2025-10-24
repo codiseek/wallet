@@ -55,6 +55,31 @@
         </div>
     </div>
 
+
+    <!-- Новая вкладка в модалке уведомлений для пользователей -->
+{% if not user.is_staff %}
+<div id="userChatsSection" class="hidden">
+    <div class="border-t border-gray-700 pt-4 mt-4">
+        <h4 class="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+            <i class="fas fa-users text-purple-400 mr-2"></i>
+            Мои чаты
+        </h4>
+        <div id="userChatsList" class="space-y-2">
+            <!-- Список чатов с пользователями -->
+        </div>
+        
+        <div id="emptyUserChatsState" class="text-center py-8 text-gray-500 hidden">
+            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
+                <i class="fas fa-users text-2xl text-gray-500"></i>
+            </div>
+            <p class="text-gray-400">Чатов с пользователями нет</p>
+            <p class="text-sm text-gray-500 mt-1">Начните общение с другим пользователем</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
     <!-- Секция чатов для админа -->
     {% if user.is_staff %}
     <div id="adminChatsContent" class="hidden">

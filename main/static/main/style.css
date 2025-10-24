@@ -1382,3 +1382,9 @@ backdrop-filter: blur(20px) !important;
 .chat-badge-btn:active {
     transform: scale(0.95) !important;
 }
+
+
+
+.hidden {
+    display: none !important;
+}

@@ -577,6 +577,27 @@ function initNotificationsFilters() {
 }
 
 
+// notification-logo.js - добавляем в существующую систему
+function initUserChats() {
+    if (!window.isAdmin) {
+        // Добавляем вкладку для чатов пользователей
+        addUserChatsTab();
+        loadUserChats();
+    }
+}
+
+function addUserChatsTab() {
+    // Добавляем кнопку фильтра для чатов пользователей
+    const filtersContainer = document.querySelector('.flex.space-x-1.bg-gray-700.rounded-lg.p-1');
+    if (filtersContainer) {
+        filtersContainer.innerHTML += `
+            <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="user_chats">
+                Чаты
+            </button>
+        `;
+    }
+}
+
 
 // -----------------------------
 // Отображение списка уведомлений

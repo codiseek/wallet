@@ -30,6 +30,74 @@ function initNoteSystem() {
     clearStaleNotifications();
 }
 
+
+
+
+// Функция для обновления иконки заметок в хедере
+function updateNotesIcon(notesCount) {
+    console.log('🎯 updateNotesIcon вызвана с notesCount:', notesCount);
+    
+    const notesIconBtn = document.getElementById('notesIconBtn');
+    const notesCounter = document.getElementById('notesCounter');
+
+    console.log('🔍 Элементы найдены:', {
+        notesIconBtn: !!notesIconBtn,
+        notesCounter: !!notesCounter
+    });
+
+    if (!notesIconBtn || !notesCounter) {
+        console.log('❌ Элементы иконки не найдены!');
+        return;
+    }
+
+    if (notesCount > 0) {
+        console.log('✅ Показываем иконку с счетчиком:', notesCount);
+        notesIconBtn.classList.remove('hidden');
+        notesCounter.classList.remove('hidden');
+        notesCounter.textContent = notesCount > 99 ? '99+' : notesCount;
+    } else {
+        console.log('🚫 Скрываем иконку (заметок нет)');
+        notesIconBtn.classList.add('hidden');
+        notesCounter.classList.add('hidden');
+    }
+}
+
+// Функция для инициализации иконки заметок
+function initNotesIcon() {
+    const notesIconBtn = document.getElementById('notesIconBtn');
+    
+    if (notesIconBtn) {
+        notesIconBtn.addEventListener('click', function() {
+            // Используем существующую функцию переключения вкладок
+            if (typeof window.switchToTab === 'function') {
+                window.switchToTab('notes');
+            } else {
+                // Fallback: прямая активация вкладки
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                const notesTab = document.getElementById('tab-notes');
+                if (notesTab) {
+                    notesTab.classList.add('active');
+                }
+                
+                // Активируем соответствующий элемент навигации если он есть
+                const navItem = document.querySelector('.mobile-nav-item[data-tab="notes"]');
+                if (navItem) {
+                    navItem.classList.add('active');
+                }
+            }
+        });
+    }
+}
+
+
+
+
 // НОВАЯ ФУНКЦИЯ: Очистка старых уведомлений
 function clearStaleNotifications() {
     const notificationContainer = document.getElementById('notificationContainer');
@@ -68,50 +136,45 @@ function sendReminderPush(reminder) {
     });
 }
 
-// Загрузка списка заметок
+// Полный обновленный блок loadNotes должен выглядеть так:
+// В функции loadNotes() после загрузки данных
 function loadNotes() {
     fetch('/get_notes/')
         .then(response => response.json())
         .then(data => {
             const notesList = document.getElementById('notesList');
-            const emptyState = document.getElementById('emptyNotesState');
-            
-            if (!notesList) {
-                return;
+            if (notesList) {
+                notesList.innerHTML = '';
             }
 
             currentNotes = data.notes || [];
 
-            if (currentNotes.length > 0) {
-                // Есть заметки - скрываем пустое состояние и показываем список
-                if (emptyState) emptyState.style.display = 'none';
-                notesList.style.display = 'block';
-                
-                // Очищаем только заметки, но не весь контейнер
-                const existingNotes = notesList.querySelectorAll('.note-item');
-                existingNotes.forEach(note => note.remove());
-                
-                // Добавляем заметки
-                currentNotes.forEach(note => {
-                    const noteElement = createNoteElement(note);
+            currentNotes.forEach(note => {
+                const noteElement = createNoteElement(note);
+                if (notesList) {
                     notesList.appendChild(noteElement);
-                });
-            } else {
-                // Нет заметок - показываем пустое состояние и скрываем список
-                if (emptyState) emptyState.style.display = 'block';
-                notesList.style.display = 'none';
+                }
+            });
+
+            // ОБНОВЛЯЕМ ИКОНКУ ПОСЛЕ ЗАГРУЗКИ ЗАМЕТОК
+            updateNotesIcon(currentNotes.length);
+
+            // Показываем/скрываем пустое состояние
+            const emptyNotesState = document.getElementById('emptyNotesState');
+            if (emptyNotesState) {
+                if (currentNotes.length === 0) {
+                    emptyNotesState.style.display = 'block';
+                } else {
+                    emptyNotesState.style.display = 'none';
+                }
             }
         })
         .catch(error => {
-            console.error('Ошибка загрузки заметок:', error);
-            // В случае ошибки показываем пустое состояние
-            const emptyState = document.getElementById('emptyNotesState');
-            const notesList = document.getElementById('notesList');
-            if (emptyState) emptyState.style.display = 'block';
-            if (notesList) notesList.style.display = 'none';
+            console.error('Error loading notes:', error);
+            // При ошибке тоже обновляем иконку (скрываем)
+            updateNotesIcon(0);
         });
 }
-
 
 function createNoteElement(note) {
     const noteDiv = document.createElement('div');
@@ -339,9 +402,14 @@ function initNoteModal() {
 
 // Убедитесь, что функция инициализации вызывается при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    initNoteModal();
+    loadNotes();
+    initNoteSystem();
+    initReminderSystem();
+    initNotesIcon(); // ДОБАВЬ ЭТУ СТРОЧКУ
+    initReminderPicker();
+    
+    setTimeout(checkReminders, 2000);
 });
-
 
 
 // Открытие модалки редактирования заметки

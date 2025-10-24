@@ -171,7 +171,7 @@ def get_user_notifications(request):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-    
+
 
 # views.py - обновленная функция get_chat_messages с лучшей отладкой
 
@@ -1323,11 +1323,12 @@ def get_notes(request):
             'id': note.id,
             'title': note.title,
             'content': note.content,
-            'reminder_date': note.reminder_date.isoformat() if note.reminder_date else None,
-            'is_reminded': note.is_reminded,
             'created_at': note.created_at.isoformat(),
+            'reminder_date': note.reminder_date.isoformat() if note.reminder_date else None,
+            'is_reminded': note.is_reminded
         })
-    return JsonResponse({"notes": notes_data})
+    
+    return JsonResponse({'notes': notes_data})
 
 @login_required
 def add_note(request):
