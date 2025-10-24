@@ -60,8 +60,9 @@
 {% include "main/category_page.html" %}
 {% include "main/stats_page.html" %}      
 {% include "main/note_page.html" %}
-{% include "main/panel_page.html" %}
 {% include "main/todo_page.html" %}
+{% include "main/panel_page.html" %}
+
                     
 </div>
         
@@ -88,7 +89,7 @@
     {% include "includes/modals/note.html" %}
     {% include "includes/modals/view_note.html" %}
     {% include "includes/modals/open_notif.html" %}
-        {% include "includes/modals/chat.html" %}
+    {% include "includes/modals/todo.html" %}
 
 
 <script>
@@ -132,7 +133,8 @@
 <script src="/static/main/transactions.js"></script>
 <script src="/static/main/savings.js"></script>
 <script src="/static/main/navigation.js"></script>
-<script src="/static/main/admin.js"></script>  
+<script src="/static/main/admin.js"></script> 
+<script src="/static/main/todo.js"></script> 
 <script src="/static/main/app.js"></script>
 
     <script>

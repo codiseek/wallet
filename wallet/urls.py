@@ -63,6 +63,11 @@ urlpatterns = [
     path('notifications/<int:notification_id>/chat/send/', views.send_chat_message, name='send_chat_message'),
     path('admin_panel/get_stats/', views.get_admin_stats, name='admin_get_stats'),
     path('admin_panel/get_users/', views.get_admin_users, name='admin_get_users'),
-    
+    path('todo/get/', views.get_todos, name='get_todos'),
+    path('todo/add/', views.add_todo, name='add_todo'),
+    path('todo/get/<int:todo_id>/', views.get_todo, name='get_todo'),
+    path('todo/update/<int:todo_id>/', views.update_todo, name='update_todo'),
+    path('todo/delete/<int:todo_id>/', views.delete_todo, name='delete_todo'),
+    path('todo/toggle/<int:todo_id>/', views.toggle_todo, name='toggle_todo'),
 
 ]

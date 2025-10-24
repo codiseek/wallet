@@ -1,24 +1,31 @@
-<!-- todo_page.html -->
+<!-- Todo list вкладка - БЕЗ app-container -->
 <div class="mobile-tab" id="tab-todo">
-    <div class="mobile-section">
-        <div class="mobile-content">
-            <div class="card-gradient rounded-2xl p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold flex items-center text-white">
-                        <i class="fa-solid fa-list-check text-green-400 mr-2"></i>
-                        To Do List
-                    </h2>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors add-todo-btn">
-                        <i class="fas fa-plus mr-2"></i>Добавить
-                    </button>
-                </div>
-
-                <!-- Контент todo list -->
-                <div class="text-center py-8 text-gray-400">
-                    <i class="fa-solid fa-list-check text-4xl mb-3 opacity-50"></i>
-                    <p class="text-white">Список задач пуст</p>
-                    <p class="text-sm mt-1 text-gray-300">Добавьте свою первую задачу</p>
-                </div>
+    <div class="p-2 h-full flex flex-col">
+        <div class="card-gradient rounded-2xl p-3 flex flex-col h-full">
+            <!-- Заголовок и кнопка -->
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold flex items-center">
+                    <i class="fas fa-list-check text-green-400 mr-2"></i>
+                    Мой Todo List
+                </h2>
+                
+            </div>
+            
+        <!-- Добавьте после статистики и перед контейнером списка -->
+<div class="flex space-x-2 mb-4 p-1 bg-gray-800/30 rounded-xl">
+    <button class="filter-btn active flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-500/20 text-blue-400 border border-blue-500/30" 
+            data-filter="active">
+        <i class="fas fa-clock mr-1"></i>Активные
+    </button>
+    <button class="filter-btn flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 bg-gray-800/40 text-gray-400 border border-gray-600/30" 
+            data-filter="completed">
+        <i class="fas fa-check-circle mr-1"></i>Выполненные
+    </button>
+</div>
+            
+            <!-- Контейнер списка -->
+            <div class="flex-1 overflow-y-auto min-h-0" id="todoList">
+                <!-- Задачи будут здесь -->
             </div>
         </div>
     </div>

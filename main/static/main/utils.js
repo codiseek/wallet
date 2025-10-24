@@ -76,3 +76,4 @@ function showErrorNotification(message) {
         }
     }, 2000);
 }
+

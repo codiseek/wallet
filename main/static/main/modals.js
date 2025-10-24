@@ -121,56 +121,15 @@ document.addEventListener('DOMContentLoaded', function() {
         noteDropdown.classList.add('hidden');
     });
     
-    // Обработчики для кнопок меню - переключение вкладок
-   // Обработчики для кнопок меню - переключение вкладок
-const menuButtons = noteDropdown.querySelectorAll('button[data-tab]');
-menuButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const targetTab = this.getAttribute('data-tab');
-        console.log('🔄 Переключаем на вкладку:', targetTab);
-        
-        // Закрываем меню
-        noteDropdown.classList.add('hidden');
-        
-        // Переключаем вкладку используя ту же логику, что и в навигации
-        if (typeof window.switchToTab === 'function') {
-            console.log('✅ Используем window.switchToTab');
-            window.switchToTab(targetTab);
-        } else {
-            console.log('⚠️ Используем fallback переключение');
-            // Fallback: если функция не определена, используем базовую логику
-            document.querySelectorAll('.mobile-tab').forEach(tab => {
-                tab.classList.remove('active');
-                console.log('❌ Скрываем вкладку:', tab.id);
-            });
-            document.querySelectorAll('.mobile-nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const targetTabElement = document.getElementById(`tab-${targetTab}`);
-            console.log('🔍 Ищем элемент:', `tab-${targetTab}`, 'Найден:', targetTabElement);
-            
-            if (targetTabElement) {
-                targetTabElement.classList.add('active');
-                console.log('✅ Активировали вкладку:', targetTabElement.id);
-            } else {
-                console.log('❌ Вкладка не найдена!');
-            }
-            
-            // Активируем соответствующий элемент навигации если он есть
-            const navItem = document.querySelector(`.mobile-nav-item[data-tab="${targetTab}"]`);
-            if (navItem) {
-                navItem.classList.add('active');
-            }
-        }
-    });
-});
-    
+  
     // Предотвращаем закрытие при клике на само меню
     noteDropdown.addEventListener('click', function(e) {
         e.stopPropagation();
     });
 });
+
+
+
 
 
 // -----------------------------

@@ -121,6 +121,43 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
 };
 
 
+// Добавьте в app.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик для кнопки TODO в хедере
+    document.addEventListener('click', function(e) {
+        const todoIconBtn = e.target.closest('#todoIconBtn');
+        if (todoIconBtn) {
+            // Переключаем на вкладку TODO
+            const tabs = document.querySelectorAll('.mobile-tab');
+            const navItems = document.querySelectorAll('.mobile-nav-item');
+            
+            // Скрываем все вкладки
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Убираем активность со всех элементов навигации
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // Показываем вкладку TODO
+            const todoTab = document.getElementById('tab-todo');
+            if (todoTab) {
+                todoTab.classList.add('active');
+            }
+            
+            // Скрываем блок баланса
+            const balanceBlock = document.querySelector('.mobile-header .bg-gradient-to-r');
+            if (balanceBlock) {
+                balanceBlock.classList.add('hidden');
+            }
+            
+            // Активируем соответствующий элемент в навигации (если есть)
+            const todoNavItem = document.querySelector('.mobile-nav-item[data-tab="todo"]');
+            if (todoNavItem) {
+                todoNavItem.classList.add('active');
+            }
+        }
+    });
+});
+
 
 // -----------------------------
 // Экспортируем необходимые функции в global

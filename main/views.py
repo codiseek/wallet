@@ -30,7 +30,7 @@ from django.core.paginator import Paginator, EmptyPage
 from .models import (
     Category, Transaction, UserProfile, Note, 
     SystemNotification, UserNotification,
-    NotificationChat, ChatMessage 
+    NotificationChat, ChatMessage, Todo
 )
 
 
@@ -1751,3 +1751,161 @@ def get_admin_users(request):
     except Exception as e:
         print(f"Error in get_admin_users: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+
+
+
+
+
+    # Добавьте эти views в views.py
+
+@login_required
+def get_todos(request):
+    """Получение всех задач пользователя"""
+    try:
+        todos = Todo.objects.filter(user=request.user)
+        todos_data = []
+        for todo in todos:
+            todos_data.append({
+                'id': todo.id,
+                'title': todo.title,
+                'description': todo.description,
+                'is_completed': todo.is_completed,
+                'priority': todo.priority,
+                'created_at': todo.created_at.isoformat(),
+                'updated_at': todo.updated_at.isoformat(),
+            })
+        
+        return JsonResponse({'success': True, 'todos': todos_data})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def add_todo(request):
+    """Добавление новой задачи"""
+    try:
+        title = request.POST.get("title")
+        description = request.POST.get("description", "")
+        priority = request.POST.get("priority", "medium")
+
+        if not title:
+            return JsonResponse({"success": False, "error": "Не указан заголовок"})
+
+        todo = Todo.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            priority=priority
+        )
+
+        todo_data = {
+            'id': todo.id,
+            'title': todo.title,
+            'description': todo.description,
+            'is_completed': todo.is_completed,
+            'priority': todo.priority,
+            'created_at': todo.created_at.isoformat(),
+            'updated_at': todo.updated_at.isoformat(),
+        }
+
+        return JsonResponse({"success": True, "todo": todo_data})
+
+    except Exception as e:
+        print(f"Ошибка при создании задачи: {str(e)}")
+        return JsonResponse({"success": False, "error": f"Внутренняя ошибка сервера: {str(e)}"})
+
+@login_required
+def get_todo(request, todo_id):
+    """Получение конкретной задачи"""
+    try:
+        todo = Todo.objects.get(id=todo_id, user=request.user)
+        todo_data = {
+            'id': todo.id,
+            'title': todo.title,
+            'description': todo.description,
+            'is_completed': todo.is_completed,
+            'priority': todo.priority,
+            'created_at': todo.created_at.isoformat(),
+            'updated_at': todo.updated_at.isoformat(),
+        }
+        return JsonResponse({"success": True, "todo": todo_data})
+    except Todo.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Задача не найдена"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+@login_required
+@require_POST
+def update_todo(request, todo_id):
+    """Обновление задачи"""
+    try:
+        todo = Todo.objects.get(id=todo_id, user=request.user)
+        title = request.POST.get("title")
+        description = request.POST.get("description", "")
+        priority = request.POST.get("priority", "medium")
+        is_completed = request.POST.get("is_completed") == "true"
+
+        if not title:
+            return JsonResponse({"success": False, "error": "Не указан заголовок"})
+
+        todo.title = title
+        todo.description = description
+        todo.priority = priority
+        todo.is_completed = is_completed
+        todo.save()
+
+        todo_data = {
+            'id': todo.id,
+            'title': todo.title,
+            'description': todo.description,
+            'is_completed': todo.is_completed,
+            'priority': todo.priority,
+            'created_at': todo.created_at.isoformat(),
+            'updated_at': todo.updated_at.isoformat(),
+        }
+
+        return JsonResponse({"success": True, "todo": todo_data})
+
+    except Todo.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Задача не найдена"})
+    except Exception as e:
+        print(f"Ошибка при обновлении задачи: {str(e)}")
+        return JsonResponse({"success": False, "error": f"Внутренняя ошибка сервера: {str(e)}"})
+
+@login_required
+@require_POST
+def delete_todo(request, todo_id):
+    """Удаление задачи"""
+    try:
+        todo = Todo.objects.get(id=todo_id, user=request.user)
+        todo.delete()
+        return JsonResponse({"success": True})
+    except Todo.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Задача не найдена"})
+
+@login_required
+@require_POST
+def toggle_todo(request, todo_id):
+    """Переключение статуса выполнения задачи"""
+    try:
+        todo = Todo.objects.get(id=todo_id, user=request.user)
+        todo.is_completed = not todo.is_completed
+        todo.save()
+        
+        todo_data = {
+            'id': todo.id,
+            'title': todo.title,
+            'description': todo.description,
+            'is_completed': todo.is_completed,
+            'priority': todo.priority,
+            'created_at': todo.created_at.isoformat(),
+            'updated_at': todo.updated_at.isoformat(),
+        }
+        
+        return JsonResponse({"success": True, "todo": todo_data})
+    except Todo.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Задача не найдена"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
