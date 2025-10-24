@@ -830,11 +830,7 @@ def add_transaction(request):
             category_id = request.POST.get("category")
             description = request.POST.get("description", "")
 
-            print(f"=== ДАННЫЕ ОТ ФОРМЫ ===")
-            print(f"Type: {type_}")
-            print(f"Amount: {amount}")
-            print(f"Category ID: {category_id}")
-            print(f"Description: {description}")
+            
 
             if not type_:
                 return JsonResponse({"success": False, "error": "Не указан тип операции"})
@@ -1995,7 +1991,7 @@ def create_system_notification(request):
             ChatMessage.objects.create(
                 chat=chat,
                 user=request.user,  # Админ
-                message=f"Здравствуйте! {message}"  # Первое сообщение от админа
+                message=f"{message}"  # Первое сообщение от админа
             )
             
             users_count = 1

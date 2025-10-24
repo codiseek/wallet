@@ -8,6 +8,7 @@ let notificationLogoBtn2 = null;
 let notificationIndicator2 = null;
 let userNotifications = [];
 let unreadCount = 0;
+let unreadChatsCount = 0;
 let currentNotificationDetail = null;
 let isNotificationsModalOpen = false; // Добавляем флаг состояния модалки
 
@@ -21,8 +22,8 @@ function initNotificationsPolling() {
     // Проверяем счетчик непрочитанных при загрузке
     checkUnreadCountOnly();
     
-    // Проверяем счетчик каждые 60 секунд (только для индикатора)
-    setInterval(checkUnreadCountOnly, 60000);
+    // Проверяем счетчик каждые 30 секунд (увеличили частоту для админа)
+    setInterval(checkUnreadCountOnly, 30000);
     
     // Дополнительная проверка при фокусе на вкладке
     document.addEventListener('visibilitychange', function() {
@@ -31,7 +32,6 @@ function initNotificationsPolling() {
         }
     });
 }
-
 
 
 // Функция для проверки только счетчика непрочитанных
@@ -50,20 +50,52 @@ async function checkUnreadCountOnly() {
             const previousUnreadCount = unreadCount;
             unreadCount = data.unread_count;
             
-            // Если количество непрочитанных изменилось
-            if (previousUnreadCount !== unreadCount) {
-                updateNotificationsCounter2();
-                
-                // Если появились новые уведомления и модалка закрыта - показываем индикатор
-                if (unreadCount > previousUnreadCount && !isNotificationsModalOpen) {
-                    showNewNotificationsIndicator();
-                }
+            // Для админа дополнительно проверяем непрочитанные чаты
+            if (window.isAdmin) {
+                await checkUnreadChatsForAdmin();
+            }
+            
+            // Обновляем индикаторы независимо от активной вкладки
+            updateNotificationsCounter2();
+            updateChatsTabIndicator();
+            
+            // Если появились новые уведомления и модалка закрыта - показываем индикатор
+            const totalUnread = window.isAdmin ? unreadCount + unreadChatsCount : unreadCount;
+            const previousTotalUnread = window.isAdmin ? previousUnreadCount + unreadChatsCount : previousUnreadCount;
+            
+            if (totalUnread > previousTotalUnread && !isNotificationsModalOpen) {
+                showNewNotificationsIndicator();
             }
         }
     } catch (error) {
         console.error('Ошибка при проверке уведомлений:', error);
     }
 }
+
+
+// Новая функция для проверки непрочитанных чатов для админа
+async function checkUnreadChatsForAdmin() {
+    if (!window.isAdmin) return;
+    
+    try {
+        const response = await fetch('/notifications/admin/chats/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Считаем общее количество непрочитанных сообщений во всех чатах
+            unreadChatsCount = data.chats.reduce((total, chat) => total + (chat.unread_count || 0), 0);
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке непрочитанных чатов:', error);
+    }
+}
+
 
 
 async function checkForNewNotifications() {
@@ -78,18 +110,16 @@ async function checkForNewNotifications() {
         const data = await response.json();
         
         if (data.success) {
-            const previousUnreadCount = unreadCount;
             unreadCount = data.unread_count;
             
-            // Если количество непрочитанных изменилось
-            if (previousUnreadCount !== unreadCount) {
-                updateNotificationsCounter2();
-                
-                // Если появились новые уведомления и модалка закрыта - показываем индикатор
-                if (unreadCount > previousUnreadCount && !isNotificationsModalOpen) {
-                    showNewNotificationsIndicator();
-                }
+            // Для админа проверяем непрочитанные чаты
+            if (window.isAdmin) {
+                await checkUnreadChatsForAdmin();
             }
+            
+            // Всегда обновляем индикаторы
+            updateNotificationsCounter2();
+            updateChatsTabIndicator();
             
             // Всегда обновляем список уведомлений
             userNotifications = data.notifications;
@@ -108,6 +138,8 @@ async function checkForNewNotifications() {
         console.error('Ошибка при проверке уведомлений:', error);
     }
 }
+
+
 
 
 // Плавное обновление списка уведомлений без дергания
@@ -245,15 +277,8 @@ async function openChatModal(notificationId) {
     // Загружаем сообщения сразу при открытии
     await loadChatMessages(systemNotificationId);
     
-    // Устанавливаем заголовок
-    const chatTitle = document.getElementById('chatTitle');
-    if (chatTitle) {
-        if (window.isAdmin) {
-            chatTitle.textContent = `Чат с пользователем`;
-        } else {
-            chatTitle.textContent = `Чат с Администратором`;
-        }
-    }
+    // Помечаем чат как прочитанный при открытии
+    await markChatAsRead(systemNotificationId);
     
     // Показываем модалку чата
     const modal = document.getElementById('chatModal');
@@ -265,23 +290,27 @@ async function openChatModal(notificationId) {
         modal.classList.remove('hidden');
         document.body.classList.add('modal-open');
         
-        // Запускаем опрос новых сообщений (60 секунд)
+        // Запускаем опрос новых сообщений (30 секунд для админа)
         startChatPolling();
     }, 50);
 }
+
 
 
 // Обновленная функция openAdminChat
 function openAdminChat(notificationId) {
     console.log('👨‍💼 Админ открывает чат для уведомления:', notificationId);
     
-    // Сначала открываем чат, потом закрываем уведомления
+    // Просто открываем чат, не закрывая уведомления
     openChatModal(notificationId);
 }
+
 
 // Обновленная функция loadChatMessages с получением информации об админе
 async function loadChatMessages(notificationId) {
     try {
+        console.log('Загрузка сообщений для уведомления:', notificationId);
+        
         const response = await fetch(`/notifications/${notificationId}/chat/`, {
             method: 'GET',
             headers: {
@@ -305,6 +334,9 @@ async function loadChatMessages(notificationId) {
 
 
 
+
+
+
 // Закрытие чата
 function closeChatModal() {
     const modal = document.getElementById('chatModal');
@@ -324,8 +356,39 @@ function closeChatModal() {
         modal.style.display = 'none';
         document.body.classList.remove('modal-open');
         currentChatNotificationId = null;
+        
+        // Закрываем также модалку уведомлений
+        closeNotificationsModal2();
     }, 150);
 }
+
+
+
+// Новая функция для закрытия только чата (без закрытия уведомлений)
+function closeChatModalOnly() {
+    const modal = document.getElementById('chatModal');
+    if (!modal) return;
+    
+    // Останавливаем опрос
+    stopChatPolling();
+    
+    const content = modal.querySelector('.modal-content');
+    if (content) {
+        content.classList.remove('animate-modalShow');
+        content.classList.add('animate-modalHide');
+    }
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        currentChatNotificationId = null;
+        
+        // Модалка уведомлений остается открытой
+    }, 150);
+}
+
+
 
 // Загрузка сообщений чата
 async function loadChatMessages(notificationId) {
@@ -411,8 +474,6 @@ function renderChatMessages() {
 }
 
 
-
-// Отправка сообщения
 async function sendChatMessage() {
     const input = document.getElementById('chatMessageInput');
     const message = input.value.trim();
@@ -446,6 +507,13 @@ async function sendChatMessage() {
             // Очищаем поле ввода
             input.value = '';
             
+            // Для админа обновляем счетчик непрочитанных
+            if (window.isAdmin) {
+                await checkUnreadChatsForAdmin();
+                updateNotificationsCounter2();
+                updateChatsTabIndicator();
+            }
+            
             // ПРИНУДИТЕЛЬНО ПЕРЕЗАПУСКАЕМ ОПРОС ЧАТА
             stopChatPolling();
             startChatPolling();
@@ -457,6 +525,8 @@ async function sendChatMessage() {
         alert('Ошибка сети');
     }
 }
+
+
 
 
 
@@ -478,14 +548,14 @@ function startChatPolling() {
         loadChatMessages(currentChatNotificationId);
     }
     
-    // Запускаем опрос каждые 60 секунд
+    // Запускаем опрос каждые 30 секунд для админа, 60 для пользователей
+    const interval = window.isAdmin ? 30000 : 60000;
     chatPollingInterval = setInterval(async () => {
         if (currentChatNotificationId) {
             await loadChatMessages(currentChatNotificationId);
         }
-    }, 60000); // 60 секунд вместо 3
+    }, interval);
 }
-
 
 
 
@@ -515,6 +585,9 @@ async function loadAdminChats() {
         const data = await response.json();
         
         if (data.success) {
+            // Обновляем счетчик непрочитанных чатов
+            unreadChatsCount = data.chats.reduce((total, chat) => total + (chat.unread_count || 0), 0);
+            
             // Сортируем чаты: сначала с непрочитанными, потом по дате обновления (свежие сверху)
             const sortedChats = data.chats.sort((a, b) => {
                 // Сначала чаты с непрочитанными сообщениями
@@ -526,6 +599,10 @@ async function loadAdminChats() {
             });
             
             renderAdminChatsList(sortedChats);
+            
+            // Обновляем индикаторы
+            updateNotificationsCounter2();
+            updateChatsTabIndicator();
         } else {
             console.error('Ошибка загрузки чатов админа:', data.error);
             showEmptyChatsState();
@@ -535,6 +612,63 @@ async function loadAdminChats() {
         showEmptyChatsState();
     }
 }
+
+
+async function markChatAsRead(notificationId) {
+    try {
+        const response = await fetch(`/notifications/${notificationId}/mark_chat_as_read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем счетчики
+            if (window.isAdmin) {
+                await checkUnreadChatsForAdmin();
+                updateNotificationsCounter2();
+                updateChatsTabIndicator();
+            }
+            console.log(`✅ Чат ${notificationId} помечен как прочитанный`);
+        }
+    } catch (error) {
+        console.error('Ошибка при отметке чата как прочитанного:', error);
+    }
+}
+
+
+
+
+// Новая функция для обновления индикатора на вкладке чатов
+function updateChatsTabIndicator() {
+    if (!window.isAdmin) return;
+    
+    const chatsTabIndicator = document.getElementById('chatsTabIndicator');
+    if (!chatsTabIndicator) return;
+    
+    // Показываем индикатор, если есть непрочитанные сообщения в чатах
+    if (unreadChatsCount > 0) {
+        chatsTabIndicator.classList.remove('hidden');
+        
+        // Добавляем анимацию пульсации только если индикатор был скрыт
+        if (!chatsTabIndicator.classList.contains('animate-ping')) {
+            chatsTabIndicator.classList.add('animate-ping');
+            
+            // Убираем анимацию через 2 секунды
+            setTimeout(() => {
+                chatsTabIndicator.classList.remove('animate-ping');
+            }, 2000);
+        }
+    } else {
+        chatsTabIndicator.classList.add('hidden');
+        chatsTabIndicator.classList.remove('animate-ping');
+    }
+}
+
 
 // -----------------------------
 // Отображение списка чатов для админа
@@ -951,25 +1085,18 @@ function openChatFromNotification(userNotificationId) {
     const notification = userNotifications.find(n => n.id == userNotificationId);
     if (!notification) return;
     
-    // Закрываем модалку уведомлений
-    closeNotificationsModal2();
+    // НЕ закрываем модалку уведомлений - оставляем её открытой
     
     // Помечаем уведомление как прочитанное, если оно не прочитано
     if (!notification.is_read) {
         markNotificationAsRead2(userNotificationId);
     }
     
-    // Устанавливаем заголовок сразу (будет уточнен при загрузке сообщений)
-    const chatTitle = document.getElementById('chatTitle');
-    if (chatTitle) {
-        chatTitle.textContent = `Чат с Администратором`;
-    }
-    
     // Открываем чат
-    setTimeout(() => {
-        openChatModal(userNotificationId);
-    }, 300);
+    openChatModal(userNotificationId);
 }
+
+
 
 // Функция полного удаления чата
 // Функция полного удаления чата
@@ -1098,6 +1225,7 @@ function openNotificationDetail(notificationId) {
 // -----------------------------
 // Инициализация чата
 // -----------------------------
+// Обновленная функция инициализации чата с кнопкой "Назад"
 function initChatModal() {
     const modal = document.getElementById('chatModal');
     if (!modal) return;
@@ -1107,6 +1235,12 @@ function initChatModal() {
     closeBtns.forEach(btn => {
         btn.addEventListener('click', closeChatModal);
     });
+    
+    // Обработчик для кнопки "Назад" - закрывает только чат
+    const backBtn = document.getElementById('chatBackButton');
+    if (backBtn) {
+        backBtn.addEventListener('click', closeChatModalOnly);
+    }
     
     // Закрытие по клику вне модалки
     modal.addEventListener('click', function(e) {
@@ -1138,6 +1272,8 @@ function initChatModal() {
         }
     });
 }
+
+
 
 
 // -----------------------------
@@ -1692,6 +1828,13 @@ function applyNotificationsFilter2(filter) {
     if (footerCounter) {
         if (filter === 'chats') {
             footerCounter.innerHTML = 'Активных чатов: <span id="chatsCount">0</span>';
+            
+            // Если переключились на вкладку чатов, сбрасываем индикатор (пользователь увидел сообщения)
+            if (window.isAdmin && unreadChatsCount > 0) {
+                // Здесь можно добавить логику пометки чатов как прочитанных при просмотре
+                // Пока просто обновляем индикатор
+                updateChatsTabIndicator();
+            }
         } else {
             footerCounter.innerHTML = 'Всего уведомлений: <span id="notificationsCount2">0</span>';
         }
@@ -1716,7 +1859,6 @@ function applyNotificationsFilter2(filter) {
     // Обновляем активные кнопки фильтров
     updateFilterButtons(filter);
 }
-
 // -----------------------------
 // Фильтрация контента уведомлений
 // -----------------------------
@@ -1864,13 +2006,17 @@ function getUserInitials(username) {
 function updateNotificationsCounter2() {
     if (!notificationIndicator2) return;
     
+    // Для админа учитываем и уведомления и непрочитанные чаты
+    const totalUnread = window.isAdmin ? unreadCount + unreadChatsCount : unreadCount;
+    
     // Обновляем индикатор
-    if (unreadCount > 0) {
+    if (totalUnread > 0) {
         notificationIndicator2.classList.remove('hidden');
     } else {
         notificationIndicator2.classList.add('hidden');
     }
 }
+
 
 // -----------------------------
 // Вспомогательные функции

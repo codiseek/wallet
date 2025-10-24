@@ -1,3 +1,4 @@
+
 {% extends "includes/modals/_base_modal.html" %}
 {% load static %}
 
@@ -27,9 +28,11 @@
             Непрочитанные
         </button>
         {% if user.is_staff %}
-        <!-- УБИРАЕМ КНОПКУ ПЕРСОНАЛЬНЫЕ -->
-        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300" data-filter="chats">
+        <!-- Кнопка чатов с индикатором -->
+        <button class="filter-notification-btn flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all active:scale-95 bg-gray-700 text-gray-300 relative" data-filter="chats">
             Чаты
+            <!-- Индикатор новых сообщений в чатах -->
+            <span id="chatsTabIndicator" class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
         </button>
         {% endif %}
     </div>

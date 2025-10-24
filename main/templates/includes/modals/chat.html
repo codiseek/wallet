@@ -1,3 +1,4 @@
+
 {% extends "includes/modals/_base_modal.html" %}
 {% load static %}
 
@@ -7,10 +8,19 @@
 
         <!-- Шапка модалки -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between">
-            <h2 class="text-xl font-bold flex items-center">
-                <i class="fas fa-comments text-blue-400 mr-2"></i>
-                <span id="chatTitle">Загрузка...</span>
+            <!-- Кнопка назад -->
+            <button id="chatBackButton" 
+                    class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Назад
+            </button>
+            
+            <!-- Заголовок по центру -->
+            <h2 class="text-xl font-bold flex items-center justify-center flex-1">
+                <span id="chatTitle">Чат</span>
             </h2>
+            
+            <!-- Кнопка закрытия -->
             <button data-close="chatModal" 
                     class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
                 Закрыть
