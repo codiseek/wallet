@@ -61,6 +61,8 @@ urlpatterns = [
     path('notifications/<int:notification_id>/chat/send/', views.send_chat_message, name='send_chat_message'),
     path('notifications/admin/chats/', views.get_admin_chats, name='get_admin_chats'),
     path('notifications/<int:notification_id>/chat/send/', views.send_chat_message, name='send_chat_message'),
+    path('admin_panel/get_stats/', views.get_admin_stats, name='admin_get_stats'),
+    path('admin_panel/get_users/', views.get_admin_users, name='admin_get_users'),
     
 
 ]

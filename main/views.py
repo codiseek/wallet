@@ -25,7 +25,7 @@ from django.utils import timezone
 
 from .models import SystemNotification, UserNotification
 from django.contrib.admin.views.decorators import staff_member_required
-
+from django.core.paginator import Paginator, EmptyPage
 
 from .models import (
     Category, Transaction, UserProfile, Note, 
@@ -1634,3 +1634,120 @@ def mark_all_notifications_read(request):
             'error': str(e)
         }, status=500)
 
+
+
+
+@staff_member_required
+@login_required
+def get_admin_stats(request):
+    """Получение статистики для админ-панели"""
+    try:
+        print(f"=== GET_ADMIN_STATS called by {request.user.username} ===")
+        
+        # Общее количество пользователей
+        total_users = User.objects.count()
+
+        # Пользователи, зарегистрированные за последние 7 дней
+        week_ago = timezone.now() - timedelta(days=7)
+        new_users_week = User.objects.filter(date_joined__gte=week_ago).count()
+
+        # Активные сегодня (входили сегодня)
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        active_today = User.objects.filter(last_login__gte=today_start).count()
+
+        # Последние 5 зарегистрированных пользователей
+        recent_users = User.objects.order_by('-date_joined')[:5]
+        recent_users_data = []
+        for user in recent_users:
+            recent_users_data.append({
+                'username': user.username,
+                'date_joined': user.date_joined
+            })
+
+        stats = {
+            'total_users': total_users,
+            'new_users_week': new_users_week,
+            'active_today': active_today,
+            'recent_users': recent_users_data
+        }
+
+        print(f"Stats: {stats}")
+        
+        return JsonResponse({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        print(f"Error in get_admin_stats: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@staff_member_required
+@login_required
+def get_admin_users(request):
+    """Получение списка пользователей с пагинацией"""
+    try:
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 10))
+
+        print(f"=== GET_ADMIN_USERS called, page: {page}, limit: {limit} ===")
+
+        users = User.objects.all().order_by('-date_joined')
+        paginator = Paginator(users, limit)
+
+        try:
+            page_obj = paginator.page(page)
+        except EmptyPage:
+            return JsonResponse({
+                'success': True,
+                'users': [],
+                'has_more': False
+            })
+
+        users_data = []
+        for user in page_obj:
+            # Получаем профиль пользователя (если есть)
+            profile = getattr(user, 'userprofile', None)
+            
+            # Считаем количество транзакций и категорий
+            transactions_count = Transaction.objects.filter(user=user).count()
+            categories_count = Category.objects.filter(user=user).count()
+            
+            # Получаем баланс (доходы - расходы - резерв)
+            income_result = Transaction.objects.filter(user=user, type='income').aggregate(total=Sum('amount'))
+            expense_result = Transaction.objects.filter(user=user, type='expense').aggregate(total=Sum('amount'))
+            reserve_result = Transaction.objects.filter(user=user, type='income').aggregate(total=Sum('reserve_amount'))
+            
+            income = income_result['total'] or Decimal('0')
+            expense = expense_result['total'] or Decimal('0')
+            reserve = reserve_result['total'] or Decimal('0')
+            balance = income - expense - reserve
+
+            users_data.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email or 'Не указан',
+                'date_joined': user.date_joined,
+                'last_login': user.last_login,
+                'is_active': user.is_active,
+                'is_staff': user.is_staff,
+                'transactions_count': transactions_count,
+                'categories_count': categories_count,
+                'balance': float(balance),
+            })
+
+        response_data = {
+            'success': True,
+            'users': users_data,
+            'has_more': page_obj.has_next(),
+            'total_pages': paginator.num_pages,
+            'current_page': page
+        }
+
+        print(f"Returning {len(users_data)} users, has_more: {page_obj.has_next()}")
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error in get_admin_users: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
