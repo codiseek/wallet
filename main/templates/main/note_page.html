@@ -4,12 +4,17 @@
         <div class="mobile-content">
             <div class="card-gradient rounded-2xl">
                 <div class="flex justify-between items-center -mt-5 mb-4">
-                    <h2 class="text-lg font-bold mb-4 flex items-center">
-                       
-                        Умные заметки
+                    <h2 class="text-lg font-bold mb-4  flex items-center">
+                <i class="fa-solid fa-feather-pointed text-blue-400 mr-2"></i>
+                        Список заметок
                     </h2>
-                    
-                </div>
+                <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3" 
+        id="add-note-btn"
+        onclick="document.querySelector('.add-note-btn').click()">
+    <i class="fas fa-plus mr-1"></i> Добавить
+</button>
+                   
+            </div>
                 
                 <!-- Контейнер для списка заметок -->
                 <div class="space-y-3 max-h-96 categories-scroll" id="notesList">

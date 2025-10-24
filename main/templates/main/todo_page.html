@@ -1,14 +1,18 @@
 <!-- Todo list вкладка - БЕЗ app-container -->
 <div class="mobile-tab" id="tab-todo">
-    <div class="p-2 h-full flex flex-col">
-        <div class="card-gradient rounded-2xl p-3 flex flex-col h-full">
-            <!-- Заголовок и кнопка -->
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-lg font-bold flex items-center">
-                    <i class="fas fa-list-check text-green-400 mr-2"></i>
-                    Мой Todo List
-                </h2>
-                
+    <div class="mobile-section">
+        <div class="mobile-content">
+            <div class="card-gradient rounded-2xl">
+                <div class="flex justify-between items-center -mt-3 mb-4">
+                    <h2 class="text-lg font-bold mb-4  flex items-center">
+                <i class="fa-solid fa-check-double mr-2"></i>
+                        Список задач
+                    </h2>
+<button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3" 
+        onclick="document.querySelector('.add-todo-btn').click()">
+    <i class="fas fa-plus mr-1"></i> Добавить
+</button>
+                   
             </div>
             
         <!-- Добавьте после статистики и перед контейнером списка -->
@@ -29,4 +33,4 @@
             </div>
         </div>
     </div>
-</div>
+</div></div>

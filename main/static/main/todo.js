@@ -59,115 +59,110 @@ class TodoManager {
         this.renderFilteredTodos();
     }
 
-    openAddModal() {
-        this.currentEditingTodo = null;
-        document.getElementById('todoModalTitle').innerHTML = '<i class="fas fa-plus-circle text-green-400 mr-2"></i>Новая задача';
-        document.getElementById('todoTitleInput').value = '';
-        document.getElementById('todoDescriptionInput').value = '';
-        document.getElementById('todoStatusSection').style.display = 'none';
-        document.getElementById('todoCompletedCheckbox').checked = false;
-        this.openModal();
+
+openAddModal() {
+    this.currentEditingTodo = null;
+    document.getElementById('todoModalTitle').innerHTML = 'Новая задача';
+    document.getElementById('todoTitleInput').value = '';
+    document.getElementById('todoDescriptionInput').value = '';
+    this.openModal();
+}
+
+openEditModal(todo) {
+    this.currentEditingTodo = todo;
+    document.getElementById('todoModalTitle').innerHTML = 'Редактирование';
+    document.getElementById('todoTitleInput').value = todo.title;
+    document.getElementById('todoDescriptionInput').value = todo.description || '';
+    this.openModal();
+}
+
+openModal() {
+    const modal = document.getElementById('todoModal');
+    if (modal) {
+        animateModal(modal, true);
     }
+}
 
-    openEditModal(todo) {
-        this.currentEditingTodo = todo;
-        document.getElementById('todoModalTitle').innerHTML = '<i class="fas fa-edit text-blue-400 mr-2"></i>Редактировать задачу';
-        document.getElementById('todoTitleInput').value = todo.title;
-        document.getElementById('todoDescriptionInput').value = todo.description || '';
-        document.getElementById('todoStatusSection').style.display = 'block';
-        document.getElementById('todoCompletedCheckbox').checked = todo.is_completed;
-        this.openModal();
+closeModal() {
+    const modal = document.getElementById('todoModal');
+    if (modal) {
+        animateModal(modal, false);
     }
+}
+   async saveTodo() {
+    const title = document.getElementById('todoTitleInput').value.trim();
+    const description = document.getElementById('todoDescriptionInput').value.trim();
 
-    openModal() {
-        document.getElementById('todoModal').classList.remove('hidden');
-        document.getElementById('todoModal').classList.add('flex');
-        setTimeout(() => {
-            document.getElementById('todoModal').classList.add('modal-show');
-        }, 10);
-    }
-
-    closeModal() {
-        document.getElementById('todoModal').classList.remove('modal-show');
-        setTimeout(() => {
-            document.getElementById('todoModal').classList.add('hidden');
-            document.getElementById('todoModal').classList.remove('flex');
-        }, 300);
-    }
-
-    async saveTodo() {
-        const title = document.getElementById('todoTitleInput').value.trim();
-        const description = document.getElementById('todoDescriptionInput').value.trim();
-        const isCompleted = document.getElementById('todoCompletedCheckbox').checked;
-
-        if (!title) {
-            if (typeof showNotification === 'function') {
-                showNotification('Введите название задачи', 'error');
-            }
-            return;
+    if (!title) {
+        if (typeof showNotification === 'function') {
+            showNotification('Введите название задачи', 'error');
         }
+        return;
+    }
 
-        const saveButton = document.getElementById('saveTodoBtn');
-        const originalText = saveButton.innerHTML;
-        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
-        saveButton.disabled = true;
+    const saveButton = document.getElementById('saveTodoBtn');
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
+    saveButton.disabled = true;
 
-        try {
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('description', description);
-            formData.append('priority', 'medium');
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('priority', 'medium');
+        
+        if (this.currentEditingTodo) {
+            // При редактировании не передаем статус выполнения
+            const response = await fetch(`/todo/update/${this.currentEditingTodo.id}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            });
+            const result = await response.json();
             
-            if (this.currentEditingTodo) {
-                formData.append('is_completed', isCompleted);
-                const response = await fetch(`/todo/update/${this.currentEditingTodo.id}/`, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCsrfToken()
-                    }
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    if (typeof showNotification === 'function') {
-                        showNotification('Задача обновлена', 'success');
-                    }
-                    this.closeModal();
-                    this.loadTodos();
-                } else {
-                    throw new Error(result.error);
+            if (result.success) {
+                if (typeof showNotification === 'function') {
+                    showNotification('Задача обновлена', 'success');
                 }
+                this.closeModal();
+                this.loadTodos();
             } else {
-                const response = await fetch('/todo/add/', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCsrfToken()
-                    }
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    if (typeof showNotification === 'function') {
-                        showNotification('Задача создана', 'success');
-                    }
-                    this.closeModal();
-                    this.loadTodos();
-                } else {
-                    throw new Error(result.error);
+                throw new Error(result.error);
+            }
+        } else {
+            // При создании новой задачи is_completed всегда false
+            const response = await fetch('/todo/add/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
                 }
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                if (typeof showNotification === 'function') {
+                    showNotification('Задача создана', 'success');
+                }
+                this.closeModal();
+                this.loadTodos();
+            } else {
+                throw new Error(result.error);
             }
-        } catch (error) {
-            console.error('Error saving todo:', error);
-            if (typeof showNotification === 'function') {
-                showNotification('Ошибка при сохранении: ' + error.message, 'error');
-            }
-        } finally {
-            saveButton.innerHTML = originalText;
-            saveButton.disabled = false;
         }
+    } catch (error) {
+        console.error('Error saving todo:', error);
+        if (typeof showNotification === 'function') {
+            showNotification('Ошибка при сохранении: ' + error.message, 'error');
+        }
+    } finally {
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
     }
+}
+
 
     async loadTodos() {
         try {
@@ -292,79 +287,174 @@ class TodoManager {
         }
     }
 
-    createTodoElement(todo) {
-        const completedClass = todo.is_completed ? 'opacity-60' : '';
-        const completedIcon = todo.is_completed ? 
-            'fas fa-check-circle text-green-400' : 
-            'far fa-circle text-gray-400';
-        
-        return `
-            <div class="todo-item bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 transition-all duration-200 hover:bg-gray-700/40 hover:border-gray-600/50 ${completedClass} mb-3 w-full" data-todo-id="${todo.id}">
-                <div class="flex items-start justify-between">
-                    <!-- Основной контент - кликабельный для переключения статуса -->
-                    <div class="flex items-start space-x-3 flex-1 min-w-0 cursor-pointer" onclick="todoManager.animateAndToggleTodo('${todo.id}')">
-                        <div class="mt-0.5 flex-shrink-0">
-                            <i class="${completedIcon} text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-white font-medium break-words leading-tight ${todo.is_completed ? 'line-through text-gray-400' : ''}">
-                                ${this.escapeHtml(todo.title)}
-                            </h3>
-                            ${todo.description ? `
-                                <p class="text-gray-400 text-sm mt-2 break-words leading-relaxed">
-                                    ${this.escapeHtml(todo.description)}
-                                </p>
-                            ` : ''}
-                            <div class="flex items-center justify-between mt-2">
-                                <span class="text-xs text-gray-500">
-                                    ${new Date(todo.created_at).toLocaleDateString('ru-RU')}
-                                </span>
-                                ${todo.is_completed ? `
-                                    <span class="text-xs text-green-400 bg-green-400/20 px-2 py-1 rounded-full">
-                                        <i class="fas fa-check mr-1"></i>Выполнено
-                                    </span>
-                                ` : `
-                                    <span class="text-xs text-blue-400 bg-blue-400/20 px-2 py-1 rounded-full">
-                                        <i class="fas fa-clock mr-1"></i>Активно
-                                    </span>
-                                `}
-                            </div>
-                        </div>
+ createTodoElement(todo) {
+    const completedClass = todo.is_completed ? 'opacity-60' : '';
+    const completedIcon = todo.is_completed ? 
+        'fas fa-check-circle text-green-400' : 
+        'far fa-circle text-gray-400';
+    
+    return `
+        <div class="todo-item bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 transition-all duration-200 hover:bg-gray-700/40 hover:border-gray-600/50 ${completedClass} mb-3 w-full relative" data-todo-id="${todo.id}">
+            <!-- Основной контент -->
+            <div class="flex items-start justify-between">
+                <!-- Основной контент - кликабельный для переключения статуса -->
+                <div class="flex items-start space-x-3 flex-1 min-w-0 cursor-pointer" onclick="todoManager.animateAndToggleTodo('${todo.id}')">
+                    <div class="mt-0.5 flex-shrink-0">
+                        <i class="${completedIcon} text-lg"></i>
                     </div>
-                    
-                    <!-- Кнопки редактирования и удаления - квадратные и на уровне заголовка -->
-                    <div class="flex items-center space-x-1 ml-3 flex-shrink-0" style="margin-top: -2px;">
-                        <button class="todo-edit w-8 h-8 flex items-center justify-center text-blue-400 hover:text-blue-300 transition-colors rounded-lg hover:bg-blue-400/10 border border-blue-500/30" 
-                                data-todo-id="${todo.id}" title="Редактировать">
-                            <i class="fas fa-edit text-sm"></i>
-                        </button>
-                        <button class="todo-delete w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-400/10 border border-red-500/30" 
-                                data-todo-id="${todo.id}" title="Удалить">
-                            <i class="fas fa-trash text-sm"></i>
-                        </button>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-white font-medium break-words leading-tight ${todo.is_completed ? 'line-through text-gray-400' : ''}">
+                            ${this.escapeHtml(todo.title)}
+                        </h3>
+                        ${todo.description ? `
+                            <p class="text-gray-400 text-sm mt-2 break-words leading-relaxed">
+                                ${this.escapeHtml(todo.description)}
+                            </p>
+                        ` : ''}
+             <div class="mt-2">
+    <div class="text-xs text-gray-500 mb-1">
+        ${new Date(todo.created_at).toLocaleDateString('ru-RU')}
+    </div>
+    ${todo.is_completed ? `
+        <div class="text-xs text-green-400 bg-green-400/20 px-2 py-1 rounded-full inline-block">
+            <i class="fas fa-check mr-1"></i>Выполнено
+        </div>
+    ` : `
+        <div class="text-xs text-blue-400 bg-blue-400/20 px-2 py-1 rounded-full inline-block">
+            <i class="fas fa-clock mr-1"></i>Активно
+        </div>
+    `}
+</div>
                     </div>
                 </div>
+                
+                <!-- Кнопки редактирования и удаления -->
+                <div class="flex items-center space-x-1 ml-3 flex-shrink-0" style="margin-top: -2px;">
+                    <button class="todo-edit w-8 h-8 flex items-center justify-center text-blue-400 hover:text-blue-300 transition-colors rounded-lg hover:bg-blue-400/10 border border-blue-500/30" 
+                            data-todo-id="${todo.id}" title="Редактировать">
+                        <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="todo-delete w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-400/10 border border-red-500/30" 
+                            data-todo-id="${todo.id}" title="Удалить">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+                </div>
             </div>
-        `;
-    }
 
-    attachTodoEventListeners() {
-        document.querySelectorAll('.todo-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const todoId = e.currentTarget.dataset.todoId;
-                this.editTodo(todoId);
-            });
+            <!-- Контейнер подтверждения удаления - теперь он в потоке и растягивает блок -->
+            <div class="delete-confirm hidden mt-3 bg-gray-800 flex flex-col items-center justify-center rounded-xl text-center p-4 border border-gray-700">
+                <div class="text-center mb-3">
+                    <p class="text-red-400 font-semibold">Удалить задачу?</p>
+                    <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+                </div>
+                <div class="flex space-x-3 w-full">
+                    <button class="cancel-delete flex-1 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-colors">
+                        Отмена
+                    </button>
+                    <button class="confirm-delete flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium transition-colors">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+// Обновленный метод attachTodoEventListeners
+attachTodoEventListeners() {
+    document.querySelectorAll('.todo-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const todoId = e.currentTarget.dataset.todoId;
+            this.editTodo(todoId);
         });
+    });
+    
+    // Новые обработчики для удаления (как у заметок)
+    document.querySelectorAll('.todo-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const todoItem = e.currentTarget.closest('.todo-item');
+            const confirmBox = todoItem.querySelector('.delete-confirm');
+            
+            confirmBox.classList.remove('hidden');
+            confirmBox.classList.add('animate-fadeIn');
+        });
+    });
+
+    // Обработчики для подтверждения удаления
+    document.querySelectorAll('.cancel-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const confirmBox = e.currentTarget.closest('.delete-confirm');
+            confirmBox.classList.add('hidden');
+        });
+    });
+
+    document.querySelectorAll('.confirm-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const todoItem = e.currentTarget.closest('.todo-item');
+            const todoId = todoItem.dataset.todoId;
+            const confirmBox = todoItem.querySelector('.delete-confirm');
+            const confirmBtn = confirmBox.querySelector('.confirm-delete');
+            
+            confirmBtn.textContent = 'Удаляется...';
+            confirmBtn.disabled = true;
+
+            this.deleteTodoWithAnimation(todoId, todoItem);
+        });
+    });
+}
+
+async deleteTodoWithAnimation(todoId, todoElement) {
+    try {
+        const response = await fetch(`/todo/delete/${todoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+        const result = await response.json();
         
-        document.querySelectorAll('.todo-delete').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const todoId = e.currentTarget.dataset.todoId;
-                this.deleteTodo(todoId);
-            });
-        });
+        if (result.success) {
+            // Анимация удаления
+            todoElement.classList.add('opacity-0', 'translate-x-5', 'transition-all');
+            setTimeout(() => {
+                todoElement.remove();
+                
+                // Обновляем список задач
+                this.loadTodos();
+                
+                if (typeof showNotification === 'function') {
+                    showNotification('Задача удалена', 'success');
+                }
+            }, 300);
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting todo:', error);
+        
+        // Возвращаем кнопку в исходное состояние при ошибке
+        const confirmBox = todoElement.querySelector('.delete-confirm');
+        const confirmBtn = confirmBox.querySelector('.confirm-delete');
+        confirmBtn.textContent = 'Ошибка!';
+        
+        setTimeout(() => {
+            confirmBtn.textContent = 'Да, удалить!';
+            confirmBtn.disabled = false;
+            confirmBox.classList.add('hidden');
+        }, 2000);
+        
+        if (typeof showNotification === 'function') {
+            showNotification('Ошибка при удалении задачи', 'error');
+        }
     }
+}
+
+
 
     async animateAndToggleTodo(todoId) {
         const todoElement = document.querySelector(`[data-todo-id="${todoId}"]`);
@@ -429,35 +519,51 @@ class TodoManager {
         }
     }
 
-    async deleteTodo(todoId) {
-        if (!confirm('Вы уверены, что хотите удалить эту задачу?')) {
-            return;
-        }
+   async deleteTodoWithAnimation(todoId, todoElement) {
+    try {
+        const response = await fetch(`/todo/delete/${todoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+        const result = await response.json();
         
-        try {
-            const response = await fetch(`/todo/delete/${todoId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCsrfToken()
-                }
-            });
-            const result = await response.json();
-            
-            if (result.success) {
+        if (result.success) {
+            // Анимация удаления (как у заметок)
+            todoElement.classList.add('opacity-0', 'translate-x-5', 'transition-all');
+            setTimeout(() => {
+                todoElement.remove();
+                
+                // Обновляем список задач
+                this.loadTodos();
+                
                 if (typeof showNotification === 'function') {
                     showNotification('Задача удалена', 'success');
                 }
-                this.loadTodos();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            console.error('Error deleting todo:', error);
-            if (typeof showNotification === 'function') {
-                showNotification('Ошибка при удалении задачи', 'error');
-            }
+            }, 300);
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting todo:', error);
+        
+        // Возвращаем кнопку в исходное состояние при ошибке
+        const confirmBox = todoElement.querySelector('.delete-confirm');
+        const confirmBtn = confirmBox.querySelector('.confirm-delete');
+        confirmBtn.textContent = 'Ошибка!';
+        
+        setTimeout(() => {
+            confirmBtn.textContent = 'Да, удалить!';
+            confirmBtn.disabled = false;
+            confirmBox.classList.add('hidden');
+        }, 2000);
+        
+        if (typeof showNotification === 'function') {
+            showNotification('Ошибка при удалении задачи', 'error');
         }
     }
+}
 
     escapeHtml(text) {
         const div = document.createElement('div');

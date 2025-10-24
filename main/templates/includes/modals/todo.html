@@ -6,7 +6,7 @@
 {% block modal_content %}
 <div class="p-4 border-b border-gray-700 flex items-center justify-between">
     <h2 id="todoModalTitle" class="text-xl font-bold flex items-center">
-        <i class="fas fa-plus-circle text-green-400 mr-2"></i>
+    
         Новая задача
     </h2>
     <button id="closeTodoModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
@@ -34,25 +34,6 @@
                       id="todoDescriptionInput"></textarea>
         </div>
         
-        <!-- Статус выполнения (только при редактировании) -->
-        <div id="todoStatusSection" style="display: none;">
-            <label class="block text-gray-300 mb-3 text-sm font-medium">
-                <i class="fas fa-check-circle text-green-400 mr-2"></i>
-                Статус выполнения
-            </label>
-            <div class="flex items-center space-x-3 p-3 bg-gray-800/30 rounded-xl border border-gray-600/30">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" 
-                           id="todoCompletedCheckbox" 
-                           class="w-5 h-5 text-green-400 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 transition-all duration-200">
-                    <span class="ml-3 text-gray-300 font-medium">Отметить как выполненную</span>
-                </label>
-            </div>
-            <p class="text-gray-500 text-xs mt-2">
-                <i class="fas fa-info-circle mr-1"></i>
-                Вы также можете отметить задачу выполненной, нажав на кружок в списке
-            </p>
-        </div>
     </div>
 
 
@@ -61,15 +42,15 @@
 
     
     <div class="flex justify-end gap-3 mt-6">
-        <button onclick="window.todoManager.closeModal()" 
-                class="px-6 py-3 text-gray-300 hover:text-white border border-gray-600/50 rounded-lg hover:bg-gray-700/50 transition-all duration-200 font-medium flex items-center">
-           Отмена
-        </button>
-        <button id="saveTodoBtn"
-                class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95  flex items-center">
-            <i class="fas fa-save mr-2"></i>Сохранить
-        </button>
-    </div>
+    <button onclick="window.todoManager.closeModal()" 
+            class="btn-secondary">
+        Отмена
+    </button>
+    <button id="saveTodoBtn"
+            class="btn-primary w-full py-3 flex items-center justify-center">
+        <i class="fas fa-save mr-2"></i>Сохранить
+    </button>
+</div>
 </div>
 
 <style>
