@@ -214,19 +214,28 @@ def get_chat_messages(request, notification_id):
                 'message': msg.message,
                 'created_at': msg.created_at.isoformat(),
                 'is_own': msg.user == request.user,
-                'is_read': msg.is_read
+                'is_read': msg.is_read,
+                'is_staff': msg.user.is_staff
             })
         
-        return JsonResponse({
+        response_data = {
             'success': True,
             'messages': messages_data,
             'chat_id': chat.id
-        })
+        }
+        
+        # Добавляем информацию об админе для пользователей
+        if not request.user.is_staff and notification.created_by:
+            response_data['admin_username'] = notification.created_by.username
+        
+        return JsonResponse(response_data)
         
     except SystemNotification.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Уведомление не найдено'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+        
     
 
 
@@ -1909,3 +1918,98 @@ def toggle_todo(request, todo_id):
         return JsonResponse({"success": False, "error": "Задача не найдена"})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+
+
+
+@staff_member_required
+@require_POST
+def delete_all_notifications(request):
+    """Удаление всех системных уведомлений (админ)"""
+    try:
+        # Деактивируем все активные уведомления
+        notifications = SystemNotification.objects.filter(is_active=True)
+        count = notifications.count()
+        notifications.update(is_active=False)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Удалено {count} уведомлений'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+@staff_member_required
+@require_POST
+def create_system_notification(request):
+    """Создание системного уведомления админом"""
+    try:
+        data = json.loads(request.body)
+        title = data.get('title')
+        message = data.get('message')
+        target_user_id = data.get('target_user_id')  # Новый параметр
+        
+        if not title or not message:
+            return JsonResponse({'success': False, 'error': 'Заполните все поля'})
+        
+        # Обрабатываем целевого пользователя, если указан
+        target_user = None
+        if target_user_id:
+            try:
+                target_user = User.objects.get(id=target_user_id)
+            except User.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Пользователь с указанным ID не найден'})
+        
+        # Создаем системное уведомление
+        notification = SystemNotification.objects.create(
+            title=title,
+            message=message,
+            created_by=request.user,
+            target_user=target_user  # Может быть None (для всех) или конкретный пользователь
+        )
+        
+        # Создаем записи UserNotification
+        if target_user:
+            # Персональное уведомление - только для указанного пользователя
+            UserNotification.objects.create(
+                user=target_user,
+                notification=notification
+            )
+            
+            # Автоматически создаем чат и первое сообщение от админа
+            chat = NotificationChat.objects.create(notification=notification)
+            ChatMessage.objects.create(
+                chat=chat,
+                user=request.user,  # Админ
+                message=f"Здравствуйте! {message}"  # Первое сообщение от админа
+            )
+            
+            users_count = 1
+            message_type = "персональное уведомление отправлено"
+        else:
+            # Общее уведомление - для всех пользователей
+            users = User.objects.all()
+            user_notifications = [
+                UserNotification(user=user, notification=notification)
+                for user in users
+            ]
+            UserNotification.objects.bulk_create(user_notifications)
+            users_count = len(users)
+            message_type = "уведомление отправлено всем пользователям"
+        
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{message_type} для {users_count} пользователей',
+            'is_personal': target_user is not None
+        })
+        
+    except Exception as e:
+        print(f"Error creating system notification: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+

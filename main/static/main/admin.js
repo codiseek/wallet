@@ -190,7 +190,7 @@ function displayUsersList(users, hasMore = false) {
                             ${statusBadge}
                             ${staffBadge}
                         </div>
-                        <p class="text-gray-400 text-sm mt-1">${user.email || 'Email не указан'}</p>
+                        <p class="text-gray-400 text-sm mt-1">ID: ${user.id}</p>
                     </div>
                 </div>
                 <button class="user-actions-btn text-gray-400 hover:text-white p-1 rounded" data-user-id="${user.id}">

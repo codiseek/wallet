@@ -9,6 +9,7 @@ let notificationIndicator2 = null;
 let userNotifications = [];
 let unreadCount = 0;
 let currentNotificationDetail = null;
+let isNotificationsModalOpen = false; // Добавляем флаг состояния модалки
 
 let currentChatNotificationId = null;
 let chatMessages = [];
@@ -31,6 +32,8 @@ function initNotificationsPolling() {
     });
 }
 
+
+
 async function checkForNewNotifications() {
     try {
         const response = await fetch('/notifications/', {
@@ -51,17 +54,21 @@ async function checkForNewNotifications() {
                 updateNotificationsCounter2();
                 
                 // Если появились новые уведомления и модалка закрыта - показываем индикатор
-                if (unreadCount > previousUnreadCount && notificationsModal2.classList.contains('hidden')) {
+                if (unreadCount > previousUnreadCount && !isNotificationsModalOpen) {
                     showNewNotificationsIndicator();
                 }
             }
             
             // Всегда обновляем список уведомлений
             userNotifications = data.notifications;
-            renderNotificationsList2();
+            
+            // Плавное обновление списка только если модалка открыта
+            if (isNotificationsModalOpen) {
+                smoothRenderNotificationsList2();
+            }
             
             // Если это админ и открыта вкладка чатов - обновляем чаты
-            if (window.isAdmin && document.querySelector('.filter-notification-btn[data-filter="chats"]').classList.contains('bg-blue-600')) {
+            if (window.isAdmin && document.querySelector('.filter-notification-btn[data-filter="chats"]')?.classList.contains('bg-blue-600')) {
                 await loadAdminChats();
             }
         }
@@ -69,6 +76,108 @@ async function checkForNewNotifications() {
         console.error('Ошибка при проверке уведомлений:', error);
     }
 }
+
+
+// Плавное обновление списка уведомлений без дергания
+function smoothRenderNotificationsList2() {
+    const notificationsList2 = document.getElementById('notificationsList2');
+    const emptyState2 = document.getElementById('emptyNotificationsState2');
+    const counterElement2 = document.getElementById('notificationsCount2');
+    
+    if (!notificationsList2) return;
+
+    // Обновляем счетчик
+    if (counterElement2) {
+        counterElement2.textContent = userNotifications.length;
+    }
+
+    if (userNotifications.length === 0) {
+        if (emptyState2) emptyState2.classList.remove('hidden');
+        notificationsList2.innerHTML = '';
+        return;
+    }
+
+    if (emptyState2) emptyState2.classList.add('hidden');
+
+    let notificationsHTML = '';
+    
+    userNotifications.forEach(notif => {
+        const isUnread = !notif.is_read;
+        const timeAgo = getTimeAgo(notif.created_at);
+        const hasChat = notif.has_chat || false;
+        
+        // Обрезаем текст до 5 строк (примерно 200 символов)
+        const truncatedMessage = truncateMessage(notif.message, 200);
+        
+        notificationsHTML += `
+            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
+                 data-id="${notif.id}" 
+                 data-unread="${isUnread}" 
+                 data-notification-id="${notif.notification_id}"
+                 data-has-chat="${hasChat}"
+                 onclick="handleNotificationClick(${notif.id}, ${hasChat})">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
+                        <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                            <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+                        </div>
+                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-5">
+                            ${escapeHtml(truncatedMessage)}
+                        </p>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center space-x-2">
+                                ${isUnread ? `
+                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
+                                <span class="text-xs text-blue-400">Новое</span>
+                                ` : ''}
+                                ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                ${hasChat ? `
+                                <button class="chat-badge-btn px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors flex items-center space-x-1"
+                                        onclick="event.stopPropagation(); openChatFromNotification(${notif.id})">
+                                    <i class="fas fa-comments"></i>
+                                    <span>Чат</span>
+                                </button>
+                                ` : ''}
+                                ${window.isAdmin ? `
+                                <button class="delete-notification-btn px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
+                                        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Удалить</span>
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Плавная замена контента
+    notificationsList2.style.opacity = '0.7';
+    setTimeout(() => {
+        notificationsList2.innerHTML = notificationsHTML;
+        notificationsList2.style.opacity = '1';
+        applyNotificationsFilter2(getCurrentFilter());
+    }, 150);
+}
+
+
+// Получение текущего активного фильтра
+function getCurrentFilter() {
+    const activeBtn = document.querySelector('.filter-notification-btn.bg-blue-600');
+    return activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
+}
+
+
+
+
 // Показать индикатор новых уведомлений
 function showNewNotificationsIndicator() {
     if (!notificationIndicator2) return;
@@ -85,22 +194,36 @@ function showNewNotificationsIndicator() {
 
 
 
+// Обновленная функция openChatModal
 async function openChatModal(notificationId) {
     console.log('💬 Открытие модалки чата для:', notificationId);
     
     // Находим уведомление в массиве, чтобы получить system_notification_id
     let systemNotificationId = notificationId;
+    let adminUsername = null;
     
     // Если передан ID UserNotification, находим соответствующий SystemNotification
     if (window.isAdmin) {
         // Для админа используем переданный ID напрямую (это уже SystemNotification ID)
         currentChatNotificationId = notificationId;
+        
+        // Для админа находим имя пользователя из списка чатов
+        const chatItem = document.querySelector(`.chat-item[data-notification-id="${notificationId}"]`);
+        if (chatItem) {
+            const usernameElement = chatItem.querySelector('h3');
+            if (usernameElement) {
+                adminUsername = usernameElement.textContent.trim();
+            }
+        }
     } else {
-        // Для пользователя находим SystemNotification ID
+        // Для пользователя находим SystemNotification ID и имя админа
         const userNotification = userNotifications.find(n => n.id == notificationId);
         if (userNotification) {
             systemNotificationId = userNotification.notification_id;
             currentChatNotificationId = systemNotificationId;
+            
+            // Получаем имя админа из данных уведомления
+            // Если нет в данных, будем получать при загрузке сообщений
         }
     }
     
@@ -111,10 +234,23 @@ async function openChatModal(notificationId) {
     
     // Устанавливаем заголовок
     const chatTitle = document.getElementById('chatTitle');
-    if (chatTitle && !window.isAdmin) {
-        const notification = userNotifications.find(n => n.id == notificationId);
-        if (notification) {
-            chatTitle.textContent = `Обсуждение: ${notification.title}`;
+    if (chatTitle) {
+        if (window.isAdmin) {
+            // Для админа: "Чат с [логин пользователя]"
+            if (adminUsername) {
+                chatTitle.textContent = `Чат с ${adminUsername}`;
+            } else {
+                // Если не нашли в DOM, попробуем найти в данных
+                const notification = SystemNotification.objects.get(id=systemNotificationId);
+                if (notification && notification.target_user) {
+                    chatTitle.textContent = `Чат с ${notification.target_user.username}`;
+                } else {
+                    chatTitle.textContent = `Чат с `;
+                }
+            }
+        } else {
+            // Для пользователя: "Чат с Администратором"
+            chatTitle.textContent = `Техподдержка`;
         }
     }
     
@@ -141,6 +277,53 @@ async function openChatModal(notificationId) {
         console.log('🎉 Модалка чата открыта');
     }, 50);
 }
+
+// Обновленная функция openAdminChat
+function openAdminChat(notificationId) {
+    console.log('👨‍💼 Админ открывает чат для уведомления:', notificationId);
+    
+    // Сначала открываем чат, потом закрываем уведомления
+    openChatModal(notificationId);
+}
+
+// Обновленная функция loadChatMessages с получением информации об админе
+async function loadChatMessages(notificationId) {
+    try {
+        console.log('Загрузка сообщений для уведомления:', notificationId);
+        
+        const response = await fetch(`/notifications/${notificationId}/chat/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        console.log('Получены данные чата:', data);
+        
+        if (data.success) {
+            chatMessages = data.messages || [];
+            
+            // Обновляем заголовок, если это пользователь и у нас есть информация об админе
+            if (!window.isAdmin && data.admin_username) {
+                const chatTitle = document.getElementById('chatTitle');
+                if (chatTitle) {
+                    chatTitle.textContent = `Чат с ${data.admin_username}`;
+                }
+            }
+            
+            renderChatMessages();
+            scrollChatToBottom();
+        } else {
+            console.error('Ошибка загрузки сообщений:', data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке сообщений:', error);
+    }
+}
+
+
+
 
 
 // Закрытие чата
@@ -191,7 +374,10 @@ async function loadChatMessages(notificationId) {
         console.error('Ошибка при загрузке сообщений:', error);
     }
 }
-// Отображение сообщений чата
+
+
+
+// Обновленная функция отображения сообщений чата
 function renderChatMessages() {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
@@ -204,20 +390,48 @@ function renderChatMessages() {
             minute: '2-digit'
         });
         
+        // Определяем аватарку в зависимости от пользователя
+        let avatarHTML = '';
+        if (message.is_staff) {
+            // Аватарка для админа с логотипом
+            avatarHTML = `
+                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-[#000b21] flex items-center justify-center border border-blue-500/30">
+                    <img src="/static/main/ico.svg" class="w-5 h-5" alt="Admin">
+                </div>
+            `;
+        } else {
+            // Аватарка для пользователя с инициалами
+            const userInitials = getUserInitials(message.username);
+            const avatarColor = getAvatarColor(message.user_id);
+            avatarHTML = `
+                <div class="flex-shrink-0 w-8 h-8 rounded-lg ${avatarColor} flex items-center justify-center text-white text-sm font-semibold">
+                    ${userInitials}
+                </div>
+            `;
+        }
+        
         messagesHTML += `
             <div class="flex ${message.is_own ? 'justify-end' : 'justify-start'}">
-                <div class="max-w-[80%] ${message.is_own ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'} rounded-lg px-3 py-2">
-                    <div class="text-xs opacity-70 mb-1">
-                        ${message.is_own ? 'Вы' : message.username} • ${messageTime}
+                <div class="flex items-start space-x-2 max-w-[80%]">
+                    ${!message.is_own ? avatarHTML : ''}
+                    <div class="${message.is_own ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'} rounded-lg px-3 py-2">
+                        <div class="text-xs opacity-70 mb-1">
+                            ${message.is_own ? 'Вы' : message.username} • ${messageTime}
+                            ${message.is_staff ? '<span class="ml-1"><i class="fas fa-crown text-yellow-400"></i></span>' : ''}
+                        </div>
+                        <div class="text-sm">${escapeHtml(message.message)}</div>
                     </div>
-                    <div class="text-sm">${escapeHtml(message.message)}</div>
+                    ${message.is_own ? avatarHTML : ''}
                 </div>
             </div>
         `;
     });
     
     messagesContainer.innerHTML = messagesHTML;
+    scrollChatToBottom();
 }
+
+
 
 // Отправка сообщения
 async function sendChatMessage() {
@@ -515,30 +729,18 @@ function openAdminChat(notificationId) {
     
     // Сначала открываем чат, потом закрываем уведомления
     openChatModal(notificationId);
-    
-    // Устанавливаем заголовок для админа
-    setTimeout(() => {
-        const chatTitle = document.getElementById('chatTitle');
-        if (chatTitle) {
-            // Попробуем найти имя пользователя
-            const chatItem = document.querySelector(`.chat-item[data-notification-id="${notificationId}"]`);
-            if (chatItem) {
-                const usernameElement = chatItem.querySelector('h3');
-                if (usernameElement) {
-                    chatTitle.textContent = `Чат с ${usernameElement.textContent.trim()}`;
-                    return;
-                }
-            }
-            chatTitle.textContent = `Чат с пользователем`;
-        }
-    }, 100);
 }
+
+
 
 // -----------------------------
 // Обновленная функция загрузки уведомлений
 // -----------------------------
 // notification-logo.js - обновим функцию загрузки уведомлений
 
+// -----------------------------
+// Обновленная функция загрузки уведомлений
+// -----------------------------
 async function loadUserNotifications() {
     try {
         const response = await fetch('/notifications/', {
@@ -553,7 +755,13 @@ async function loadUserNotifications() {
         if (data.success) {
             userNotifications = data.notifications;
             unreadCount = data.unread_count;
-            renderNotificationsList2();
+            
+            // Используем плавное обновление если модалка открыта
+            if (isNotificationsModalOpen) {
+                smoothRenderNotificationsList2();
+            } else {
+                renderNotificationsList2();
+            }
             updateNotificationsCounter2();
         } else {
             console.error('Ошибка загрузки уведомлений:', data.error);
@@ -562,6 +770,8 @@ async function loadUserNotifications() {
         console.error('Ошибка при загрузке уведомлений:', error);
     }
 }
+
+
 
 // -----------------------------
 // Инициализация системы фильтров
@@ -597,9 +807,7 @@ function addUserChatsTab() {
         `;
     }
 }
-// -----------------------------
-// Отображение списка уведомлений
-// -----------------------------
+// Оригинальная функция рендеринга (для случаев когда модалка закрыта)
 function renderNotificationsList2() {
     const notificationsList2 = document.getElementById('notificationsList2');
     const emptyState2 = document.getElementById('emptyNotificationsState2');
@@ -627,8 +835,8 @@ function renderNotificationsList2() {
         const timeAgo = getTimeAgo(notif.created_at);
         const hasChat = notif.has_chat || false;
         
-        // Обрезаем текст до 5 строк (примерно 200 символов)
-        const truncatedMessage = truncateMessage(notif.message, 200);
+        // УБИРАЕМ ОБРЕЗКУ ТЕКСТА ДЛЯ ВСЕХ УВЕДОМЛЕНИЙ
+        const messageText = notif.message;
         
         notificationsHTML += `
             <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 animate-fadeIn cursor-pointer hover:bg-gray-700/50 transition-all" 
@@ -646,24 +854,18 @@ function renderNotificationsList2() {
                             <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
                             <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                         </div>
-                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-5">
-                            ${escapeHtml(truncatedMessage)}
+                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
+                            ${escapeHtml(messageText)}
                         </p>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex items-center space-x-2">
                                 ${isUnread ? `
-                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
                                 <span class="text-xs text-blue-400">Новое</span>
                                 ` : ''}
                                 ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                                ${hasChat ? '<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Есть чат</span>' : ''}
                             </div>
-                            ${hasChat ? `
-                            <button class="chat-badge-btn px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors flex items-center space-x-1"
-                                    onclick="event.stopPropagation(); openChatFromNotification(${notif.id})">
-                                <i class="fas fa-comments"></i>
-                                <span>Чат</span>
-                            </button>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -675,21 +877,46 @@ function renderNotificationsList2() {
     applyNotificationsFilter2('all');
 }
 
-
-function truncateMessage(message, maxLength) {
-    if (!message) return '';
-    if (message.length <= maxLength) return message;
+// Функция удаления всех уведомлений (для админа)
+async function deleteAllNotifications() {
+    if (!window.isAdmin) return;
     
-    // Обрезаем до максимальной длины, но стараемся обрезать на пробеле
-    let truncated = message.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(' ');
-    
-    if (lastSpace > maxLength * 0.7) { // Если пробел находится в разумной позиции
-        truncated = truncated.substring(0, lastSpace);
+    if (!confirm('Вы уверены, что хотите удалить все уведомления? Это действие нельзя отменить.')) {
+        return;
     }
     
-    return truncated + '...';
+    try {
+        const response = await fetch('/notifications/delete_all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Очищаем локальные данные
+            userNotifications = [];
+            unreadCount = 0;
+            
+            // Обновляем интерфейс
+            if (isNotificationsModalOpen) {
+                smoothRenderNotificationsList2();
+            }
+            updateNotificationsCounter2();
+            
+            alert('Все уведомления успешно удалены');
+        } else {
+            alert('Ошибка при удалении уведомлений: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении всех уведомлений:', error);
+        alert('Ошибка при удалении уведомлений');
+    }
 }
+
 
 // -----------------------------
 // Обработчик клика по уведомлению
@@ -698,33 +925,49 @@ function handleNotificationClick(notificationId, hasChat) {
     console.log('🖱️ Клик по уведомлению:', { notificationId, hasChat });
     
     if (hasChat) {
-        // Если есть чат - открываем детальное view, но выделяем кнопку чата
-        openNotificationDetail(notificationId);
+        // Если есть чат - сразу открываем чат
+        openChatFromNotification(notificationId);
     } else {
-        // Если чата нет - просто открываем детальное view
+        // Если чата нет - открываем детальное view
         openNotificationDetail(notificationId);
     }
 }
 
-
-// -----------------------------
-// Открытие чата из уведомления (для пользователя)
-// -----------------------------
+// Обновленная функция открытия чата из уведомления
 function openChatFromNotification(userNotificationId) {
     console.log('💬 Пользователь открывает чат из уведомления:', userNotificationId);
+    
+    // Находим уведомление в массиве
+    const notification = userNotifications.find(n => n.id == userNotificationId);
+    if (!notification) return;
     
     // Закрываем модалку уведомлений
     closeNotificationsModal2();
     
+    // Помечаем уведомление как прочитанное, если оно не прочитано
+    if (!notification.is_read) {
+        markNotificationAsRead2(userNotificationId);
+    }
+    
+    // Устанавливаем заголовок сразу (будет уточнен при загрузке сообщений)
+    const chatTitle = document.getElementById('chatTitle');
+    if (chatTitle) {
+        chatTitle.textContent = `Чат с Администратором`;
+    }
+    
     // Открываем чат
-    openChatModal(userNotificationId);
+    setTimeout(() => {
+        openChatModal(userNotificationId);
+    }, 300);
 }
+
+
 
 // -----------------------------
 // Открытие детального просмотра уведомления
 // -----------------------------
 // notification-logo.js - обновленная функция openNotificationDetail
-
+// Обновленная функция открытия детального просмотра уведомления
 function openNotificationDetail(notificationId) {
     // Находим уведомление в массиве
     const notification = userNotifications.find(n => n.id == notificationId);
@@ -743,7 +986,7 @@ function openNotificationDetail(notificationId) {
     // Заполняем заголовок новости
     document.getElementById('notificationDetailTitle').textContent = notification.title;
     
-    // Заполняем текст уведомления
+    // Заполняем текст уведомления (полный текст)
     document.getElementById('notificationDetailMessage').textContent = notification.message;
     
     // Устанавливаем дату
@@ -757,29 +1000,9 @@ function openNotificationDetail(notificationId) {
         minute: '2-digit'
     });
     
-    // Настройка кнопки "Обсудить" - делаем ее более заметной если есть чат
+    // Скрываем кнопку "Обсудить" - теперь чат открывается сразу при клике на уведомление
     const discussBtn = document.getElementById('discussNotificationBtn');
-    if (notification.is_personal) {
-        discussBtn.classList.remove('hidden');
-        
-        if (notification.has_chat) {
-            // Если есть чат - делаем кнопку более заметной
-            discussBtn.innerHTML = '<i class="fas fa-comments mr-2"></i>Открыть чат';
-            discussBtn.classList.remove('btn-secondary');
-            discussBtn.classList.add('btn-primary');
-        } else {
-            discussBtn.innerHTML = '<i class="fas fa-comments mr-2"></i>Обсудить';
-            discussBtn.classList.remove('btn-primary');
-            discussBtn.classList.add('btn-secondary');
-        }
-        
-        discussBtn.onclick = function() {
-            closeNotificationDetailModal();
-            setTimeout(() => openChatFromNotification(notificationId), 300);
-        };
-    } else {
-        discussBtn.classList.add('hidden');
-    }
+    discussBtn.classList.add('hidden');
     
     // Показываем модалку
     const modal = document.getElementById('notificationDetailModal');
@@ -804,6 +1027,9 @@ function openNotificationDetail(notificationId) {
         markNotificationAsRead2(notificationId);
     }
 }
+
+
+
 // -----------------------------
 // Инициализация чата
 // -----------------------------
@@ -1502,10 +1728,12 @@ function updateFilterButtons(activeFilter) {
 // -----------------------------
 // Открытие модалки уведомлений
 // -----------------------------
+// Обновляем функции открытия/закрытия модалки для управления флагом
 function openNotificationsModal2() {
     console.log('Opening notifications modal 2');
     if (!notificationsModal2) return;
     
+    isNotificationsModalOpen = true; // Устанавливаем флаг
     notificationsModal2.style.display = 'flex';
     setTimeout(() => {
         notificationsModal2.classList.remove('hidden');
@@ -1530,18 +1758,37 @@ function openNotificationsModal2() {
     }, 10);
 }
 
-
-// -----------------------------
-// Улучшенная функция закрытия модалки уведомлений
-// -----------------------------
 function closeNotificationsModal2() {
     console.log('🔒 Закрытие модалки уведомлений');
     if (!notificationsModal2) return;
     
+    isNotificationsModalOpen = false; // Сбрасываем флаг
     notificationsModal2.classList.add('hidden');
     notificationsModal2.style.display = 'none';
     document.body.classList.remove('modal-open');
 }
+
+// Функция для генерации цвета аватарки на основе user_id
+function getAvatarColor(userId) {
+    const colors = [
+        'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
+        'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    return colors[userId % colors.length];
+}
+
+
+// Функция для получения инициалов из имени пользователя
+function getUserInitials(username) {
+    if (!username) return 'U';
+    const parts = username.split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return username.substring(0, 2).toUpperCase();
+}
+
+
 
 // -----------------------------
 // Обновление счетчика уведомлений

@@ -55,31 +55,6 @@
         </div>
     </div>
 
-
-    <!-- Новая вкладка в модалке уведомлений для пользователей -->
-{% if not user.is_staff %}
-<div id="userChatsSection" class="hidden">
-    <div class="border-t border-gray-700 pt-4 mt-4">
-        <h4 class="text-sm font-semibold text-gray-300 mb-3 flex items-center">
-            <i class="fas fa-users text-purple-400 mr-2"></i>
-            Мои чаты
-        </h4>
-        <div id="userChatsList" class="space-y-2">
-            <!-- Список чатов с пользователями -->
-        </div>
-        
-        <div id="emptyUserChatsState" class="text-center py-8 text-gray-500 hidden">
-            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-700 flex items-center justify-center">
-                <i class="fas fa-users text-2xl text-gray-500"></i>
-            </div>
-            <p class="text-gray-400">Чатов с пользователями нет</p>
-            <p class="text-sm text-gray-500 mt-1">Начните общение с другим пользователем</p>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-
     <!-- Секция чатов для админа -->
     {% if user.is_staff %}
     <div id="adminChatsContent" class="hidden">
@@ -103,15 +78,20 @@
 <div class="p-3 border-t border-gray-700 bg-gray-800/80 flex-shrink-0">
     <div class="flex items-center justify-between text-xs text-gray-400">
         <span id="footerCounter">Всего уведомлений: <span id="notificationsCount2">0</span></span>
-        {% if user.is_staff %}
-        <button onclick="openCreateNotificationModal()" class="text-blue-400 hover:text-blue-300 transition-colors text-xs">
-            <i class="fas fa-plus mr-1"></i> Создать уведомление
-        </button>
-        {% else %}
-        <button id="markAllAsReadBtn" class="text-green-400 hover:text-green-300 transition-colors text-xs">
-            <i class="fas fa-check-double mr-1"></i> Сделать все прочитанными
-        </button>
-        {% endif %}
+        <div class="flex items-center space-x-2">
+            {% if user.is_staff %}
+            <button onclick="openCreateNotificationModal()" class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 transition-colors">
+                <i class="fas fa-plus text-sm"></i>
+            </button>
+            <button onclick="deleteAllNotifications()" class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors">
+                <i class="fas fa-trash text-sm"></i>
+            </button>
+            {% else %}
+            <button id="markAllAsReadBtn" class="text-green-400 hover:text-green-300 transition-colors text-xs flex items-center">
+                <i class="fas fa-check-double mr-1"></i> Сделать все прочитанными
+            </button>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
