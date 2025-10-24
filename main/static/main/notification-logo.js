@@ -97,7 +97,6 @@ async function checkUnreadChatsForAdmin() {
 }
 
 
-
 async function checkForNewNotifications() {
     try {
         const response = await fetch('/notifications/', {
@@ -110,19 +109,32 @@ async function checkForNewNotifications() {
         const data = await response.json();
         
         if (data.success) {
+            const previousUnreadCount = unreadCount;
             unreadCount = data.unread_count;
             
             // Для админа проверяем непрочитанные чаты
             if (window.isAdmin) {
                 await checkUnreadChatsForAdmin();
+            } else {
+                // Для пользователя загружаем последние сообщения чатов
+                userNotifications = data.notifications;
+                await loadLastChatMessagesForNotifications();
             }
             
-            // Всегда обновляем индикаторы
-            updateNotificationsCounter2();
-            updateChatsTabIndicator();
+            // Общее количество непрочитанных
+            const totalUnread = window.isAdmin ? unreadCount + unreadChatsCount : unreadCount;
+            const previousTotalUnread = window.isAdmin ? previousUnreadCount + unreadChatsCount : previousUnreadCount;
             
-            // Всегда обновляем список уведомлений
-            userNotifications = data.notifications;
+            // Если количество непрочитанных изменилось
+            if (totalUnread !== previousTotalUnread) {
+                updateNotificationsCounter2();
+                updateChatsTabIndicator();
+                
+                // Если появились новые уведомления и модалка закрыта - показываем индикатор
+                if (totalUnread > previousTotalUnread && !isNotificationsModalOpen) {
+                    showNewNotificationsIndicator();
+                }
+            }
             
             // Плавное обновление списка только если модалка открыта
             if (isNotificationsModalOpen) {
@@ -140,6 +152,13 @@ async function checkForNewNotifications() {
 }
 
 
+
+
+// Вспомогательная функция для обрезки сообщения
+function truncateMessage(message, maxLength) {
+    if (!message || message.length <= maxLength) return message;
+    return message.substring(0, maxLength) + '...';
+}
 
 
 // Плавное обновление списка уведомлений без дергания
@@ -170,8 +189,13 @@ function smoothRenderNotificationsList2() {
         const timeAgo = getTimeAgo(notif.created_at);
         const hasChat = notif.has_chat || false;
         
-        // Обрезаем текст до 5 строк (примерно 200 символов)
-        const truncatedMessage = truncateMessage(notif.message, 200);
+        // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
+        const displayMessage = hasChat && notif.last_chat_message 
+            ? notif.last_chat_message 
+            : notif.message;
+        
+        // Обрезаем длинное сообщение
+        const truncatedMessage = truncateMessage(displayMessage, 200);
         
         notificationsHTML += `
             <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
@@ -231,6 +255,10 @@ function smoothRenderNotificationsList2() {
         applyNotificationsFilter2(getCurrentFilter());
     }, 150);
 }
+
+
+
+
 
 
 // Получение текущего активного фильтра
@@ -848,11 +876,6 @@ function openAdminChat(notificationId) {
 // -----------------------------
 // Обновленная функция загрузки уведомлений
 // -----------------------------
-// notification-logo.js - обновим функцию загрузки уведомлений
-
-// -----------------------------
-// Обновленная функция загрузки уведомлений
-// -----------------------------
 async function loadUserNotifications() {
     try {
         const response = await fetch('/notifications/', {
@@ -867,6 +890,11 @@ async function loadUserNotifications() {
         if (data.success) {
             userNotifications = data.notifications;
             unreadCount = data.unread_count;
+            
+            // Для уведомлений с чатом загружаем последние сообщения (только для пользователей)
+            if (!window.isAdmin) {
+                await loadLastChatMessagesForNotifications();
+            }
             
             // Сортируем уведомления: сначала непрочитанные, потом по дате (свежие сверху)
             userNotifications.sort((a, b) => {
@@ -887,6 +915,91 @@ async function loadUserNotifications() {
         console.error('Ошибка при загрузке уведомлений:', error);
     }
 }
+
+
+// Функция для загрузки последнего сообщения конкретного чата
+async function loadLastChatMessage(notificationId) {
+    try {
+        const response = await fetch(`/notifications/${notificationId}/chat/last_message/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.last_message) {
+            // Обновляем уведомление в массиве
+            const notificationIndex = userNotifications.findIndex(n => n.notification_id == notificationId);
+            if (notificationIndex !== -1) {
+                userNotifications[notificationIndex].last_chat_message = data.last_message.message;
+                userNotifications[notificationIndex].last_message_time = data.last_message.created_at;
+            }
+        }
+    } catch (error) {
+        console.error(`Ошибка при загрузке последнего сообщения для чата ${notificationId}:`, error);
+    }
+}
+
+
+
+async function loadLastChatMessagesForNotifications() {
+    if (window.isAdmin) return;
+    
+    try {
+        // Собираем ID всех уведомлений с чатами
+        const chatNotificationIds = userNotifications
+            .filter(notif => notif.has_chat)
+            .map(notif => notif.notification_id);
+        
+        if (chatNotificationIds.length === 0) return;
+        
+        console.log('🔄 Загружаем последние сообщения для чатов:', chatNotificationIds);
+        
+        // Загружаем последние сообщения для каждого чата
+        for (const notificationId of chatNotificationIds) {
+            await loadLastChatMessageForUser(notificationId);
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке последних сообщений чатов:', error);
+    }
+}
+
+
+
+async function loadLastChatMessageForUser(notificationId) {
+    try {
+        // Используем тот же endpoint, что и для загрузки всех сообщений, но берем только последнее
+        const response = await fetch(`/notifications/${notificationId}/chat/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.messages && data.messages.length > 0) {
+            // Берем последнее сообщение из массива (самое новое)
+            const lastMessage = data.messages[data.messages.length - 1];
+            
+            // Обновляем уведомление в массиве
+            const notificationIndex = userNotifications.findIndex(n => n.notification_id == notificationId);
+            if (notificationIndex !== -1) {
+                userNotifications[notificationIndex].last_chat_message = lastMessage.message;
+                userNotifications[notificationIndex].last_message_time = lastMessage.created_at;
+                console.log(`✅ Последнее сообщение для чата ${notificationId}:`, lastMessage.message);
+            }
+        } else {
+            console.log(`❌ Нет сообщений для чата ${notificationId}`);
+        }
+    } catch (error) {
+        console.error(`Ошибка при загрузке последнего сообщения для чата ${notificationId}:`, error);
+    }
+}
+
+
 
 
 // -----------------------------
@@ -951,6 +1064,14 @@ function renderNotificationsList2() {
         const timeAgo = getTimeAgo(notif.created_at);
         const hasChat = notif.has_chat || false;
         
+        // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
+        const displayMessage = hasChat && notif.last_chat_message 
+            ? notif.last_chat_message 
+            : notif.message;
+        
+        // Обрезаем длинное сообщение
+        const truncatedMessage = truncateMessage(displayMessage, 200);
+        
         notificationsHTML += `
             <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
                  data-id="${notif.id}" 
@@ -967,8 +1088,8 @@ function renderNotificationsList2() {
                             <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
                             <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                         </div>
-                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed">
-                            ${escapeHtml(notif.message)}
+                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
+                            ${escapeHtml(truncatedMessage)}
                         </p>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex items-center space-x-2">
@@ -989,6 +1110,7 @@ function renderNotificationsList2() {
     notificationsList2.innerHTML = notificationsHTML;
     applyNotificationsFilter2(getCurrentFilter());
 }
+
 
 // Вспомогательные функции для обновления интерфейса
 function updateNotificationsCounters() {
