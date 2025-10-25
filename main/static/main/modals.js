@@ -166,108 +166,36 @@ function initCategorySelectionModal() {
 // Инициализация модалки уведомлений
 // -----------------------------
 function initNotificationsModal2() {
-    console.log('Initializing notifications modal 2...');
-    
     notificationsModal2 = document.getElementById('notificationsModal2');
-    notificationLogoBtn2 = document.getElementById('notificationLogoBtn2');
-    notificationIndicator2 = document.getElementById('notificationIndicator2');
-    const closeBtn2 = document.getElementById('closeNotificationsModal2');
-
-    console.log('Modal2 found:', !!notificationsModal2);
-    console.log('Button2 found:', !!notificationLogoBtn2);
-    console.log('Indicator2 found:', !!notificationIndicator2);
-
-    if (!notificationsModal2) {
-        console.error('Notifications modal 2 not found');
-        return;
+    notificationIconBtn = document.getElementById('notificationIconBtn');
+    
+    if (notificationIconBtn) {
+        notificationIconBtn.addEventListener('click', openNotificationsModal2);
     }
-
-    if (!notificationLogoBtn2) {
-        console.error('Notification logo button 2 not found');
-        return;
-    }
-
-    // Загружаем уведомления при инициализации
-    loadUserNotifications();
-
-    // Открытие модалки
-    notificationLogoBtn2.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Notification button 2 clicked');
-        openNotificationsModal2();
+    
+    // Обработчики закрытия модалки
+    const closeBtns = notificationsModal2.querySelectorAll('[data-close="notificationsModal2"]');
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', closeNotificationsModal2);
     });
-
-    // Закрытие модалки
-    if (closeBtn2) {
-        closeBtn2.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeNotificationsModal2();
-        });
+    
+    // ДОБАВЬТЕ ЭТОТ КОД - обработчик для кнопки закрытия в модалке уведомлений
+    const closeModalBtn = notificationsModal2.querySelector('.modal-close-btn');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeNotificationsModal2);
     }
-
+    
     // Закрытие по клику вне модалки
     notificationsModal2.addEventListener('click', function(e) {
         if (e.target === notificationsModal2) {
             closeNotificationsModal2();
         }
     });
-
-    // Фильтрация уведомлений
-    const filterBtns2 = document.querySelectorAll('.filter-notification-btn');
-    filterBtns2.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const filter = this.dataset.filter;
-            
-            // Обновляем активную кнопку фильтра
-            filterBtns2.forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white');
-                b.classList.add('bg-gray-700', 'text-gray-300');
-            });
-            this.classList.remove('bg-gray-700', 'text-gray-300');
-            this.classList.add('bg-blue-600', 'text-white');
-
-            // Применяем фильтр
-            applyNotificationsFilter2(filter);
-        });
-    });
-
-    // Обработчик для кнопки "Сделать все прочитанными" - ВЫНЕСЕНО ИЗ ЦИКЛА
-    const markAllAsReadBtn = document.getElementById('markAllAsReadBtn');
-    if (markAllAsReadBtn) {
-        markAllAsReadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            markAllNotificationsAsRead2();
-        });
-    }
-
-    // В обработчике кликов по уведомлениям добавьте проверку на активную вкладку
-    document.addEventListener('click', function(e) {
-        const activeFilter = document.querySelector('.filter-notification-btn.bg-blue-600').dataset.filter;
-        
-        // Для обычных вкладок обрабатываем отметку как прочитанное
-        if (activeFilter !== 'personal') {
-            const notificationItem = e.target.closest('.notification-item');
-            if (notificationItem) {
-                const notificationId = notificationItem.dataset.id;
-                markNotificationAsRead2(notificationId, notificationItem);
-            }
-        }
-        
-        // Обработка удаления уведомления (для админа)
-        const deleteBtn = e.target.closest('.delete-notification-btn');
-        if (deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const notificationId = deleteBtn.dataset.notificationId;
-            deleteSystemNotification(notificationId, deleteBtn.closest('.notification-item'));
+    
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !notificationsModal2.classList.contains('hidden')) {
+            closeNotificationsModal2();
         }
     });
-
-    // Инициализация счетчика уведомлений
-    updateNotificationsCounter2();
 }

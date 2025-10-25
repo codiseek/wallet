@@ -59,7 +59,7 @@ async function checkUnreadCountOnly() {
             updateNotificationsCounter2();
             updateChatsTabIndicator();
             
-            // Если появились новые уведомления и модалка закрыта - показываем индикатор
+            // Если появились новые уведомления и модалка закрыта - показываем иконку
             const totalUnread = window.isAdmin ? unreadCount + unreadChatsCount : unreadCount;
             const previousTotalUnread = window.isAdmin ? previousUnreadCount + unreadChatsCount : previousUnreadCount;
             
@@ -71,7 +71,6 @@ async function checkUnreadCountOnly() {
         console.error('Ошибка при проверке уведомлений:', error);
     }
 }
-
 
 // Новая функция для проверки непрочитанных чатов для админа
 async function checkUnreadChatsForAdmin() {
@@ -130,7 +129,7 @@ async function checkForNewNotifications() {
                 updateNotificationsCounter2();
                 updateChatsTabIndicator();
                 
-                // Если появились новые уведомления и модалка закрыта - показываем индикатор
+                // Если появились новые уведомления и модалка закрыта - показываем иконку с анимацией
                 if (totalUnread > previousTotalUnread && !isNotificationsModalOpen) {
                     showNewNotificationsIndicator();
                 }
@@ -150,7 +149,6 @@ async function checkForNewNotifications() {
         console.error('Ошибка при проверке уведомлений:', error);
     }
 }
-
 
 
 
@@ -272,18 +270,17 @@ function getCurrentFilter() {
 
 // Показать индикатор новых уведомлений
 function showNewNotificationsIndicator() {
-    if (!notificationIndicator2) return;
+    if (!notificationIconBtn) return;
     
-    // Добавляем анимацию пульсации для привлечения внимания
-    notificationIndicator2.classList.remove('hidden');
-    notificationIndicator2.classList.add('animate-ping', 'bg-red-500');
+    // Показываем иконку с анимацией
+    notificationIconBtn.classList.remove('hidden');
+    notificationIconBtn.classList.add('animate-pulse', 'bg-yellow-500/20');
     
     // Убираем анимацию через 2 секунды
     setTimeout(() => {
-        notificationIndicator2.classList.remove('animate-ping', 'bg-red-500');
+        notificationIconBtn.classList.remove('animate-pulse', 'bg-yellow-500/20');
     }, 2000);
 }
-
 
 
 // Обновленная функция openChatModal
@@ -1294,7 +1291,7 @@ function openNotificationDetail(notificationId) {
     if (notification.is_personal) {
         modalTitle.innerHTML = '<i class="fas fa-user text-green-400 mr-2"></i>Персональное уведомление';
     } else {
-        modalTitle.innerHTML = '<i class="fas fa-bullhorn text-blue-400 mr-2"></i>Системное обновление';
+        modalTitle.innerHTML = 'Обновление';
     }
     
     // Заполняем заголовок новости
@@ -2126,19 +2123,18 @@ function getUserInitials(username) {
 // Обновление счетчика уведомлений
 // -----------------------------
 function updateNotificationsCounter2() {
-    if (!notificationIndicator2) return;
+    if (!notificationIconBtn) return;
     
     // Для админа учитываем и уведомления и непрочитанные чаты
     const totalUnread = window.isAdmin ? unreadCount + unreadChatsCount : unreadCount;
     
-    // Обновляем индикатор
+    // Показываем/скрываем иконку в зависимости от наличия уведомлений
     if (totalUnread > 0) {
-        notificationIndicator2.classList.remove('hidden');
+        notificationIconBtn.classList.remove('hidden');
     } else {
-        notificationIndicator2.classList.add('hidden');
+        notificationIconBtn.classList.add('hidden');
     }
 }
-
 
 // -----------------------------
 // Вспомогательные функции
