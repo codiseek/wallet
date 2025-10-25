@@ -230,13 +230,13 @@ function smoothRenderNotificationsList2() {
                                     <span>Чат</span>
                                 </button>
                                 ` : ''}
-                                ${window.isAdmin ? `
-                                <button class="delete-notification-btn px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
-                                        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
-                                    <i class="fas fa-trash"></i>
-                                    <span>Удалить</span>
-                                </button>
-                                ` : ''}
+                                ${(window.isAdmin && !notif.is_personal) ? `
+<button class="delete-notification-btn px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
+        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+    <i class="fas fa-trash"></i>
+    <span>Удалить</span>
+</button>
+` : ''}
                             </div>
                         </div>
                     </div>
@@ -1096,6 +1096,16 @@ function renderNotificationsList2() {
                                 ` : ''}
                                 ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
                                 ${hasChat ? '<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Есть чат</span>' : ''}
+
+                                ${(window.isAdmin && !notif.is_personal) ? `
+<button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
+        data-notification-id="${notif.notification_id}"
+        title="Удалить уведомление"
+        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+    <i class="fas fa-trash"></i>
+</button>
+` : ''}
+
                             </div>
                         </div>
                     </div>
@@ -1649,14 +1659,14 @@ function renderPersonalNotificationsList(personalNotifications) {
                           '<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Системное</span>'}
                     </div>
                     <!-- Кнопка удаления для админа -->
-                    ${window.isAdmin ? `
-                    <button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
-                            data-notification-id="${notif.notification_id}"
-                            title="Удалить уведомление"
-                            onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    ` : ''}
+                   ${(window.isAdmin && !notif.is_personal) ? `
+<button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
+        data-notification-id="${notif.notification_id}"
+        title="Удалить уведомление"
+        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+    <i class="fas fa-trash"></i>
+</button>
+` : ''}
                 </div>
             </div>
         </div>

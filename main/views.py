@@ -347,63 +347,9 @@ def send_chat_message(request, notification_id):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
-# views.py - добавляем функцию
-
-@staff_member_required
-@login_required
-def get_admin_chats(request):
-    """Получение списка чатов для админа с правильной сортировкой"""
-    try:
-        # Оптимизированный запрос
-        admin_chats = NotificationChat.objects.filter(
-            notification__created_by=request.user,
-            notification__target_user__isnull=False
-        ).select_related(
-            'notification',
-            'notification__target_user'
-        ).prefetch_related(
-            'messages'
-        ).order_by('-updated_at')
-        
-        chats_data = []
-        
-        for chat in admin_chats:
-            last_message = chat.messages.last()
-            
-            # Считаем непрочитанные сообщения (от пользователя)
-            unread_count = chat.messages.filter(
-                is_read=False
-            ).exclude(
-                user=request.user
-            ).count()
-            
-            chats_data.append({
-                'notification_id': chat.notification.id,
-                'target_user': {
-                    'id': chat.notification.target_user.id,
-                    'username': chat.notification.target_user.username,
-                },
-                'notification_title': chat.notification.title,
-                'last_message': {
-                    'text': last_message.message if last_message else 'Чат начат',
-                    'created_at': last_message.created_at.isoformat() if last_message else chat.notification.created_at.isoformat(),
-                    'is_own': last_message.user == request.user if last_message else False
-                },
-                'unread_count': unread_count,
-                'updated_at': chat.updated_at.isoformat()
-            })
-        
-        # Сортируем: сначала с непрочитанными, потом по дате обновления
-        chats_data.sort(key=lambda x: (x['unread_count'] > 0, x['updated_at']), reverse=True)
-        
-        return JsonResponse({'success': True, 'chats': chats_data})
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-    
 
 
-# В get_admin_chats и других функциях убираем отладочный вывод
+
 @staff_member_required
 @login_required
 def get_admin_chats(request):
