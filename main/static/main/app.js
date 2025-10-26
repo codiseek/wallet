@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Определяем какая вкладка должна быть активна
             const targetTab = todoIconBtn ? 'todo' : 'debt';
             
+            console.log('Переключение на вкладку:', targetTab);
             
             // Переключаем на нужную вкладку
             const tabs = document.querySelectorAll('.mobile-tab');
@@ -143,7 +144,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetTabElement = document.getElementById(`tab-${targetTab}`);
             if (targetTabElement) {
                 targetTabElement.classList.add('active');
+                console.log('Активирована вкладка:', targetTabElement.id);
             } else {
+                console.error('Вкладка не найдена:', `tab-${targetTab}`);
             }
             
             // Скрываем блок баланса
@@ -191,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-
+    
         // Форматируем все элементы резерва при загрузке страницы
         formatAllReserveElements();
          initCurrencyHandlers();
@@ -236,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initTabNavigation();
         initTransactionModal();
         initCategoryModal();
+
         initTransactionDetailModal();
         initCategoryFilter();
         initReminderPicker();

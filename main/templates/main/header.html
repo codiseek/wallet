@@ -24,19 +24,18 @@
   <div class="flex items-center space-x-2">
     <!-- остальной код без изменений -->
 
-    <button id="notesIconBtn" class="nav-button relative hidden w-9 h-9 bg-blue-500/20 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors" data-tab="notes">
-        <i class="fa-solid fa-feather-pointed text-blue-400 text-sm"></i>
-        <div id="notesCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
-    </button>
+   <button id="notesIconBtn" class="nav-button relative hidden w-9 h-9 bg-blue-500/20 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors" data-tab="notes">
+    <i class="fa-solid fa-feather-pointed text-blue-400 text-sm"></i>
+    <div id="notesCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
+</button>
 
-    <button id="todoIconBtn" class="nav-button relative hidden w-9 h-9 bg-green-500/20 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors" data-tab="todo">
-        <i class="fa-solid fa-check-double text-green-400 text-sm"></i>
-        <div id="todoCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
-    </button>
+<button id="todoIconBtn" class="nav-button relative hidden w-9 h-9 bg-emerald-500/20 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors" data-tab="todo">
+    <i class="fa-solid fa-check-double text-emerald-400 text-sm"></i>
+    <div id="todoCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
+</button>
 
-
-<button id="debtIconBtn" class="nav-button relative w-9 h-9 bg-red-500/20 rounded-lg flex items-center justify-center transition-colors hidden" data-tab="debt">
-    <i class="fa-solid fa-skull text-gray-400 text-sm"></i>
+<button id="debtIconBtn" class="nav-button relative w-9 h-9 bg-rose-500/20 rounded-lg flex items-center justify-center transition-colors hidden" data-tab="debt">
+    <i class="fa-solid fa-skull text-rose-400 text-sm"></i>
     <div id="debtCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
 </button>
 
@@ -49,17 +48,17 @@
     <div class="p-2 space-y-1">
         <!-- Создать уведомление (только для админа) -->
         {% if request.user.is_staff %}
-        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-purple-600/20 text-gray-200 hover:text-white transition-all duration-200 group text-left"
+        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-amber-500/20 text-gray-200 hover:text-white transition-all duration-200 group text-left"
                 onclick="openCreateNotificationModal()">
-            <div class="w-9 h-9 bg-yellow-500/20 rounded-lg flex items-center justify-center group-hover:bg-yellow-500 transition-colors flex-shrink-0">
-                <i class="fa-solid fa-bullhorn text-gray-400 text-sm group-hover:text-white"></i>
+            <div class="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:bg-amber-500 transition-colors flex-shrink-0">
+                <i class="fa-solid fa-bullhorn text-amber-400 text-sm group-hover:text-white"></i>
             </div>
             <span class="text-lg font-medium whitespace-nowrap">Новость</span>
         </button>
         {% endif %}
 
         <!-- Создать заметку -->
-        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-blue-600/20 text-gray-200 hover:text-white transition-all duration-200 group text-left add-note-btn">
+        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-blue-500/20 text-gray-200 hover:text-white transition-all duration-200 group text-left add-note-btn">
             <div class="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-colors flex-shrink-0">
                 <i class="fa-solid fa-feather-pointed text-blue-400 text-sm group-hover:text-white"></i>
             </div>
@@ -67,20 +66,20 @@
         </button>
 
         <!-- To Do List -->
-        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-green-600/20 text-gray-200 hover:text-white transition-all duration-200 group text-left" onclick="openAddTodoModal()">
-            <div class="w-9 h-9 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors flex-shrink-0">
-                <i class="fa-solid fa-check-double text-green-400 text-sm group-hover:text-white"></i>
+        <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-emerald-500/20 text-gray-200 hover:text-white transition-all duration-200 group text-left" onclick="openAddTodoModal()">
+            <div class="w-9 h-9 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:bg-emerald-500 transition-colors flex-shrink-0">
+                <i class="fa-solid fa-check-double text-emerald-400 text-sm group-hover:text-white"></i>
             </div>
             <span class="text-lg font-medium whitespace-nowrap">Задача</span>
         </button>
           
-        
-       <button id="openDebtModalFromMenu" class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-red-600/20 text-gray-200 hover:text-white transition-all duration-200 group text-left">
-    <div class="w-9 h-9 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
-        <i class="fa-solid fa-skull text-gray-400 text-sm group-hover:text-white"></i>
-    </div>
-    <span class="text-lg font-medium whitespace-nowrap">Долг</span>
-</button>
+        <!-- Долг -->
+        <button id="openDebtModalFromMenu" class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-rose-500/20 text-gray-200 hover:text-white transition-all duration-200 group text-left">
+            <div class="w-9 h-9 bg-rose-500/20 rounded-lg flex items-center justify-center group-hover:bg-rose-500 transition-colors flex-shrink-0">
+                <i class="fa-solid fa-skull text-rose-400 text-sm group-hover:text-white"></i>
+            </div>
+            <span class="text-lg font-medium whitespace-nowrap">Долг</span>
+        </button>
 
 
 

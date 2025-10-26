@@ -1,15 +1,9 @@
 // admin.js
 
-// Проверяем, не объявлены ли уже переменные
-if (typeof adminUsersModal === 'undefined') {
-    var adminUsersModal = null;
-}
-if (typeof currentAdminPage === 'undefined') {
-    var currentAdminPage = 1;
-}
-if (typeof adminUsers === 'undefined') {
-    var adminUsers = [];
-}
+// Глобальные переменные для админ-панели
+let adminUsersModal = null;
+let currentAdminPage = 1;
+let adminUsers = [];
 
 // Инициализация админ-панели
 function initAdminPanel() {
@@ -25,8 +19,10 @@ function initAdminPanel() {
 }
 
 // Загрузка статистики администратора
+// Обновленная функция loadAdminStats в admin.js
 async function loadAdminStats() {
     try {
+        
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
         const response = await fetch('/admin_panel/get_stats/', {
@@ -36,6 +32,7 @@ async function loadAdminStats() {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
+        
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,6 +49,8 @@ async function loadAdminStats() {
         showErrorNotification('Ошибка загрузки статистики: ' + error.message);
     }
 }
+
+
 
 // Обновление статистики на странице
 function updateAdminStats(stats) {
@@ -132,6 +131,7 @@ async function loadUsersList(page = 1) {
             throw new Error(data.error || 'Ошибка загрузки пользователей');
         }
     } catch (error) {
+        console.error('Load users error:', error);
         showErrorNotification('Ошибка загрузки списка пользователей');
     } finally {
         const loader = document.getElementById('usersListLoader');
@@ -280,11 +280,13 @@ function toggleAdminUsersModal() {
     if (!adminUsersModal) return;
     
     if (adminUsersModal.classList.contains('hidden')) {
-        adminUsersModal.classList.remove('hidden');
+        // Открываем модалку с анимацией
+        animateModal(adminUsersModal, true);
         currentAdminPage = 1;
         loadUsersList(1);
     } else {
-        adminUsersModal.classList.add('hidden');
+        // Закрываем модалку с анимацией
+        animateModal(adminUsersModal, false);
     }
 }
 
@@ -305,11 +307,19 @@ function initAdminHandlers() {
     if (adminUsersModal) {
         adminUsersModal.addEventListener('click', function(e) {
             if (e.target === adminUsersModal) {
-                toggleAdminUsersModal();
+                animateModal(adminUsersModal, false);
             }
         });
     }
+
+
+     // Добавляем обработчики для кнопок закрытия внутри модалки
+    const closeButtons = adminUsersModal.querySelectorAll('[data-close="adminUsersModal"]');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', () => animateModal(adminUsersModal, false));
+    });
 }
+
 
 // Поиск пользователей
 function searchUsers() {

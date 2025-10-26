@@ -251,10 +251,7 @@ closeModal() {
             todoCounter.classList.remove('hidden');
             todoCounter.textContent = activeTodos.length;
             
-            todoIconBtn.classList.add('animate-pulse');
-            setTimeout(() => {
-                todoIconBtn.classList.remove('animate-pulse');
-            }, 1000);
+           
             
             todoIconBtn.onclick = function() {
                 document.querySelectorAll('.mobile-tab').forEach(tab => {
