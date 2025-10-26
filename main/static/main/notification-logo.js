@@ -182,68 +182,94 @@ function smoothRenderNotificationsList2() {
 
     let notificationsHTML = '';
     
-    userNotifications.forEach(notif => {
-        const isUnread = !notif.is_read;
-        const timeAgo = getTimeAgo(notif.created_at);
-        const hasChat = notif.has_chat || false;
+    // В цикле рендеринга уведомлений замените блок с иконкой:
+userNotifications.forEach(notif => {
+    const isUnread = !notif.is_read;
+    const timeAgo = getTimeAgo(notif.created_at);
+    const hasChat = notif.has_chat || false;
+    const isOverdueDebt = notif.is_overdue_debt || false;
+    const debtData = notif.debt_data || null;
+    
+    // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
+    const displayMessage = hasChat && notif.last_chat_message 
+        ? notif.last_chat_message 
+        : notif.message;
+    
+    // Обрезаем длинное сообщение
+    const truncatedMessage = truncateMessage(displayMessage, 200);
+    
+    // Определяем иконку и цвет для уведомления
+    let iconClass = 'fas fa-bullhorn text-blue-400';
+    let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
+    
+    if (isOverdueDebt) {
+        // Для уведомлений о просрочке используем череп
+        iconClass = 'fa-solid fa-skull text-rose-400';
+        iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
+    } else if (notif.is_personal) {
+        // Для персональных уведомлений
+        iconClass = 'fas fa-user text-green-400';
+    }
+    
+    // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
+    let contactButtonsHTML = '';
+    if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
+        const cleanPhone = debtData.phone.replace(/\s+/g, '');
+        const whatsappLink = `https://wa.me/${cleanPhone}`;
         
-        // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
-        const displayMessage = hasChat && notif.last_chat_message 
-            ? notif.last_chat_message 
-            : notif.message;
-        
-        // Обрезаем длинное сообщение
-        const truncatedMessage = truncateMessage(displayMessage, 200);
-        
-        notificationsHTML += `
-            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
-                 data-id="${notif.id}" 
-                 data-unread="${isUnread}" 
-                 data-notification-id="${notif.notification_id}"
-                 data-has-chat="${hasChat}"
-                 onclick="handleNotificationClick(${notif.id}, ${hasChat})">
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
-                        <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
+        contactButtonsHTML = `
+            <div class="flex space-x-2 mt-3">
+                <a href="tel:${cleanPhone}" 
+                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-phone text-sm"></i>
+                </a>
+                <a href="${whatsappLink}" 
+                   target="_blank"
+                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <i class="fab fa-whatsapp text-sm"></i>
+                </a>
+            </div>
+        `;
+    }
+    
+    notificationsHTML += `
+        <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
+             data-id="${notif.id}" 
+             data-unread="${isUnread}" 
+             data-notification-id="${notif.notification_id}"
+             data-has-chat="${hasChat}"
+             data-is-overdue="${isOverdueDebt}"
+             onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
+                    <i class="${iconClass} text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between mb-1">
+                        <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                        <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between mb-1">
-                            <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                            <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
-                        </div>
-                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-5">
-                            ${escapeHtml(truncatedMessage)}
-                        </p>
-                        <div class="flex items-center justify-between mt-2">
-                            <div class="flex items-center space-x-2">
-                                ${isUnread ? `
-                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
-                                <span class="text-xs text-blue-400">Новое</span>
-                                ` : ''}
-                                ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                ${hasChat ? `
-                                <button class="chat-badge-btn px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors flex items-center space-x-1"
-                                        onclick="event.stopPropagation(); openChatFromNotification(${notif.id})">
-                                    <i class="fas fa-comments"></i>
-                                    <span>Чат</span>
-                                </button>
-                                ` : ''}
-                                ${(window.isAdmin && !notif.is_personal) ? `
-<button class="delete-notification-btn px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
-        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
-    <i class="fas fa-trash"></i>
-    <span>Удалить</span>
-</button>
-` : ''}
-                            </div>
+                    <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
+                        ${escapeHtml(truncatedMessage)}
+                    </p>
+                    
+                    ${contactButtonsHTML}
+                    
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex items-center space-x-2">
+                            ${isUnread ? `
+                            <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
+                            <span class="text-xs text-blue-400">Новое</span>
+                            ` : ''}
+                            ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                            ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
                         </div>
                     </div>
                 </div>
             </div>
-        `;
-    });
+        </div>
+    `;
+});
     
     // Плавная замена контента
     notificationsList2.style.opacity = '0.7';
@@ -1056,63 +1082,97 @@ function renderNotificationsList2() {
 
     let notificationsHTML = '';
     
-    userNotifications.forEach(notif => {
-        const isUnread = !notif.is_read;
-        const timeAgo = getTimeAgo(notif.created_at);
-        const hasChat = notif.has_chat || false;
+   // В функциях renderNotificationsList2 и smoothRenderNotificationsList2
+userNotifications.forEach(notif => {
+    const isUnread = !notif.is_read;
+    const timeAgo = getTimeAgo(notif.created_at);
+    const hasChat = notif.has_chat || false;
+    const isOverdueDebt = notif.is_overdue_debt || false;
+    const debtData = notif.debt_data || null;
+    
+    // Убираем ID долга из отображаемого сообщения
+    let displayMessage = notif.message;
+    if (isOverdueDebt) {
+        displayMessage = displayMessage.replace(/\[DEBT_ID:\d+\]/, '').trim();
+    }
+    
+    // Обрезаем длинное сообщение
+    const truncatedMessage = truncateMessage(displayMessage, 200);
+    
+    // Определяем иконку и цвет для уведомления
+    let iconClass = 'fas fa-bullhorn text-blue-400';
+    let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
+    
+    if (isOverdueDebt) {
+        // Для уведомлений о просрочке используем череп
+        iconClass = 'fa-solid fa-skull text-rose-400';
+        iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
+    } else if (notif.is_personal) {
+        // Для персональных уведомлений
+        iconClass = 'fas fa-user text-green-400';
+    }
+    
+    // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
+    let contactButtonsHTML = '';
+    if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
+        const cleanPhone = debtData.phone.replace(/\s+/g, '');
+        const whatsappLink = `https://wa.me/${cleanPhone}`;
         
-        // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
-        const displayMessage = hasChat && notif.last_chat_message 
-            ? notif.last_chat_message 
-            : notif.message;
-        
-        // Обрезаем длинное сообщение
-        const truncatedMessage = truncateMessage(displayMessage, 200);
-        
-        notificationsHTML += `
-            <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
-                 data-id="${notif.id}" 
-                 data-unread="${isUnread}" 
-                 data-notification-id="${notif.notification_id}"
-                 data-has-chat="${hasChat}"
-                 onclick="handleNotificationClick(${notif.id}, ${hasChat})">
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full ${isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20'} flex items-center justify-center flex-shrink-0 mt-1">
-                        <i class="fas ${notif.is_personal ? 'fa-user text-green-400' : 'fa-bullhorn text-blue-400'} text-sm"></i>
+        contactButtonsHTML = `
+            <div class="flex space-x-2 mt-3">
+                <a href="tel:${cleanPhone}" 
+                   onclick="event.stopPropagation();"
+                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-phone text-sm"></i>
+                </a>
+                <a href="${whatsappLink}" 
+                   onclick="event.stopPropagation();"
+                   target="_blank"
+                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <i class="fab fa-whatsapp text-sm"></i>
+                </a>
+            </div>
+        `;
+    }
+    
+    notificationsHTML += `
+        <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
+             data-id="${notif.id}" 
+             data-unread="${isUnread}" 
+             data-notification-id="${notif.notification_id}"
+             data-has-chat="${hasChat}"
+             data-is-overdue="${isOverdueDebt}"
+             onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
+                    <i class="${iconClass} text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between mb-1">
+                        <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
+                        <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between mb-1">
-                            <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                            <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
-                        </div>
-                        <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
-                            ${escapeHtml(truncatedMessage)}
-                        </p>
-                        <div class="flex items-center justify-between mt-2">
-                            <div class="flex items-center space-x-2">
-                                ${isUnread ? `
-                                <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
-                                <span class="text-xs text-blue-400">Новое</span>
-                                ` : ''}
-                                ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
-                                ${hasChat ? '<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Есть чат</span>' : ''}
-
-                                ${(window.isAdmin && !notif.is_personal) ? `
-<button class="delete-notification-btn text-xs text-red-400 hover:text-red-300 transition-colors p-1" 
-        data-notification-id="${notif.notification_id}"
-        title="Удалить уведомление"
-        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
-    <i class="fas fa-trash"></i>
-</button>
-` : ''}
-
-                            </div>
+                    <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
+                        ${escapeHtml(truncatedMessage)}
+                    </p>
+                    
+                    ${contactButtonsHTML}
+                    
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex items-center space-x-2">
+                            ${isUnread ? `
+                            <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
+                            <span class="text-xs text-blue-400">Новое</span>
+                            ` : ''}
+                            ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                            ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
                         </div>
                     </div>
                 </div>
             </div>
-        `;
-    });
+        </div>
+    `;
+});
     
     notificationsList2.innerHTML = notificationsHTML;
     applyNotificationsFilter2(getCurrentFilter());
@@ -1182,18 +1242,29 @@ async function deleteAllNotifications() {
 }
 
 
-// -----------------------------
-// Обработчик клика по уведомлению
-// -----------------------------
 // Обновленная функция обработки клика по уведомлению
-function handleNotificationClick(notificationId, hasChat) {
-    console.log('🖱️ Клик по уведомлению:', { notificationId, hasChat });
+// Обновленная функция обработки клика по уведомлению
+function handleNotificationClick(notificationId, hasChat, isOverdueDebt) {
+    console.log('🖱️ Клик по уведомлению:', { notificationId, hasChat, isOverdueDebt });
     
     // Находим уведомление в массиве
     const notification = userNotifications.find(n => n.id == notificationId);
     if (!notification) return;
     
-    // Проверяем, является ли это админским чатом
+    // ЕСЛИ ЭТО УВЕДОМЛЕНИЕ О ПРОСРОЧЕННОМ ДОЛГЕ - ПРОСТО ПОМЕЧАЕМ КАК ПРОЧИТАННОЕ
+    if (isOverdueDebt) {
+        console.log('💰 Помечаем уведомление о просрочке как прочитанное');
+        
+        // Находим элемент уведомления в DOM
+        const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+        
+        // Помечаем как прочитанное
+        markNotificationAsRead2(notificationId, notificationElement);
+        
+        return;
+    }
+    
+    // ОСТАЛЬНАЯ ЛОГИКА ДЛЯ ОБЫЧНЫХ УВЕДОМЛЕНИЙ
     const isAdminChat = notification.is_admin_chat || false;
     
     if (hasChat || isAdminChat) {
@@ -1204,7 +1275,6 @@ function handleNotificationClick(notificationId, hasChat) {
         openNotificationDetail(notificationId);
     }
 }
-
 
 // Обновленная функция открытия чата из уведомления
 function openChatFromNotification(userNotificationId) {
@@ -1430,6 +1500,7 @@ function closeNotificationDetailModal() {
 // -----------------------------
 // Обновленная функция пометки уведомления как прочитанного
 // -----------------------------
+
 async function markNotificationAsRead2(notificationId, notificationElement) {
     try {
         const response = await fetch(`/notifications/${notificationId}/read/`, {
@@ -1463,7 +1534,6 @@ async function markNotificationAsRead2(notificationId, notificationElement) {
         console.error('Ошибка при отметке уведомления как прочитанного:', error);
     }
 }
-
 // -----------------------------
 // Вспомогательная функция для обновления стиля элемента уведомления
 // -----------------------------
@@ -2246,14 +2316,20 @@ function initNotifications2() {
     console.log('DOM loaded - initializing notifications system 2');
     initNotificationsModal2();
     initNotificationDetailModal(); 
-    initNotificationsFilters();// Добавляем инициализацию модалки деталей
+    initNotificationsFilters();
     initNotificationsPolling();
     initChatModal(); 
+    
+    // Добавляем обработчик для логотипа
+    const logoBtn = document.getElementById('logoBtn');
+    if (logoBtn) {
+        logoBtn.addEventListener('click', openNotificationsModal2);
+    }
+    
     setTimeout(() => {
         updateNotificationsCounter2();
     }, 1000);
 }
-
 
 // Ожидаем полной загрузки DOM
 if (document.readyState === 'loading') {

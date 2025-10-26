@@ -2,16 +2,14 @@
 <!-- Верхний бар с логотипом, уведомлением и меню -->
 <div class="mobile-header px-4 h-14 flex items-center justify-between">
   <div class="flex items-center h-full space-x-2">
-    <!-- Логотип как обычная иконка (не кнопка) -->
-    <div class="flex items-center justify-center h-10 w-10">
+    <!-- Логотип как кнопка для открытия уведомлений -->
+    <button id="logoBtn" class="flex items-center justify-center h-10 w-10 hover:opacity-80 transition-opacity focus:outline-none">
         <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-7 mt-2">
-    </div>
+    </button>
 
     <!-- Иконка уведомлений вместо индикатора -->
-<button id="notificationIconBtn" class="relative w-9 h-9 bg-gray-700/40 rounded-lg flex items-center justify-center hover:bg-gray-600/40 transition-colors mt-2 hidden">
-   <i class="fa-solid fa-bell text-yellow-300 text-sm animate-bell"></i>
-
-
+    <button id="notificationIconBtn" class="relative w-9 h-9 bg-gray-700/40 rounded-lg flex items-center justify-center hover:bg-gray-600/40 transition-colors mt-2 hidden">
+        <i class="fa-solid fa-bell text-yellow-300 text-sm animate-bell"></i>
         
         <!-- Индикатор новых уведомлений -->
         <div id="notificationIconIndicator" class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-lg pulse-indicator hidden"></div>

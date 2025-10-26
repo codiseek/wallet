@@ -1,3 +1,23 @@
+// Добавьте в начало файла, после объявления класса
+function formatAmount(amount) {
+    // Если значение уже отформатировано (содержит пробелы), возвращаем как есть
+    if (typeof amount === 'string' && amount.includes(' ')) {
+        return amount;
+    }
+    
+    const number = typeof amount === 'string' ? 
+        parseFloat(amount.replace(/\s/g, '').replace(',', '.')) : 
+        amount || 0;
+    
+    // Округляем до целого числа
+    const rounded = Math.round(number);
+    
+    // Форматируем с пробелами между тысячами
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+
+
 class DebtManager {
     constructor() {
         this.currentFilter = 'active';
@@ -275,11 +295,7 @@ updateModalCurrency() {
                 error.classList.add('hidden');
             });
             
-            const dueDateInput = form.querySelector('input[name="due_date"]');
-            if (dueDateInput) {
-                const today = new Date().toISOString().split('T')[0];
-                dueDateInput.min = today;
-            }
+           
 
             // Скрываем уведомление при сбросе формы
             const notificationEl = document.getElementById('debtModalNotification');
@@ -502,8 +518,8 @@ updateModalCurrency() {
 
             <div class="flex justify-center items-center space-x-6 mb-2">
                 <div class="text-center">
-                    <p class="text-sm text-gray-400 mb-1">Сумма долга</p>
-                    <p class="text-2xl font-bold text-white">${debt.amount.toLocaleString()} ${this.currencySymbol}</p>
+    <p class="text-sm text-gray-400 mb-1">Сумма долга</p>
+    <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
                 </div>
                 <div class="h-8 w-px bg-gray-600"></div>
                 <div class="text-center">
@@ -512,14 +528,14 @@ updateModalCurrency() {
                 </div>
             </div>
             
-            ${debt.days_remaining !== null && debt.status === 'active' ? `
-                <div class="text-center mb-3 mt-4">
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
-        <i class="fas ${daysIcon} mr-1.5"></i>
-        ${debt.days_remaining < 0 ? 'Просрочено' : `Осталось ${debt.days_remaining} дн.`}
-    </span>
-</div>
-            ` : ''}
+          ${debt.days_remaining !== null && debt.status === 'active' ? `
+    <div class="text-center mb-3 mt-4">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
+            <i class="fas ${daysIcon} mr-1.5"></i>
+            ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
+        </span>
+    </div>
+` : ''}
             
             ${debt.status === 'delay_7' ? `
                 <div class="text-center mb-4">
@@ -725,7 +741,7 @@ updateModalCurrency() {
         }
     }
 
-    renderStatistics(stats) {
+renderStatistics(stats) {
     const statsContainer = document.getElementById('debtStatistics');
     if (!statsContainer) return;
 
@@ -738,7 +754,7 @@ updateModalCurrency() {
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-400 text-xs">Общая сумма</p>
-                    <p class="text-white font-bold text-lg">${totalAmount.toLocaleString()} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                    <p class="text-white font-bold text-lg">${formatAmount(totalAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
                 </div>
             </div>
         </div>
@@ -746,7 +762,7 @@ updateModalCurrency() {
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-red-400 text-xs">Просрочено</p>
-                    <p class="text-white font-bold text-lg">${overdueAmount.toLocaleString()} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                    <p class="text-white font-bold text-lg">${formatAmount(overdueAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
                 </div>
             </div>
         </div>
@@ -754,12 +770,13 @@ updateModalCurrency() {
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-green-400 text-xs">Погашено</p>
-                    <p class="text-white font-bold text-lg">${paidAmount.toLocaleString()} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                    <p class="text-white font-bold text-lg">${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
                 </div>
             </div>
         </div>
     `;
 }
+
 
     switchFilter(clickedTab) {
         document.querySelectorAll('.debt-filter-tab').forEach(tab => {
@@ -812,14 +829,7 @@ updateModalCurrency() {
         return;
     }
 
-    const selectedDate = new Date(dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-        this.showError('Дата возврата не может быть в прошлом');
-        return;
-    }
+
 
     if (phone && !this.validatePhone(phone)) {
         this.showError('Введите корректный номер телефона');

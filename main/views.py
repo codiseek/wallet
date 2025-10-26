@@ -1,4 +1,5 @@
 import json 
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -39,7 +40,64 @@ from .models import (
 )
 
 
+def check_overdue_debts():
+    """Проверка просроченных долгов и создание уведомлений"""
+    try:
+        today = timezone.now().date()
+        overdue_debts = Debt.objects.filter(
+            due_date__lt=today,
+            status__in=['active', 'delay_7'],
+            overdue_notification_sent=False
+        ).select_related('user')
+        
+        for debt in overdue_debts:
+            # Создаем системное уведомление о просрочке
+            notification = SystemNotification.objects.create(
+                title='🔔 Просроченный долг',
+                message=f'Долг от {debt.debtor_name} на сумму {debt.amount} просрочен. Срок возврата был {debt.due_date.strftime("%d.%m.%Y")}.',
+                created_by=debt.user,  # Владелец долга создает уведомление себе
+                target_user=debt.user,  # Персональное уведомление
+                has_chat=True  # Разрешаем обсуждение в чате
+            )
+            
+            # Создаем запись UserNotification
+            UserNotification.objects.create(
+                user=debt.user,
+                notification=notification
+            )
+            
+            # Создаем чат для обсуждения просрочки
+            chat = NotificationChat.objects.create(notification=notification)
+            
+            # Первое сообщение в чат от системы
+            ChatMessage.objects.create(
+                chat=chat,
+                user=debt.user,
+                message=f"Долг от {debt.debtor_name} просрочен. Сумма: {debt.amount}. Срок был: {debt.due_date.strftime('%d.%m.%Y')}."
+            )
+            
+            # Помечаем, что уведомление отправлено
+            debt.overdue_notification_sent = True
+            debt.last_overdue_check = timezone.now()
+            debt.save()
+            
+            print(f"Создано уведомление о просрочке для долга {debt.id}")
+        
+        return f"Проверено {len(overdue_debts)} просроченных долгов"
+        
+    except Exception as e:
+        print(f"Ошибка при проверке просроченных долгов: {str(e)}")
+        return f"Ошибка: {str(e)}"
 
+@staff_member_required
+@login_required
+def trigger_overdue_check(request):
+    """Ручной запуск проверки просроченных долгов (для админа)"""
+    try:
+        result = check_overdue_debts()
+        return JsonResponse({'success': True, 'message': result})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 @login_required
@@ -148,11 +206,8 @@ def create_debt(request):
         try:
             from datetime import datetime
             due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
-            if due_date < date.today():
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Дата возврата не может быть в прошлом'
-                })
+           
+           
         except ValueError:
             return JsonResponse({
                 'success': False,
@@ -279,7 +334,7 @@ def delete_debt(request, debt_id):
             'message': f'Ошибка при удалении: {str(e)}'
         })
     
-    
+
 
 @login_required
 def debt_statistics(request):
@@ -406,15 +461,38 @@ def distribute_existing_notifications(request):
 
 @login_required
 def get_user_notifications(request):
-    """Получение уведомлений пользователя с кэшированием"""
-    cache_key = f'user_notifications_{request.user.id}'
-    cached_data = cache.get(cache_key)
-    
-    if cached_data:
-        # Возвращаем JsonResponse с данными из кэша
-        return JsonResponse(cached_data)
-    
+    """Получение уведомлений пользователя с проверкой просроченных долгов"""
     try:
+        # ПРОВЕРКА ПРОСРОЧЕННЫХ ДОЛГОВ
+        today = timezone.now().date()
+        overdue_debts = Debt.objects.filter(
+            user=request.user,
+            due_date__lt=today,
+            status__in=['active', 'delay_7'],
+            overdue_notification_sent=False
+        )
+        
+        for debt in overdue_debts:
+            # Создаем уведомление о просрочке с ID долга в сообщении
+            notification = SystemNotification.objects.create(
+                title='🔔 Просроченный долг',
+                message=f'Долг от {debt.debtor_name} на сумму {debt.amount} просрочен. Срок возврата был {debt.due_date.strftime("%d.%m.%Y")}. [DEBT_ID:{debt.id}]',
+                created_by=request.user,
+                target_user=request.user,
+                has_chat=False
+            )
+            
+            # Создаем запись UserNotification
+            UserNotification.objects.create(
+                user=request.user,
+                notification=notification
+            )
+            
+            # Помечаем, что уведомление отправлено
+            debt.overdue_notification_sent = True
+            debt.save()
+        
+        # ОСТАЛЬНАЯ ЛОГИКА ПОЛУЧЕНИЯ УВЕДОМЛЕНИЙ
         user_notifications = UserNotification.objects.filter(
             user=request.user,
             notification__is_active=True
@@ -427,10 +505,32 @@ def get_user_notifications(request):
         unread_count = 0
         
         for user_notif in user_notifications:
-            # Проверяем, есть ли чат для этого уведомления
             has_chat = NotificationChat.objects.filter(
                 notification=user_notif.notification
             ).exists()
+            
+            # Определяем, является ли это уведомлением о просроченном долге
+            is_overdue_debt = 'просрочен' in user_notif.notification.title.lower()
+            
+            # Для уведомлений о просрочке получаем данные долга
+            debt_data = None
+            if is_overdue_debt:
+                # Извлекаем ID долга из сообщения
+                import re
+                debt_id_match = re.search(r'\[DEBT_ID:(\d+)\]', user_notif.notification.message)
+                if debt_id_match:
+                    debt_id = debt_id_match.group(1)
+                    try:
+                        debt = Debt.objects.get(id=debt_id, user=request.user)
+                        debt_data = {
+                            'id': debt.id,
+                            'phone': debt.phone,
+                            'debtor_name': debt.debtor_name,
+                            'amount': float(debt.amount),
+                            'due_date': debt.due_date.strftime('%d.%m.%Y')
+                        }
+                    except Debt.DoesNotExist:
+                        print(f"Долг с ID {debt_id} не найден")
             
             notifications_data.append({
                 'id': user_notif.id,
@@ -443,7 +543,9 @@ def get_user_notifications(request):
                 'type': "personal" if user_notif.notification.target_user else "system",
                 'is_personal': user_notif.notification.target_user is not None,
                 'has_chat': has_chat,
-                'is_admin_chat': False
+                'is_admin_chat': False,
+                'is_overdue_debt': is_overdue_debt,
+                'debt_data': debt_data
             })
             
             if not user_notif.is_read:
@@ -452,24 +554,15 @@ def get_user_notifications(request):
         # Сортируем: сначала непрочитанные, потом по дате (новые сверху)
         notifications_data.sort(key=lambda x: (not x['is_read'], x['created_at']), reverse=True)
         
-        # Подготавливаем данные для кэширования и ответа
-        result_data = {
+        return JsonResponse({
             'success': True,
             'notifications': notifications_data,
             'unread_count': unread_count
-        }
-        
-        # Сохраняем в кэш на 30 секунд
-        cache.set(cache_key, result_data, 30)
-        
-        return JsonResponse(result_data)
+        })
         
     except Exception as e:
-        # Краткое сообщение об ошибке вместо полного traceback
-        return JsonResponse({'success': False, 'error': 'Ошибка загрузки уведомлений'})
-
-
-
+        print(f"Ошибка в get_user_notifications: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Ошибка загрузки уведомлений'})   
 
 
 @login_required

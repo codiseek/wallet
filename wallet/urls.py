@@ -77,4 +77,5 @@ urlpatterns = [
     path('api/debts/<int:debt_id>/update_status/', views.update_debt_status, name='update_debt_status'),
     path('debts/<int:debt_id>/update_status/', views.update_debt_status, name='update_debt_status'),
     path('api/debts/<int:debt_id>/delete/', views.delete_debt, name='delete_debt'),
+    path('admin/check_overdue_debts/', views.trigger_overdue_check, name='check_overdue_debts'),
 ]

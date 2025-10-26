@@ -175,6 +175,8 @@ class Debt(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(blank=True, null=True)
+    overdue_notification_sent = models.BooleanField(default=False, verbose_name='Уведомление о просрочке отправлено')
+    
 
     class Meta:
         ordering = ['-created_at']
