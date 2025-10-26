@@ -113,6 +113,12 @@ class SystemNotification(models.Model):
         related_name='personal_notifications',
         verbose_name='Персонально для пользователя'
     )
+    cover_image = models.ImageField(
+        upload_to='notifications/covers/',
+        blank=True,
+        null=True,
+        verbose_name='Обложка уведомления'
+    )
     
     def __str__(self):
         return self.title

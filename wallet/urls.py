@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from main import views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
@@ -81,4 +84,4 @@ urlpatterns = [
     path('api/debts/<int:debt_id>/add_payment/', views.add_debt_payment, name='add_debt_payment'),
     path('api/debts/<int:debt_id>/pay_full/', views.pay_full_debt, name='pay_full_debt'),
     path('api/debts/<int:debt_id>/payments/', views.get_debt_payments, name='get_debt_payments'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

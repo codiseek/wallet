@@ -135,12 +135,19 @@ updateModalCurrency() {
 
 
 
+// В методе payFullDebt замените на:
 async payFullDebt(debtId, debtDiv, debt) {
+    const payFullBtn = debtDiv.querySelector('.pay-full-debt'); // Объявляем один раз
+    
     try {
         console.log('=== PAY FULL DEBT START ===');
         
+        // Сбрасываем состояние кнопки подтверждения
+        if (payFullBtn && payFullBtn.classList.contains('confirm-mode')) {
+            this.resetConfirmationMode(payFullBtn);
+        }
+        
         // Показываем индикатор загрузки
-        const payFullBtn = debtDiv.querySelector('.pay-full-debt');
         const originalText = payFullBtn.innerHTML;
         payFullBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Обработка...';
         payFullBtn.disabled = true;
@@ -199,13 +206,47 @@ async payFullDebt(debtId, debtDiv, debt) {
         this.showError('Ошибка соединения с сервером');
     } finally {
         // Восстанавливаем кнопку
-        const payFullBtn = debtDiv.querySelector('.pay-full-debt');
         if (payFullBtn) {
             payFullBtn.innerHTML = 'Всю сумму';
             payFullBtn.disabled = false;
+            this.resetConfirmationMode(payFullBtn);
         }
         console.log('=== PAY FULL DEBT END ===');
     }
+}
+
+// Обновите метод resetConfirmationMode для работы без параметров:
+resetConfirmationMode(button) {
+    if (!button) return;
+    
+    button.innerHTML = 'Всю сумму';
+    button.classList.remove('bg-red-600', 'hover:bg-red-500', 'confirm-mode');
+    button.classList.add('bg-gray-600', 'hover:bg-green-500');
+    
+    // Очищаем таймер
+    const resetTimer = button.getAttribute('data-reset-timer');
+    if (resetTimer) {
+        clearTimeout(parseInt(resetTimer));
+        button.removeAttribute('data-reset-timer');
+    }
+}
+
+// Обновите метод activateConfirmationMode:
+activateConfirmationMode(button) {
+    if (!button) return;
+    
+    // Меняем текст и стиль кнопки
+    button.innerHTML = 'Вы уверены?';
+    button.classList.remove('bg-gray-600', 'hover:bg-green-500');
+    button.classList.add('bg-red-600', 'hover:bg-red-500', 'confirm-mode');
+    
+    // Устанавливаем таймер для возврата к исходному состоянию (3 секунды)
+    const resetTimer = setTimeout(() => {
+        this.resetConfirmationMode(button);
+    }, 3000);
+    
+    // Сохраняем таймер в данных кнопки для возможности отмены
+    button.setAttribute('data-reset-timer', resetTimer.toString());
 }
 
 
@@ -807,9 +848,9 @@ createDebtElement(debt) {
     <div class="flex space-x-3" data-no-toggle="true">
         
         <button class="pay-full-debt flex-1 py-3 rounded-lg bg-gray-600 hover:bg-green-500 text-white font-semibold transition-colors"
-                data-no-toggle="true">
-            Всю сумму
-        </button>
+        data-no-toggle="true">
+    Всю сумму
+</button>
         <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
                 data-no-toggle="true">
             Внести часть
@@ -957,13 +998,23 @@ addDebtEventListeners(debtDiv, debt) {
         });
     }
     
-    if (payFullDebtBtn) {
-        payFullDebtBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+if (payFullDebtBtn) {
+    payFullDebtBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Если кнопка уже в режиме подтверждения
+        if (payFullDebtBtn.classList.contains('confirm-mode')) {
+            // Выполняем погашение всей суммы
             this.payFullDebt(debt.id, debtDiv, debt);
-        });
-    }
+        } else {
+            // Переводим кнопку в режим подтверждения
+            this.activateConfirmationMode(payFullDebtBtn);
+        }
+    });
+}
+
+
     
     if (cancelPayment) {
         cancelPayment.addEventListener('click', (e) => {

@@ -181,95 +181,175 @@ function smoothRenderNotificationsList2() {
     if (emptyState2) emptyState2.classList.add('hidden');
 
     let notificationsHTML = '';
-    
-    // В цикле рендеринга уведомлений замените блок с иконкой:
-userNotifications.forEach(notif => {
-    const isUnread = !notif.is_read;
-    const timeAgo = getTimeAgo(notif.created_at);
-    const hasChat = notif.has_chat || false;
-    const isOverdueDebt = notif.is_overdue_debt || false;
-    const debtData = notif.debt_data || null;
-    
-    // Для уведомлений с чатом используем последнее сообщение, для остальных - оригинальное
-    const displayMessage = hasChat && notif.last_chat_message 
-        ? notif.last_chat_message 
-        : notif.message;
-    
-    // Обрезаем длинное сообщение
-    const truncatedMessage = truncateMessage(displayMessage, 200);
-    
-    // Определяем иконку и цвет для уведомления
-    let iconClass = 'fas fa-bullhorn text-blue-400';
-    let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
-    
-    if (isOverdueDebt) {
-        // Для уведомлений о просрочке используем череп
-        iconClass = 'fa-solid fa-skull text-rose-400';
-        iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
-    } else if (notif.is_personal) {
-        // Для персональных уведомлений
-        iconClass = 'fas fa-user text-green-400';
-    }
-    
-    // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
-    let contactButtonsHTML = '';
-    if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
-        const cleanPhone = debtData.phone.replace(/\s+/g, '');
-        const whatsappLink = `https://wa.me/${cleanPhone}`;
+
+    userNotifications.forEach(notif => {
+        const isUnread = !notif.is_read;
+        const timeAgo = getTimeAgo(notif.created_at);
+        const hasChat = notif.has_chat || false;
+        const isOverdueDebt = notif.is_overdue_debt || false;
+        const debtData = notif.debt_data || null;
+        const hasCover = notif.cover_image;
         
-        contactButtonsHTML = `
-            <div class="flex space-x-2 mt-3">
-                <a href="tel:${cleanPhone}" 
-                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                    <i class="fas fa-phone text-sm"></i>
-                </a>
-                <a href="${whatsappLink}" 
-                   target="_blank"
-                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                    <i class="fab fa-whatsapp text-sm"></i>
-                </a>
+        // Убираем ID долга из отображаемого сообщения
+        let displayMessage = notif.message;
+        if (isOverdueDebt) {
+            displayMessage = displayMessage.replace(/\[DEBT_ID:\d+\]/, '').trim();
+        }
+        
+        // Обрезаем длинное сообщение
+        const truncatedMessage = truncateMessage(displayMessage, 150);
+        
+        // HTML для обложки уведомления (если есть)
+        const coverImageHTML = hasCover ? `
+            <div class="w-full h-40 mb-3 rounded-t-xl overflow-hidden">
+                <img src="${notif.cover_image}" 
+                     alt="Обложка уведомления" 
+                     class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
             </div>
-        `;
-    }
-    
-    notificationsHTML += `
-        <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
-             data-id="${notif.id}" 
-             data-unread="${isUnread}" 
-             data-notification-id="${notif.notification_id}"
-             data-has-chat="${hasChat}"
-             data-is-overdue="${isOverdueDebt}"
-             onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
-            <div class="flex items-start space-x-3">
-                <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
-                    <i class="${iconClass} text-sm"></i>
+        ` : '';
+        
+        // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
+        let contactButtonsHTML = '';
+        if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
+            const cleanPhone = debtData.phone.replace(/\s+/g, '');
+            const whatsappLink = `https://wa.me/${cleanPhone}`;
+            
+            contactButtonsHTML = `
+                <div class="flex space-x-2 mt-3">
+                    <a href="tel:${cleanPhone}" 
+                       onclick="event.stopPropagation();"
+                       class="w-8 h-8 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <i class="fas fa-phone text-xs"></i>
+                    </a>
+                    <a href="${whatsappLink}" 
+                       onclick="event.stopPropagation();"
+                       target="_blank"
+                       class="w-8 h-8 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <i class="fab fa-whatsapp text-xs"></i>
+                    </a>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between mb-1">
-                        <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                        <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+            `;
+        }
+        
+        // Определяем теги для уведомления
+        let tagsHTML = '';
+        if (isUnread || notif.is_personal || isOverdueDebt) {
+            tagsHTML = `
+                <div class="flex items-center space-x-2 mt-3">
+                    ${isUnread ? `
+                    <span class="inline-flex items-center space-x-1">
+                        <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                        <span class="text-xs text-blue-400 font-medium">Новое</span>
+                    </span>
+                    ` : ''}
+                    ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                    ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
+                </div>
+            `;
+        }
+        
+        // Кнопка удаления для админа
+        const deleteButtonHTML = window.isAdmin ? `
+            <div class="flex justify-end mt-3">
+                <button class="delete-notification-btn px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
+                        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+                    <i class="fas fa-trash"></i>
+                    <span>Удалить</span>
+                </button>
+            </div>
+        ` : '';
+        
+        // РАЗДЕЛЕНИЕ: для уведомлений с обложкой и без
+        if (hasCover) {
+            // УВЕДОМЛЕНИЯ С ОБЛОЖКОЙ - без иконки, текст на всю ширину, дата под заголовком
+            notificationsHTML += `
+                <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/30 bg-blue-500/5' : 'border-gray-600/30'} rounded-xl cursor-pointer hover:bg-gray-700/50 transition-all duration-300 overflow-hidden group" 
+                     data-id="${notif.id}" 
+                     data-unread="${isUnread}" 
+                     data-notification-id="${notif.notification_id}"
+                     data-has-chat="${hasChat}"
+                     data-is-overdue="${isOverdueDebt}"
+                     onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
+                    
+                    ${coverImageHTML}
+                    
+                    <div class="p-4 pt-0">
+                        <!-- Заголовок -->
+                        <h3 class="text-base font-bold ${isUnread ? 'text-white' : 'text-gray-200'} mb-1 group-hover:text-white transition-colors">
+                            ${escapeHtml(notif.title)}
+                        </h3>
+                        
+                        <!-- Дата под заголовком -->
+                        <span class="text-xs ${isUnread ? 'text-blue-300' : 'text-gray-400'} font-medium mb-3 block">
+                            ${timeAgo}
+                        </span>
+                        
+                        <!-- Текст уведомления с сохранением форматирования -->
+                        <div class="text-sm ${isUnread ? 'text-gray-300' : 'text-gray-400'} whitespace-pre-wrap leading-relaxed group-hover:text-gray-200 transition-colors">
+                            ${escapeHtml(truncatedMessage)}
+                        </div>
+                        
+                        ${contactButtonsHTML}
+                        ${tagsHTML}
+                        ${deleteButtonHTML}
                     </div>
-                    <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
-                        ${escapeHtml(truncatedMessage)}
-                    </p>
+                </div>
+            `;
+        } else {
+            // УВЕДОМЛЕНИЯ БЕЗ ОБЛОЖКИ - с иконкой, дата под заголовком
+            // Определяем иконку и цвет для уведомления
+            let iconClass = 'fas fa-bullhorn text-blue-400';
+            let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
+            
+            if (isOverdueDebt) {
+                // Для уведомлений о просрочке используем череп
+                iconClass = 'fa-solid fa-skull text-rose-400';
+                iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
+            } else if (notif.is_personal) {
+                // Для персональных уведомлений
+                iconClass = 'fas fa-user text-green-400';
+            }
+            
+            notificationsHTML += `
+                <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/30 bg-blue-500/5' : 'border-gray-600/30'} rounded-xl cursor-pointer hover:bg-gray-700/50 transition-all duration-300 overflow-hidden group" 
+                     data-id="${notif.id}" 
+                     data-unread="${isUnread}" 
+                     data-notification-id="${notif.notification_id}"
+                     data-has-chat="${hasChat}"
+                     data-is-overdue="${isOverdueDebt}"
+                     onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
                     
-                    ${contactButtonsHTML}
-                    
-                    <div class="flex items-center justify-between mt-2">
-                        <div class="flex items-center space-x-2">
-                            ${isUnread ? `
-                            <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
-                            <span class="text-xs text-blue-400">Новое</span>
-                            ` : ''}
-                            ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
-                            ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
+                    <div class="p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="${iconClass} text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <!-- Заголовок -->
+                                <h3 class="text-base font-bold ${isUnread ? 'text-white' : 'text-gray-200'} mb-1 group-hover:text-white transition-colors">
+                                    ${escapeHtml(notif.title)}
+                                </h3>
+                                
+                                <!-- Дата под заголовком -->
+                                <span class="text-xs ${isUnread ? 'text-blue-300' : 'text-gray-400'} font-medium mb-3 block">
+                                    ${timeAgo}
+                                </span>
+                                
+                                <!-- Текст уведомления с сохранением форматирования -->
+                                <div class="text-sm ${isUnread ? 'text-gray-300' : 'text-gray-400'} whitespace-pre-wrap leading-relaxed group-hover:text-gray-200 transition-colors">
+                                    ${escapeHtml(truncatedMessage)}
+                                </div>
+                                
+                                ${contactButtonsHTML}
+                                ${tagsHTML}
+                                ${deleteButtonHTML}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-});
+            `;
+        }
+    });
     
     // Плавная замена контента
     notificationsList2.style.opacity = '0.7';
@@ -279,8 +359,6 @@ userNotifications.forEach(notif => {
         applyNotificationsFilter2(getCurrentFilter());
     }, 150);
 }
-
-
 
 
 
@@ -1059,7 +1137,8 @@ function addUserChatsTab() {
         `;
     }
 }
-// Оригинальная функция рендеринга (для случаев когда модалка закрыта)
+
+
 function renderNotificationsList2() {
     const notificationsList2 = document.getElementById('notificationsList2');
     const emptyState2 = document.getElementById('emptyNotificationsState2');
@@ -1081,98 +1160,173 @@ function renderNotificationsList2() {
     if (emptyState2) emptyState2.classList.add('hidden');
 
     let notificationsHTML = '';
-    
-   // В функциях renderNotificationsList2 и smoothRenderNotificationsList2
-userNotifications.forEach(notif => {
-    const isUnread = !notif.is_read;
-    const timeAgo = getTimeAgo(notif.created_at);
-    const hasChat = notif.has_chat || false;
-    const isOverdueDebt = notif.is_overdue_debt || false;
-    const debtData = notif.debt_data || null;
-    
-    // Убираем ID долга из отображаемого сообщения
-    let displayMessage = notif.message;
-    if (isOverdueDebt) {
-        displayMessage = displayMessage.replace(/\[DEBT_ID:\d+\]/, '').trim();
-    }
-    
-    // Обрезаем длинное сообщение
-    const truncatedMessage = truncateMessage(displayMessage, 200);
-    
-    // Определяем иконку и цвет для уведомления
-    let iconClass = 'fas fa-bullhorn text-blue-400';
-    let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
-    
-    if (isOverdueDebt) {
-        // Для уведомлений о просрочке используем череп
-        iconClass = 'fa-solid fa-skull text-rose-400';
-        iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
-    } else if (notif.is_personal) {
-        // Для персональных уведомлений
-        iconClass = 'fas fa-user text-green-400';
-    }
-    
-    // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
-    let contactButtonsHTML = '';
-    if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
-        const cleanPhone = debtData.phone.replace(/\s+/g, '');
-        const whatsappLink = `https://wa.me/${cleanPhone}`;
+
+    userNotifications.forEach(notif => {
+        const isUnread = !notif.is_read;
+        const timeAgo = getTimeAgo(notif.created_at);
+        const hasChat = notif.has_chat || false;
+        const isOverdueDebt = notif.is_overdue_debt || false;
+        const debtData = notif.debt_data || null;
+        const hasCover = notif.cover_image;
         
-        contactButtonsHTML = `
-            <div class="flex space-x-2 mt-3">
-                <a href="tel:${cleanPhone}" 
-                   onclick="event.stopPropagation();"
-                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                    <i class="fas fa-phone text-sm"></i>
-                </a>
-                <a href="${whatsappLink}" 
-                   onclick="event.stopPropagation();"
-                   target="_blank"
-                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                    <i class="fab fa-whatsapp text-sm"></i>
-                </a>
+        // Убираем ID долга из отображаемого сообщения
+        let displayMessage = notif.message;
+        if (isOverdueDebt) {
+            displayMessage = displayMessage.replace(/\[DEBT_ID:\d+\]/, '').trim();
+        }
+        
+        // Обрезаем длинное сообщение
+        const truncatedMessage = truncateMessage(displayMessage, 200);
+        
+        // HTML для обложки уведомления (если есть)
+        const coverImageHTML = hasCover ? `
+            <div class="w-full h-48 mb-3 rounded-t-xl overflow-hidden">
+                <img src="${notif.cover_image}" 
+                     alt="Обложка уведомления" 
+                     class="w-full h-full object-cover">
             </div>
-        `;
-    }
-    
-    notificationsHTML += `
-        <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all" 
-             data-id="${notif.id}" 
-             data-unread="${isUnread}" 
-             data-notification-id="${notif.notification_id}"
-             data-has-chat="${hasChat}"
-             data-is-overdue="${isOverdueDebt}"
-             onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
-            <div class="flex items-start space-x-3">
-                <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
-                    <i class="${iconClass} text-sm"></i>
+        ` : '';
+        
+        // Формируем HTML для контактных кнопок (только для просроченных долгов с телефоном)
+        let contactButtonsHTML = '';
+        if (isOverdueDebt && debtData && debtData.phone && debtData.phone !== 'Не указан') {
+            const cleanPhone = debtData.phone.replace(/\s+/g, '');
+            const whatsappLink = `https://wa.me/${cleanPhone}`;
+            
+            contactButtonsHTML = `
+                <div class="flex space-x-2 mt-3">
+                    <a href="tel:${cleanPhone}" 
+                       onclick="event.stopPropagation();"
+                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <i class="fas fa-phone text-sm"></i>
+                    </a>
+                    <a href="${whatsappLink}" 
+                       onclick="event.stopPropagation();"
+                       target="_blank"
+                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                    </a>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between mb-1">
-                        <h3 class="text-sm font-semibold ${isUnread ? 'text-white' : 'text-gray-300'} truncate">${escapeHtml(notif.title)}</h3>
-                        <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium ml-2 whitespace-nowrap">${timeAgo}</span>
+            `;
+        }
+        
+        // Определяем теги для уведомления
+        let tagsHTML = '';
+        if (isUnread || notif.is_personal || isOverdueDebt) {
+            tagsHTML = `
+                <div class="flex items-center space-x-2 mt-3">
+                    ${isUnread ? `
+                    <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span class="text-xs text-blue-400">Новое</span>
+                    ` : ''}
+                    ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
+                    ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
+                </div>
+            `;
+        }
+        
+        // Кнопка удаления для админа
+        const deleteButtonHTML = window.isAdmin ? `
+            <div class="flex justify-end mt-3">
+                <button class="delete-notification-btn px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-colors flex items-center space-x-1"
+                        onclick="event.stopPropagation(); deleteSystemNotification(${notif.notification_id}, this.closest('.notification-item'))">
+                    <i class="fas fa-trash"></i>
+                    <span>Удалить</span>
+                </button>
+            </div>
+        ` : '';
+        
+        // РАЗДЕЛЕНИЕ: для уведомлений с обложкой и без
+        if (hasCover) {
+            // УВЕДОМЛЕНИЯ С ОБЛОЖКОЙ - без иконки, текст на всю ширину, дата под заголовком
+            notificationsHTML += `
+                <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl cursor-pointer hover:bg-gray-700/50 transition-all overflow-hidden" 
+                     data-id="${notif.id}" 
+                     data-unread="${isUnread}" 
+                     data-notification-id="${notif.notification_id}"
+                     data-has-chat="${hasChat}"
+                     data-is-overdue="${isOverdueDebt}"
+                     onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
+                    
+                    ${coverImageHTML}
+                    
+                    <div class="p-4 pt-0">
+                        <!-- Заголовок -->
+                        <h3 class="text-lg font-bold ${isUnread ? 'text-white' : 'text-gray-300'} mb-1">
+                            ${escapeHtml(notif.title)}
+                        </h3>
+                        
+                        <!-- Дата под заголовком -->
+                        <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium mb-3 block">
+                            ${timeAgo}
+                        </span>
+                        
+                        <!-- Текст уведомления -->
+                        <p class="text-sm ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed mb-3">
+                            ${escapeHtml(truncatedMessage)}
+                        </p>
+                        
+                        ${contactButtonsHTML}
+                        ${tagsHTML}
+                        ${deleteButtonHTML}
                     </div>
-                    <p class="text-xs ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed line-clamp-3">
-                        ${escapeHtml(truncatedMessage)}
-                    </p>
+                </div>
+            `;
+        } else {
+            // УВЕДОМЛЕНИЯ БЕЗ ОБЛОЖКИ - с иконкой, дата под заголовком
+            // Определяем иконку и цвет для уведомления
+            let iconClass = 'fas fa-bullhorn text-blue-400';
+            let iconBgClass = isUnread ? 'bg-blue-500/20' : 'bg-gray-600/20';
+            
+            if (isOverdueDebt) {
+                // Для уведомлений о просрочке используем череп
+                iconClass = 'fa-solid fa-skull text-rose-400';
+                iconBgClass = isUnread ? 'bg-rose-500/20' : 'bg-gray-600/20';
+            } else if (notif.is_personal) {
+                // Для персональных уведомлений
+                iconClass = 'fas fa-user text-green-400';
+            }
+            
+            notificationsHTML += `
+                <div class="notification-item bg-gray-700/30 border ${isUnread ? 'border-blue-500/20 bg-blue-500/10' : 'border-gray-600/30'} rounded-xl cursor-pointer hover:bg-gray-700/50 transition-all overflow-hidden" 
+                     data-id="${notif.id}" 
+                     data-unread="${isUnread}" 
+                     data-notification-id="${notif.notification_id}"
+                     data-has-chat="${hasChat}"
+                     data-is-overdue="${isOverdueDebt}"
+                     onclick="handleNotificationClick(${notif.id}, ${hasChat}, ${isOverdueDebt})">
                     
-                    ${contactButtonsHTML}
-                    
-                    <div class="flex items-center justify-between mt-2">
-                        <div class="flex items-center space-x-2">
-                            ${isUnread ? `
-                            <span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
-                            <span class="text-xs text-blue-400">Новое</span>
-                            ` : ''}
-                            ${notif.is_personal ? '<span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">Персональное</span>' : ''}
-                            ${isOverdueDebt ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 text-xs rounded-full border border-rose-500/30">Просрочка</span>' : ''}
+                    <div class="p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="${iconClass} text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <!-- Заголовок -->
+                                <h3 class="text-lg font-bold ${isUnread ? 'text-white' : 'text-gray-300'} mb-1">
+                                    ${escapeHtml(notif.title)}
+                                </h3>
+                                
+                                <!-- Дата под заголовком -->
+                                <span class="text-xs ${isUnread ? 'text-blue-400' : 'text-gray-500'} font-medium mb-3 block">
+                                    ${timeAgo}
+                                </span>
+                                
+                                <!-- Текст уведомления -->
+                                <p class="text-sm ${isUnread ? 'text-gray-300' : 'text-gray-400'} leading-relaxed mb-3">
+                                    ${escapeHtml(truncatedMessage)}
+                                </p>
+                                
+                                ${contactButtonsHTML}
+                                ${tagsHTML}
+                                ${deleteButtonHTML}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-});
+            `;
+        }
+    });
     
     notificationsList2.innerHTML = notificationsHTML;
     applyNotificationsFilter2(getCurrentFilter());
@@ -1205,17 +1359,19 @@ function checkEmptyState() {
 async function deleteAllNotifications() {
     if (!window.isAdmin) return;
     
-    if (!confirm('Вы уверены, что хотите удалить все уведомления? Это действие нельзя отменить.')) {
+    if (!confirm('ВНИМАНИЕ! Вы уверены, что хотите ПОЛНОСТЬЮ удалить ВСЕ уведомления и связанные чаты? Это действие нельзя отменить.')) {
         return;
     }
-    
+
     try {
         const response = await fetch('/notifications/delete_all/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),
                 'X-Requested-With': 'XMLHttpRequest',
-            }
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'confirm=true' // Добавляем подтверждение
         });
         
         const data = await response.json();
@@ -1224,14 +1380,20 @@ async function deleteAllNotifications() {
             // Очищаем локальные данные
             userNotifications = [];
             unreadCount = 0;
+            unreadChatsCount = 0;
             
             // Обновляем интерфейс
             if (isNotificationsModalOpen) {
                 smoothRenderNotificationsList2();
+                // Если открыта вкладка чатов, обновляем и её
+                if (window.isAdmin && document.querySelector('.filter-notification-btn[data-filter="chats"]')?.classList.contains('bg-blue-600')) {
+                    await loadAdminChats();
+                }
             }
             updateNotificationsCounter2();
+            updateChatsTabIndicator();
             
-            alert('Все уведомления успешно удалены');
+            alert(data.message);
         } else {
             alert('Ошибка при удалении уведомлений: ' + data.error);
         }
@@ -1240,7 +1402,6 @@ async function deleteAllNotifications() {
         alert('Ошибка при удалении уведомлений');
     }
 }
-
 
 // Обновленная функция обработки клика по уведомлению
 // Обновленная функция обработки клика по уведомлению
@@ -1369,14 +1530,35 @@ function openNotificationDetail(notificationId) {
     if (notification.is_personal) {
         modalTitle.innerHTML = '<i class="fas fa-user text-green-400 mr-2"></i>Персональное уведомление';
     } else {
-        modalTitle.innerHTML = 'Обновление';
+        modalTitle.innerHTML = '<i class="fas fa-bell text-blue-400 mr-2"></i>Уведомление';
     }
     
     // Заполняем заголовок новости
     document.getElementById('notificationDetailTitle').textContent = notification.title;
     
     // Заполняем текст уведомления (полный текст)
-    document.getElementById('notificationDetailMessage').textContent = notification.message;
+    const messageElement = document.getElementById('notificationDetailMessage');
+    let displayMessage = notification.message;
+    
+    // Убираем ID долга из отображаемого сообщения
+    if (notification.is_overdue_debt) {
+        displayMessage = displayMessage.replace(/\[DEBT_ID:\d+\]/, '').trim();
+    }
+    
+    messageElement.textContent = displayMessage;
+    
+    // Обработка обложки уведомления
+    const coverContainer = document.getElementById('notificationDetailCover');
+    const coverImg = coverContainer.querySelector('img');
+    
+    if (notification.cover_image) {
+        coverImg.src = notification.cover_image;
+        coverContainer.classList.remove('hidden');
+        console.log('✅ Обложка загружена:', notification.cover_image);
+    } else {
+        coverContainer.classList.add('hidden');
+        console.log('❌ Обложка отсутствует');
+    }
     
     // Устанавливаем дату
     const dateElement = document.getElementById('notificationDetailDate');
@@ -1418,7 +1600,6 @@ function openNotificationDetail(notificationId) {
         markNotificationAsRead2(notificationId, notificationElement);
     }
 }
-
 
 
 // -----------------------------
@@ -2255,8 +2436,7 @@ function closeCreateNotificationModal() {
     document.getElementById('createNotificationForm').reset();
 }
 
-// Обработчик формы создания уведомления
-// Обработчик формы создания уведомления
+// notification-logo.js - обновить обработчик формы
 document.addEventListener('DOMContentLoaded', function() {
     const createNotificationForm = document.getElementById('createNotificationForm');
     if (createNotificationForm) {
@@ -2266,17 +2446,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const title = document.getElementById('notificationTitle').value;
             const message = document.getElementById('notificationMessage').value;
             const targetUserId = document.getElementById('targetUserId').value;
+            const coverImage = document.getElementById('coverImage').files[0];
             
-            // Подготавливаем данные
-            const formData = {
-                title: title,
-                message: message,
-                is_chat: false  // Добавляем обязательное поле
-            };
+            // Создаем FormData для отправки файлов
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('message', message);
+            formData.append('is_chat', false);
             
-            // Добавляем target_user_id только если указан
             if (targetUserId && targetUserId.trim() !== '') {
-                formData.target_user_id = parseInt(targetUserId);
+                formData.append('target_user_id', targetUserId);
+            }
+            
+            if (coverImage) {
+                formData.append('cover_image', coverImage);
             }
             
             try {
@@ -2284,10 +2467,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCSRFToken(),
-                        'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
-                    body: JSON.stringify(formData)
+                    body: formData  // Отправляем FormData вместо JSON
                 });
                 
                 const data = await response.json();
@@ -2308,6 +2490,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 
 // -----------------------------
 // Обновленная функция инициализации

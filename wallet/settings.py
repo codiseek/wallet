@@ -25,7 +25,8 @@ INSTALLED_APPS = [
 ]
 
 
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": "BC7vCr2xouYLFKiZvEvHDkTPAgh7NLzQ93duff-va49yX68ZwZuwSHk8Ai619xK4KD_0DSyf-VzLfn7nbJwUIcE",

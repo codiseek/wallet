@@ -523,12 +523,13 @@ def debt_statistics(request):
 @staff_member_required
 @require_POST
 def create_system_notification(request):
-    """Создание системного уведомления админом"""
+    """Создание системного уведомления админом с обложкой"""
     try:
-        data = json.loads(request.body)
-        title = data.get('title')
-        message = data.get('message')
-        target_user_id = data.get('target_user_id')  # Новый параметр
+        # Используем request.POST и request.FILES для обработки формы с файлами
+        title = request.POST.get('title')
+        message = request.POST.get('message')
+        target_user_id = request.POST.get('target_user_id')
+        cover_image = request.FILES.get('cover_image')  # Получаем загруженный файл
         
         if not title or not message:
             return JsonResponse({'success': False, 'error': 'Заполните все поля'})
@@ -541,12 +542,13 @@ def create_system_notification(request):
             except User.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Пользователь с указанным ID не найден'})
         
-        # Создаем системное уведомление
+        # Создаем системное уведомление с картинкой
         notification = SystemNotification.objects.create(
             title=title,
             message=message,
             created_by=request.user,
-            target_user=target_user  # Может быть None (для всех) или конкретный пользователь
+            target_user=target_user,
+            cover_image=cover_image  # Сохраняем картинку
         )
         
         # Создаем записи UserNotification
@@ -662,13 +664,11 @@ def get_user_notifications(request):
                 notification=user_notif.notification
             ).exists()
             
-            # Определяем, является ли это уведомлением о просроченном долге
             is_overdue_debt = 'просрочен' in user_notif.notification.title.lower()
             
             # Для уведомлений о просрочке получаем данные долга
             debt_data = None
             if is_overdue_debt:
-                # Извлекаем ID долга из сообщения
                 import re
                 debt_id_match = re.search(r'\[DEBT_ID:(\d+)\]', user_notif.notification.message)
                 if debt_id_match:
@@ -685,6 +685,11 @@ def get_user_notifications(request):
                     except Debt.DoesNotExist:
                         print(f"Долг с ID {debt_id} не найден")
             
+            # ПОЛУЧАЕМ URL КАРТИНКИ ЕСЛИ ОНА ЕСТЬ
+            cover_image_url = None
+            if user_notif.notification.cover_image:
+                cover_image_url = user_notif.notification.cover_image.url
+            
             notifications_data.append({
                 'id': user_notif.id,
                 'notification_id': user_notif.notification.id,
@@ -698,7 +703,8 @@ def get_user_notifications(request):
                 'has_chat': has_chat,
                 'is_admin_chat': False,
                 'is_overdue_debt': is_overdue_debt,
-                'debt_data': debt_data
+                'debt_data': debt_data,
+                'cover_image': cover_image_url  # ДОБАВЛЯЕМ URL КАРТИНКИ
             })
             
             if not user_notif.is_read:
@@ -715,7 +721,14 @@ def get_user_notifications(request):
         
     except Exception as e:
         print(f"Ошибка в get_user_notifications: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Ошибка загрузки уведомлений'})   
+        import traceback
+        traceback.print_exc()
+        # В случае ошибки возвращаем unread_count = 0
+        return JsonResponse({
+            'success': False, 
+            'error': 'Ошибка загрузки уведомлений',
+            'unread_count': 0  # ДОБАВЛЯЕМ ЗНАЧЕНИЕ ПО УМОЛЧАНИЮ
+        }) 
 
 
 @login_required
@@ -2399,20 +2412,62 @@ def toggle_todo(request, todo_id):
 @staff_member_required
 @require_POST
 def delete_all_notifications(request):
-    """Удаление всех системных уведомлений (админ)"""
+    """ПОЛНОЕ удаление всех системных уведомлений и связанных данных"""
     try:
-        # Деактивируем все активные уведомления
-        notifications = SystemNotification.objects.filter(is_active=True)
-        count = notifications.count()
-        notifications.update(is_active=False)
-        
+        if not request.user.is_staff:
+            return JsonResponse({'success': False, 'error': 'Доступ запрещен'})
+
+        # Подтверждение для безопасности
+        if not request.POST.get('confirm'):
+            return JsonResponse({'success': False, 'error': 'Требуется подтверждение'})
+
+        print("🔄 Начинаем полное удаление всех уведомлений...")
+
+        # Удаляем в правильном порядке чтобы избежать проблем с внешними ключами
+        with transaction.atomic():
+            # 1. Сначала удаляем все сообщения чатов
+            chat_messages_deleted = ChatMessage.objects.filter(
+                chat__notification__created_by=request.user
+            ).delete()
+            print(f"✅ Удалено сообщений чатов: {chat_messages_deleted}")
+
+            # 2. Удаляем все чаты
+            chats_deleted = NotificationChat.objects.filter(
+                notification__created_by=request.user
+            ).delete()
+            print(f"✅ Удалено чатов: {chats_deleted}")
+
+            # 3. Удаляем все пользовательские уведомления
+            user_notifications_deleted = UserNotification.objects.filter(
+                notification__created_by=request.user
+            ).delete()
+            print(f"✅ Удалено пользовательских уведомлений: {user_notifications_deleted}")
+
+            # 4. Удаляем все системные уведомления
+            system_notifications_deleted = SystemNotification.objects.filter(
+                created_by=request.user
+            ).delete()
+            print(f"✅ Удалено системных уведомлений: {system_notifications_deleted}")
+
+        total_deleted = (
+            chat_messages_deleted[0] + 
+            chats_deleted[0] + 
+            user_notifications_deleted[0] + 
+            system_notifications_deleted[0]
+        )
+
+        print(f"🎉 Полное удаление завершено. Всего удалено записей: {total_deleted}")
+
         return JsonResponse({
             'success': True, 
-            'message': f'Удалено {count} уведомлений'
+            'message': f'Полностью удалено {total_deleted} записей уведомлений и связанных данных'
         })
-        
+
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        print(f"❌ Ошибка при полном удалении уведомлений: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': f'Ошибка при удалении: {str(e)}'})
 
 
 
@@ -2420,12 +2475,15 @@ def delete_all_notifications(request):
 @staff_member_required
 @require_POST
 def create_system_notification(request):
-    """Создание системного уведомления админом"""
+    """Создание системного уведомления админом с обложкой"""
     try:
-        data = json.loads(request.body)
-        title = data.get('title')
-        message = data.get('message')
-        target_user_id = data.get('target_user_id')  # Новый параметр
+        # Обрабатываем FormData вместо JSON
+        title = request.POST.get('title')
+        message = request.POST.get('message')
+        target_user_id = request.POST.get('target_user_id')
+        cover_image = request.FILES.get('cover_image')  # Получаем загруженный файл
+        
+        print(f"📨 Создание уведомления: title={title}, target_user_id={target_user_id}, cover_image={cover_image}")
         
         if not title or not message:
             return JsonResponse({'success': False, 'error': 'Заполните все поля'})
@@ -2443,7 +2501,8 @@ def create_system_notification(request):
             title=title,
             message=message,
             created_by=request.user,
-            target_user=target_user  # Может быть None (для всех) или конкретный пользователь
+            target_user=target_user,
+            cover_image=cover_image  # Сохраняем картинку
         )
         
         # Создаем записи UserNotification
@@ -2475,6 +2534,7 @@ def create_system_notification(request):
             users_count = len(users)
             message_type = "уведомление отправлено всем пользователям"
         
+        print(f"✅ Уведомление создано: {message_type} для {users_count} пользователей")
         
         return JsonResponse({
             'success': True, 
@@ -2483,8 +2543,13 @@ def create_system_notification(request):
         })
         
     except Exception as e:
-        print(f"Error creating system notification: {str(e)}")
+        print(f"❌ Error creating system notification: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+
 
 
 @staff_member_required
