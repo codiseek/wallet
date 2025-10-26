@@ -1,4 +1,5 @@
-// Функция для обновления валюты
+// В файле currency.js, обновите функцию updateCurrency:
+
 async function updateCurrency(currency) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
@@ -27,11 +28,16 @@ async function updateCurrency(currency) {
             // Обновляем глобальную переменную валюты
             window.currentCurrency = currency;
             
+            // ОБНОВЛЯЕМ ВСЕ МОДУЛИ С НОВОЙ ВАЛЮТОЙ
+            if (typeof window.updateAllCurrencyModules === 'function') {
+                window.updateAllCurrencyModules(currency);
+            }
+            
             // Обновляем интерфейс
             updateBalanceCurrencyIcon(currency);
             updateCurrencySymbols(currency);
             updateCurrentCurrencyDisplay(currency);
-            updateAllCurrencyButtons(currency); // Используем обновленную функцию с иконками
+            updateAllCurrencyButtons(currency);
             updateBalanceDisplay();
             
             // Обновляем открытую модалку транзакции
@@ -46,19 +52,17 @@ async function updateCurrency(currency) {
             
         } else {
             showErrorNotification(data.error || 'Ошибка при изменении валюты');
-            // Восстанавливаем кнопки с иконками
             restoreCurrencyButtons();
         }
     } catch (error) {
-        console.error('Ошибка:', error);
         showErrorNotification('Ошибка соединения');
-        // Восстанавливаем кнопки с иконками
         restoreCurrencyButtons();
     } finally {
-        // Восстанавливаем все кнопки с иконками
         restoreCurrencyButtons();
     }
 }
+
+
 
 // Функция для обновления стилей кнопок валюты (с иконками)
 function updateAllCurrencyButtons(selectedCurrency) {
@@ -268,7 +272,6 @@ function updateCurrencySymbols(currency) {
         loadUserCategories();
     }
     
-    console.log('Символы валюты обновлены на:', symbol);
 }
 
 
@@ -306,7 +309,6 @@ function initCurrencyHandlers() {
             e.stopPropagation();
             
             const currency = this.dataset.currency;
-            console.log('Выбрана валюта:', currency);
             
             if (currency) {
                 updateCurrency(currency);
@@ -317,14 +319,12 @@ function initCurrencyHandlers() {
     // Инициализируем кнопки при загрузке
     initCurrencyButtons();
     
-    console.log('Инициализировано обработчиков валюты:', updatedButtons.length);
 }
 
+// В файле currency.js, обновите функцию initCurrencyOnLoad:
 
-// Инициализация символов валюты при загрузке страницы
 function initCurrencyOnLoad() {
     const currentCurrency = window.currentCurrency || 'c';
-    console.log('Инициализация валюты при загрузке:', currentCurrency);
     
     // Обновляем символы валюты
     updateCurrencySymbols(currentCurrency);
@@ -338,17 +338,17 @@ function initCurrencyOnLoad() {
     // Обновляем кнопки валюты
     updateAllCurrencyButtons(currentCurrency);
     
-    // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ БАЛАНСА - ДОБАВЬТЕ ЭТУ СТРОКУ
-    updateBalanceDisplay();
-
- // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ БАЛАНСА И СБЕРЕЖЕНИЙ
+    // ОБНОВЛЯЕМ МОДУЛЬ ДОЛГОВ ПРИ ЗАГРУЗКЕ
+    if (typeof window.updateAllCurrencyModules === 'function') {
+        window.updateAllCurrencyModules(currentCurrency);
+    }
+    
+    // Обновляем отображение баланса и сбережений
     updateBalanceDisplay();
     updateSavingsDisplay();
 
-        // ПЕРЕЗАГРУЖАЕМ ТРАНЗАКЦИИ С ПРАВИЛЬНЫМ СИМВОЛОМ ВАЛЮТЫ
+    // Перезагружаем транзакции с правильным символом валюты
     currentPage = 1;
     hasMoreTransactions = true;
     loadTransactions();
-
-
 }

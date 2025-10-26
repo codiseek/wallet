@@ -71,5 +71,10 @@ urlpatterns = [
     path('todo/toggle/<int:todo_id>/', views.toggle_todo, name='toggle_todo'),
     path('notifications/delete_all/', views.delete_all_notifications, name='delete_all_notifications'),
     path('notifications/<int:notification_id>/delete_chat/', views.delete_chat_completely, name='delete_chat_completely'),
-
+    path('api/debts/', views.debt_list, name='debt_list'),
+    path('api/debts/create/', views.create_debt, name='create_debt'),
+    path('api/debts/statistics/', views.debt_statistics, name='debt_statistics'),
+    path('api/debts/<int:debt_id>/update_status/', views.update_debt_status, name='update_debt_status'),
+    path('debts/<int:debt_id>/update_status/', views.update_debt_status, name='update_debt_status'),
+    path('api/debts/<int:debt_id>/delete/', views.delete_debt, name='delete_debt'),
 ]

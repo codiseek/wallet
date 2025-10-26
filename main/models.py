@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import path
 
 class NotificationChat(models.Model):
     notification = models.OneToOneField(
@@ -154,6 +155,44 @@ class Todo(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Debt(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Активный'),
+        ('paid', 'Погашенный'),
+        ('delay_7', 'Отсрочка 7 дней'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    debtor_name = models.CharField(max_length=200, verbose_name='Фамилия и Имя')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Телефон')
+    address = models.TextField(blank=True, null=True, verbose_name='Адрес')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма долга')
+    due_date = models.DateField(verbose_name='Срок возврата')
+    description = models.TextField(blank=True, null=True, verbose_name='Комментарий')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.debtor_name} - {self.amount}"
+
+    @property
+    def is_overdue(self):
+        return self.due_date < timezone.now().date() and self.status in ['active', 'delay_7']
+
+    @property
+    def days_remaining(self):
+        if self.status not in ['active', 'delay_7']:
+            return None
+        delta = self.due_date - timezone.now().date()
+        return delta.days
+    
 
 
 # Сигнал для автоматического создания профиля при создании пользователя

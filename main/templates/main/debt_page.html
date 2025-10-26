@@ -1,0 +1,172 @@
+<!-- Debt list вкладка - БЕЗ app-container -->
+<div class="mobile-tab" id="tab-debt">
+    <div class="mobile-section">
+        <div class="mobile-content">
+            <div class="card-gradient rounded-2xl">
+                <!-- Заголовок и кнопка добавления -->
+                <div class="flex justify-between items-center -mt-3 mb-6">
+                    <h2 class="text-lg -mt-2 font-bold flex items-center">
+                        <i class="fa-solid fa-skull mr-2"></i>
+                        Список должников
+                    </h2>
+                    <button id="addDebtBtn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3">
+                        <i class="fas fa-plus mr-1"></i> Добавить
+                    </button>
+                </div>
+
+<div class="grid grid-cols-3 gap-3 mb-6" id="debtStatistics">
+    <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-xs">Общая сумма</p>
+                <p class="text-white font-bold text-lg">0 ₽</p> <!-- Этот элемент обновляется -->
+            </div>
+            <!-- ... -->
+        </div>
+    </div>
+    <div class="bg-red-500/10 rounded-xl p-3 border border-red-500/30">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-red-400 text-xs">Просрочено</p>
+                <p class="text-white font-bold text-lg">0 ₽</p> <!-- Этот элемент обновляется -->
+            </div>
+            <!-- ... -->
+        </div>
+    </div>
+    <div class="bg-green-500/10 rounded-xl p-3 border border-green-500/30">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-green-400 text-xs">Погашено</p>
+                <p class="text-white font-bold text-lg">0 ₽</p> <!-- Этот элемент обновляется -->
+            </div>
+            <!-- ... -->
+        </div>
+    </div>
+</div>
+
+                <!-- Вкладки фильтров -->
+               <!-- Вкладки фильтров -->
+<div class="flex bg-gray-800 rounded-lg p-1 mb-6">
+    <button class="debt-filter-tab active flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="active">
+        Активные
+    </button>
+    <button class="debt-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="overdue">
+        Просроченные
+    </button>
+    <button class="debt-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="paid">
+        Погашенные
+    </button>
+</div>
+
+                <!-- Список должников -->
+                <div class="space-y-4" id="debtsList">
+                    <!-- Контент будет загружаться через JavaScript -->
+                </div>
+
+                <!-- Пустое состояние -->
+                <div id="emptyDebtsState" class="text-center py-8">
+                    <i class="fa-solid fa-skull text-8xl text-gray-500 mb-3"></i>
+                    <p class="text-gray-400">Список должников пуст</p>
+                
+                </div>
+
+                <!-- Индикатор загрузки -->
+                <div id="debtsLoading" class="text-center py-8 hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="text-gray-400 mt-2">Загрузка...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления долга -->
+<div id="debtModal" class="modal fixed inset-0 bg-black/70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
+    <div class="modal-content bg-gray-900 rounded-2xl w-full max-w-md mx-4 border border-gray-700">
+        <!-- Хедер -->
+        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center">
+                <i class="fa-solid fa-skull mr-2 text-red-400"></i>
+                Новый долг
+            </h2>
+            <button id="closeDebtModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                <i class="fas fa-times mr-1"></i>Закрыть
+            </button>
+        </div>
+
+        <!-- Контент -->
+        <div class="p-4 max-h-[60vh] overflow-y-auto">
+            <form id="debtForm">
+                {% csrf_token %}
+               <!-- Обновите поля ввода в модалке: -->
+<div class="space-y-4">
+    <!-- ФИО -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Фамилия и Имя *</label>
+        <input type="text" name="debtor_name" required minlength="2"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="Введите ФИО должника">
+        <p class="text-red-400 text-xs mt-1 hidden" id="debtorNameError">Минимум 2 символа</p>
+    </div>
+
+    <!-- Телефон -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Номер телефона</label>
+        <input type="tel" name="phone" pattern="^[\+]?[0-9\s\-\(\)]{10,}$"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="+7 (999) 123-45-67">
+        <p class="text-red-400 text-xs mt-1 hidden" id="phoneError">Введите корректный номер телефона</p>
+    </div>
+
+    <!-- Адрес -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Адрес</label>
+        <input type="text" name="address"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="ул. Пушкина, д. 10">
+    </div>
+
+    <!-- Сумма долга -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Сумма долга *</label>
+        <input type="number" name="amount" step="0.01" required min="0.01"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="0.00">
+        <p class="text-red-400 text-xs mt-1 hidden" id="amountError">Сумма должна быть больше 0</p>
+    </div>
+
+    <!-- Срок возврата -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Срок возврата *</label>
+        <input type="date" name="due_date" required
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+               min="{{ today }}">
+        <p class="text-red-400 text-xs mt-1 hidden" id="dueDateError">Выберите корректную дату</p>
+    </div>
+
+    <!-- Комментарий -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Комментарий</label>
+        <textarea name="description"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+            rows="3"
+            placeholder="Дополнительная информация..."></textarea>
+    </div>
+</div>
+            </form>
+        </div>
+
+        <!-- Футер -->
+        <div class="p-4 border-t border-gray-700">
+            <div class="flex justify-end gap-3">
+                <button id="cancelDebtBtn" class="btn-secondary px-4 py-2">
+                    Отмена
+                </button>
+                <button id="saveDebtBtn"
+                        class="btn-primary px-4 py-2 flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

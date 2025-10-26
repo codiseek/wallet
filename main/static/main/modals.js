@@ -35,74 +35,6 @@ function animateModal(modal, show) {
 }
 
 // -----------------------------
-// МОДАЛКА МЕНЮ / ПАНЕЛЬ УПРАВЛЕНИЯ
-// -----------------------------
-function initMenuModal() {
-    const modal = document.getElementById('menuModal');
-    const openBtn = document.getElementById('menuBtn');
-
-    if (!modal) {
-        console.warn('menuModal не найден');
-        return;
-    }
-
-    // --- Глобальная функция открытия/закрытия ---
-    window.toggleMenuModal = function(show) {
-        if (!modal) return;
-
-        const isVisible = !modal.classList.contains('hidden');
-
-        if (show === true || (!isVisible && show !== false)) {
-            // Открытие модалки
-            const reserveInput = document.getElementById('reservePercentageInput');
-            const targetReserveInput = document.getElementById('targetReserveInput');
-
-            if (reserveInput) reserveInput.value = window.initialReservePercentage || 0;
-            if (targetReserveInput) targetReserveInput.value = window.initialTargetReserve || 0;
-
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => modal.classList.add('opacity-100'));
-            document.body.style.overflow = 'hidden';
-
-            // Подгружаем обработчики после открытия
-            setTimeout(() => {
-                initCurrencyHandlers();
-                initReserveHandlers();
-            }, 100);
-        } else {
-            // Закрытие модалки
-            modal.classList.remove('opacity-100');
-            document.body.style.overflow = '';
-            setTimeout(() => modal.classList.add('hidden'), 150);
-        }
-    };
-
-    // --- Кнопка открытия ⚙️ ---
-    if (openBtn) {
-        openBtn.addEventListener('click', () => toggleMenuModal(true));
-    }
-
-    // --- Кнопки закрытия (с data-close="menuModal") ---
-    const closeBtns = modal.querySelectorAll('[data-close="menuModal"]');
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', () => toggleMenuModal(false));
-    });
-
-    // --- Клик по фону для закрытия ---
-    modal.addEventListener('click', e => {
-        if (e.target === modal) toggleMenuModal(false);
-    });
-
-    // --- Первичная инициализация ---
-    setTimeout(() => {
-        initCurrencyHandlers();
-        initReserveHandlers();
-    }, 100);
-}
-
-
-
-// -----------------------------
 // Модалка кнопка +
 // -----------------------------
 
@@ -111,26 +43,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const noteDropdown = document.getElementById('noteDropdown');
     
     // Простое переключение меню
-    addNoteBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        noteDropdown.classList.toggle('hidden');
-    });
-    
-    // Закрытие меню при клике вне
-    document.addEventListener('click', function() {
-        noteDropdown.classList.add('hidden');
-    });
-    
-  
-    // Предотвращаем закрытие при клике на само меню
-    noteDropdown.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
+    if (addNoteBtn && noteDropdown) {
+        addNoteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            noteDropdown.classList.toggle('hidden');
+        });
+        
+        // Закрытие меню при клике вне
+        document.addEventListener('click', function() {
+            noteDropdown.classList.add('hidden');
+        });
+        
+        // Предотвращаем закрытие при клике на само меню
+        noteDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
 });
-
-
-
-
 
 // -----------------------------
 // Модалка выбора категории
@@ -160,14 +89,14 @@ function initCategorySelectionModal() {
     }
 }
 
-
-
 // -----------------------------
 // Инициализация модалки уведомлений
 // -----------------------------
 function initNotificationsModal2() {
-    notificationsModal2 = document.getElementById('notificationsModal2');
-    notificationIconBtn = document.getElementById('notificationIconBtn');
+    const notificationsModal2 = document.getElementById('notificationsModal2');
+    const notificationIconBtn = document.getElementById('notificationIconBtn');
+    
+    if (!notificationsModal2 || !notificationIconBtn) return;
     
     if (notificationIconBtn) {
         notificationIconBtn.addEventListener('click', openNotificationsModal2);
@@ -179,7 +108,7 @@ function initNotificationsModal2() {
         btn.addEventListener('click', closeNotificationsModal2);
     });
     
-    // ДОБАВЬТЕ ЭТОТ КОД - обработчик для кнопки закрытия в модалке уведомлений
+    // Обработчик для кнопки закрытия в модалке уведомлений
     const closeModalBtn = notificationsModal2.querySelector('.modal-close-btn');
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeNotificationsModal2);
@@ -199,3 +128,94 @@ function initNotificationsModal2() {
         }
     });
 }
+
+// Обработчики для модалки долгов
+document.addEventListener('DOMContentLoaded', function() {
+    const debtModal = document.getElementById('debtModal');
+    const addDebtBtn = document.getElementById('addDebtBtn');
+    const closeDebtModalHeaderBtn = document.getElementById('closeDebtModalHeaderBtn');
+    const cancelDebtBtn = document.getElementById('cancelDebtBtn');
+    const saveDebtBtn = document.getElementById('saveDebtBtn');
+
+    // Открытие модалки
+    if (addDebtBtn && debtModal) {
+        addDebtBtn.addEventListener('click', function() {
+            debtModal.classList.remove('hidden');
+        });
+    }
+
+    // Закрытие модалки
+    function closeDebtModal() {
+        if (debtModal) debtModal.classList.add('hidden');
+    }
+
+    if (closeDebtModalHeaderBtn) closeDebtModalHeaderBtn.addEventListener('click', closeDebtModal);
+    if (cancelDebtBtn) cancelDebtBtn.addEventListener('click', closeDebtModal);
+
+    // Закрытие по клику вне модалки
+    if (debtModal) {
+        debtModal.addEventListener('click', function(e) {
+            if (e.target === debtModal) {
+                closeDebtModal();
+            }
+        });
+    }
+
+    // Сохранение долга
+    if (saveDebtBtn) {
+        saveDebtBtn.addEventListener('click', function() {
+            // Здесь будет логика сохранения
+            closeDebtModal();
+            showSuccessNotification('Долг успешно добавлен');
+        });
+    }
+
+    // Фильтрация по вкладкам
+    const filterTabs = document.querySelectorAll('.debt-filter-tab');
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            
+            // Активная вкладка
+            filterTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Здесь будет логика фильтрации списка
+            console.log('Фильтр:', filter);
+        });
+    });
+
+    // Обработчики для кнопок в списке
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remind-btn')) {
+            const debtItem = e.target.closest('.debt-item');
+            const debtorName = debtItem.querySelector('h3').textContent;
+            showSuccessNotification(`Напоминание отправлено ${debtorName}`);
+        }
+
+        if (e.target.closest('.paid-btn')) {
+            const debtItem = e.target.closest('.debt-item');
+            const debtorName = debtItem.querySelector('h3').textContent;
+            debtItem.style.opacity = '0.5';
+            setTimeout(() => {
+                debtItem.remove();
+                checkEmptyDebtsState();
+            }, 300);
+            showSuccessNotification(`Долг ${debtorName} отмечен как погашенный`);
+        }
+    });
+
+    // Проверка пустого состояния
+    function checkEmptyDebtsState() {
+        const debtsList = document.getElementById('debtsList');
+        const emptyState = document.getElementById('emptyDebtsState');
+        
+        if (debtsList && emptyState) {
+            if (debtsList.children.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+    }
+});

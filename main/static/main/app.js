@@ -123,24 +123,27 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
 
 // Добавьте в app.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Обработчик для кнопки TODO в хедере
+    // Обработчик для кнопок в хедере
     document.addEventListener('click', function(e) {
         const todoIconBtn = e.target.closest('#todoIconBtn');
-        if (todoIconBtn) {
-            // Переключаем на вкладку TODO
+        const debtIconBtn = e.target.closest('#debtIconBtn');
+        
+        if (todoIconBtn || debtIconBtn) {
+            // Определяем какая вкладка должна быть активна
+            const targetTab = todoIconBtn ? 'todo' : 'debt';
+            
+            
+            // Переключаем на нужную вкладку
             const tabs = document.querySelectorAll('.mobile-tab');
-            const navItems = document.querySelectorAll('.mobile-nav-item');
             
             // Скрываем все вкладки
             tabs.forEach(tab => tab.classList.remove('active'));
             
-            // Убираем активность со всех элементов навигации
-            navItems.forEach(item => item.classList.remove('active'));
-            
-            // Показываем вкладку TODO
-            const todoTab = document.getElementById('tab-todo');
-            if (todoTab) {
-                todoTab.classList.add('active');
+            // Показываем целевую вкладку
+            const targetTabElement = document.getElementById(`tab-${targetTab}`);
+            if (targetTabElement) {
+                targetTabElement.classList.add('active');
+            } else {
             }
             
             // Скрываем блок баланса
@@ -149,15 +152,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 balanceBlock.classList.add('hidden');
             }
             
-            // Активируем соответствующий элемент в навигации (если есть)
-            const todoNavItem = document.querySelector('.mobile-nav-item[data-tab="todo"]');
-            if (todoNavItem) {
-                todoNavItem.classList.add('active');
-            }
+            // Прокручиваем к верху страницы
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Останавливаем всплытие события
+            e.stopPropagation();
         }
     });
 });
-
 
 // -----------------------------
 // Экспортируем необходимые функции в global
@@ -181,6 +183,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Форматируем балансы при загрузке страницы
         updateBalanceDisplay();
         
+
+
+         // Инициализация debt manager
+    if (typeof DebtManager !== 'undefined' && document.getElementById('tab-debt')) {
+        window.debtManager = new DebtManager();
+    }
+
+
+
         // Форматируем все элементы резерва при загрузке страницы
         formatAllReserveElements();
          initCurrencyHandlers();
@@ -225,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initTabNavigation();
         initTransactionModal();
         initCategoryModal();
-        initMenuModal();
         initTransactionDetailModal();
         initCategoryFilter();
         initReminderPicker();

@@ -560,7 +560,6 @@ function showCategoryErrorState(errorMessage = 'Ошибка загрузки д
 // Функция для удаления категории из модалки
 async function deleteCategoryFromModal() {
     if (!currentCategoryId) {
-        console.error("No category ID found for deletion");
         alert('Ошибка: ID категории не найден');
         resetCategoryDeleteConfirmation();
         return;
@@ -608,7 +607,6 @@ async function deleteCategoryFromModal() {
             resetCategoryDeleteConfirmation();
         }
     } catch (error) {
-        console.error('Delete category error:', error);
         alert('Произошла ошибка при удалении: ' + error.message);
         resetCategoryDeleteConfirmation();
     }

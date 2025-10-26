@@ -1,9 +1,15 @@
 // admin.js
 
-// Глобальные переменные для админ-панели
-let adminUsersModal = null;
-let currentAdminPage = 1;
-let adminUsers = [];
+// Проверяем, не объявлены ли уже переменные
+if (typeof adminUsersModal === 'undefined') {
+    var adminUsersModal = null;
+}
+if (typeof currentAdminPage === 'undefined') {
+    var currentAdminPage = 1;
+}
+if (typeof adminUsers === 'undefined') {
+    var adminUsers = [];
+}
 
 // Инициализация админ-панели
 function initAdminPanel() {
@@ -19,11 +25,8 @@ function initAdminPanel() {
 }
 
 // Загрузка статистики администратора
-// Обновленная функция loadAdminStats в admin.js
 async function loadAdminStats() {
     try {
-        console.log('Loading admin stats...');
-        
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
         const response = await fetch('/admin_panel/get_stats/', {
@@ -34,14 +37,11 @@ async function loadAdminStats() {
             }
         });
         
-        console.log('Response status:', response.status);
-        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Stats data:', data);
         
         if (data.success) {
             updateAdminStats(data.stats);
@@ -49,12 +49,9 @@ async function loadAdminStats() {
             throw new Error(data.error || 'Ошибка загрузки данных');
         }
     } catch (error) {
-        console.error('Admin stats error:', error);
         showErrorNotification('Ошибка загрузки статистики: ' + error.message);
     }
 }
-
-
 
 // Обновление статистики на странице
 function updateAdminStats(stats) {
@@ -135,7 +132,6 @@ async function loadUsersList(page = 1) {
             throw new Error(data.error || 'Ошибка загрузки пользователей');
         }
     } catch (error) {
-        console.error('Load users error:', error);
         showErrorNotification('Ошибка загрузки списка пользователей');
     } finally {
         const loader = document.getElementById('usersListLoader');

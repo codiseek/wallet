@@ -1443,3 +1443,43 @@ backdrop-filter: blur(20px) !important;
 .todo-edit:hover, .todo-delete:hover {
     transform: scale(1.1);
 }
+
+
+.debt-filter-tab {
+    color: #9CA3AF;
+    background: transparent;
+}
+
+.debt-filter-tab.active {
+    color: white;
+    background: #374151;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.debt-item {
+    transition: all 0.3s ease;
+}
+
+.remind-btn, .paid-btn {
+    transition: all 0.2s ease;
+}
+
+
+/* Анимация покачивания колокольчика */
+@keyframes bellRing {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(15deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(12deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  70% { transform: rotate(4deg); }
+  80% { transform: rotate(-2deg); }
+  100% { transform: rotate(0); }
+}
+
+.animate-bell {
+  animation: bellRing 1.5s ease-in-out infinite;
+  transform-origin: top center;
+}

@@ -12,7 +12,6 @@ async function updateGlobalCategories() {
             updateCategoryTabs();
         }
     } catch (e) {
-        console.error('updateGlobalCategories error', e);
     }
 }
 
@@ -209,7 +208,6 @@ async function saveCategory() {
             alert(data.error || "Ошибка при сохранении категории");
         }
     } catch (error) {
-        console.error('Ошибка:', error);
         alert("Произошла ошибка при отправке формы");
     }
 }
@@ -291,7 +289,6 @@ async function loadUserCategories() {
             `;
         }
     } catch (error) {
-        console.error('Ошибка при загрузке категорий:', error);
         categoriesList.innerHTML = `
             <div class="text-center py-8 text-red-400">
                 <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
@@ -341,7 +338,6 @@ async function loadCategoriesForModal() {
             container.innerHTML = `<div class="text-gray-500 text-sm text-center py-4">Нет категорий</div>`;
         }
     } catch (e) {
-        console.error('Ошибка загрузки категорий для модалки:', e);
     }
 }
 
@@ -392,7 +388,6 @@ async function loadCategoriesForSelection() {
             emptyState.classList.remove('hidden');
         }
     } catch (error) {
-        console.error('Ошибка загрузки категорий для выбора:', error);
         container.innerHTML = `
             <div class="text-center py-8 text-red-400">
                 <i class="fas fa-exclamation-triangle text-3xl mb-3"></i>
@@ -469,7 +464,6 @@ async function updateCategoryTabs() {
         });
         updateCategoryTabsHandlers();
     } catch (e) {
-        console.error('updateCategoryTabs error', e);
     }
 }
 

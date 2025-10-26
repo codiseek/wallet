@@ -13,7 +13,7 @@ import random
 import string
 from django.core.cache import cache
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, date, timedelta  # Добавьте date
 from django.contrib.auth.models import User 
 from django.core.paginator import Paginator
 from django.conf import settings
@@ -24,16 +24,292 @@ from webpush import send_group_notification
 from .models import Note
 from django.utils import timezone
 from django.core.cache import cache
-
+from .models import Debt
+from .forms import DebtForm
+from django.views.decorators.http import require_http_methods
 from .models import SystemNotification, UserNotification
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator, EmptyPage
+
 
 from .models import (
     Category, Transaction, UserProfile, Note, 
     SystemNotification, UserNotification,
     NotificationChat, ChatMessage, Todo
 )
+
+
+
+
+
+@login_required
+def debt_list(request):
+    """Получить список долгов с фильтрацией - ОБНОВЛЕННАЯ ЛОГИКА"""
+    try:
+        filter_type = request.GET.get('filter', 'active')
+        
+        debts = Debt.objects.filter(user=request.user)
+        
+        if filter_type == 'active':
+            # Активные - все кроме погашенных (включая отсроченные)
+            debts = debts.exclude(status='paid')
+        elif filter_type == 'overdue':
+            # Просроченные - активные долги с просроченной датой
+            debts = debts.filter(
+                status__in=['active', 'delay_7'], 
+                due_date__lt=timezone.now().date()
+            )
+        elif filter_type == 'paid':
+            # Погашенные - только долги со статусом paid
+            debts = debts.filter(status='paid')
+        
+        debts_data = []
+        for debt in debts:
+            # Вычисляем days_remaining для активных долгов
+            days_remaining = None
+            is_overdue = False
+            
+            if debt.status in ['active', 'delay_7']:
+                today = timezone.now().date()
+                days_remaining = (debt.due_date - today).days
+                is_overdue = debt.due_date < today
+            
+            debts_data.append({
+                'id': debt.id,
+                'debtor_name': debt.debtor_name,
+                'phone': debt.phone or 'Не указан',
+                'address': debt.address or 'Не указан',
+                'amount': float(debt.amount),
+                'due_date': debt.due_date.strftime('%d.%m.%Y'),
+                'description': debt.description or '',
+                'status': debt.status,
+                'days_remaining': days_remaining,
+                'is_overdue': is_overdue,
+                'created_at': debt.created_at.strftime('%d.%m.%Y %H:%M'),
+            })
+        
+        print(f"Returning {len(debts_data)} debts for filter '{filter_type}'")
+        return JsonResponse({'success': True, 'debts': debts_data})
+    
+    except Exception as e:
+        print(f"Error in debt_list: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+@login_required
+@csrf_exempt
+def create_debt(request):
+    """Создать новый долг - ОЧИЩЕННАЯ ВЕРСИЯ"""
+    try:
+        # Получаем данные из POST
+        debtor_name = request.POST.get('debtor_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        address = request.POST.get('address', '').strip()
+        amount = request.POST.get('amount', '0')
+        due_date_str = request.POST.get('due_date', '')
+        description = request.POST.get('description', '').strip()
+
+        # Проверка авторизации
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'error': 'Пользователь не авторизован'
+            })
+
+        # Валидация обязательных полей
+        if not debtor_name or len(debtor_name) < 2:
+            return JsonResponse({
+                'success': False,
+                'error': 'ФИО должника обязательно (минимум 2 символа)'
+            })
+
+        try:
+            amount_decimal = Decimal(amount)
+            if amount_decimal <= Decimal('0'):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Сумма долга должна быть больше 0'
+                })
+        except (ValueError, InvalidOperation):
+            return JsonResponse({
+                'success': False,
+                'error': 'Некорректная сумма долга'
+            })
+
+        if not due_date_str:
+            return JsonResponse({
+                'success': False,
+                'error': 'Укажите срок возврата'
+            })
+
+        try:
+            from datetime import datetime
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+            if due_date < date.today():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Дата возврата не может быть в прошлом'
+                })
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Некорректный формат даты'
+            })
+
+        # Создаем объект долга
+        debt = Debt(
+            user=request.user,
+            debtor_name=debtor_name,
+            phone=phone if phone else None,
+            address=address if address else None,
+            amount=amount_decimal,
+            due_date=due_date,
+            description=description if description else None,
+            status='active'
+        )
+
+        # Сохраняем
+        debt.save()
+        
+        # Проверяем, что объект сохранился
+        saved_debt = Debt.objects.filter(id=debt.id).first()
+        if not saved_debt:
+            return JsonResponse({
+                'success': False,
+                'error': 'Долг не был сохранен в базу данных'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Долг успешно добавлен',
+            'debt': {
+                'id': debt.id,
+                'debtor_name': debt.debtor_name,
+                'phone': debt.phone or 'Не указан',
+                'address': debt.address or 'Не указан',
+                'amount': float(debt.amount),
+                'due_date': debt.due_date.strftime('%d.%m.%Y'),
+                'description': debt.description or '',
+                'status': debt.status,
+            }
+        })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Внутренняя ошибка сервера: {str(e)}'
+        })
+    
+
+
+@login_required
+@csrf_exempt
+def update_debt_status(request, debt_id):
+    """Универсальный метод для изменения статуса долга"""
+    try:
+        debt = Debt.objects.get(id=debt_id, user=request.user)
+        new_status = request.POST.get('status')
+        
+        # Проверяем допустимые статусы
+        valid_statuses = ['active', 'paid', 'delay_7']
+        if new_status not in valid_statuses:
+            return JsonResponse({
+                'success': False,
+                'message': f'Неверный статус. Допустимые значения: {", ".join(valid_statuses)}'
+            })
+        
+        # Если устанавливаем отсрочку 7 дней, обновляем дату возврата
+        if new_status == 'delay_7':
+            debt.due_date = debt.due_date + timedelta(days=7)
+        
+        debt.status = new_status
+        debt.save()
+        
+        # Формируем сообщение в зависимости от статуса
+        status_messages = {
+            'active': 'Долг отмечен как активный',
+            'paid': 'Долг отмечен как погашенный', 
+            'delay_7': 'Добавлено 7 дней отсрочки'
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'message': status_messages.get(new_status, 'Статус обновлен')
+        })
+        
+    except Debt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Долг не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ошибка при изменении статуса: {str(e)}'
+        })
+    
+
+# Добавьте этот метод в views.py
+@login_required
+@csrf_exempt
+@require_POST
+def delete_debt(request, debt_id):
+    """Удаление долга"""
+    try:
+        debt = Debt.objects.get(id=debt_id, user=request.user)
+        debtor_name = debt.debtor_name
+        debt.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Должник {debtor_name} успешно удален'
+        })
+        
+    except Debt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Долг не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ошибка при удалении: {str(e)}'
+        })
+    
+    
+
+@login_required
+def debt_statistics(request):
+    """Получить статистику по долгам - ИСПРАВЛЕННАЯ ЛОГИКА"""
+    try:
+        debts = Debt.objects.filter(user=request.user)
+        
+        # ОБЩАЯ СУММА: только активные долги (active + delay_7)
+        total_amount = debts.filter(status__in=['active', 'delay_7']).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # ПРОСРОЧЕНО: только активные долги с просроченной датой
+        overdue_amount = debts.filter(
+            status__in=['active', 'delay_7'], 
+            due_date__lt=timezone.now().date()
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # ПОГАШЕНО: только долги со статусом paid
+        paid_amount = debts.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        print(f"Statistics - Active Total: {total_amount}, Overdue: {overdue_amount}, Paid: {paid_amount}")
+        
+        return JsonResponse({
+            'success': True,
+            'total_amount': float(total_amount),
+            'overdue_amount': float(overdue_amount),
+            'paid_amount': float(paid_amount),
+        })
+    except Exception as e:
+        print(f"Error in debt_statistics: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 @staff_member_required

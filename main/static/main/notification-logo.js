@@ -16,7 +16,7 @@ let currentChatNotificationId = null;
 let chatMessages = [];
 let chatPollingInterval = null;
 
-// notification-logo.js - обновляем систему опроса
+
 
 function initNotificationsPolling() {
     // Проверяем счетчик непрочитанных при загрузке
