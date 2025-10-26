@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import path
 
+from django.utils import timezone  # Добавьте эту строку
+
 class NotificationChat(models.Model):
     notification = models.OneToOneField(
         'SystemNotification', 
@@ -157,9 +159,40 @@ class Todo(models.Model):
         ordering = ['-created_at']
 
 
+class DebtPayment(models.Model):
+    """Модель для хранения истории платежей по долгу"""
+    debt = models.ForeignKey(
+        'Debt', 
+        on_delete=models.CASCADE, 
+        related_name='payments'
+    )
+    amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name='Сумма платежа'
+    )
+    payment_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата платежа'
+    )
+    note = models.TextField(
+        blank=True, 
+        null=True,
+        verbose_name='Примечание к платежу'
+    )
+
+    class Meta:
+        ordering = ['-payment_date']
+        verbose_name = 'Платеж по долгу'
+        verbose_name_plural = 'Платежи по долгам'
+
+    def __str__(self):
+        return f"Платеж {self.amount} для {self.debt.debtor_name}"
+
 class Debt(models.Model):
     STATUS_CHOICES = [
         ('active', 'Активный'),
+        ('partially_paid', 'Частично погашен'),
         ('paid', 'Погашенный'),
         ('delay_7', 'Отсрочка 7 дней'),
     ]
@@ -169,15 +202,20 @@ class Debt(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Телефон')
     address = models.TextField(blank=True, null=True, verbose_name='Адрес')
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма долга')
+    paid_amount = models.DecimalField(  # НОВОЕ ПОЛЕ
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        verbose_name='Погашенная сумма'
+    )
     due_date = models.DateField(verbose_name='Срок возврата')
     description = models.TextField(blank=True, null=True, verbose_name='Комментарий')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')  # Увеличили max_length
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(blank=True, null=True)
     overdue_notification_sent = models.BooleanField(default=False, verbose_name='Уведомление о просрочке отправлено')
     
-
     class Meta:
         ordering = ['-created_at']
 
@@ -185,15 +223,32 @@ class Debt(models.Model):
         return f"{self.debtor_name} - {self.amount}"
 
     @property
+    def remaining_amount(self):
+        """Оставшаяся сумма к оплате"""
+        return self.amount - self.paid_amount
+
+    @property
     def is_overdue(self):
-        return self.due_date < timezone.now().date() and self.status in ['active', 'delay_7']
+        return self.due_date < timezone.now().date() and self.status in ['active', 'delay_7', 'partially_paid']
 
     @property
     def days_remaining(self):
-        if self.status not in ['active', 'delay_7']:
+        if self.status not in ['active', 'delay_7', 'partially_paid']:
             return None
-        delta = self.due_date - timezone.now().date()
+        delta = self.due_date - timezone.now().date()  # Используйте timezone.now()
         return delta.days
+
+    def update_status(self):
+        """Автоматическое обновление статуса на основе оплаченной суммы"""
+        if self.paid_amount >= self.amount:
+            self.status = 'paid'
+            self.paid_at = timezone.now()  # Используйте timezone.now()
+        elif self.paid_amount > 0:
+            self.status = 'partially_paid'
+        else:
+            self.status = 'active'
+        self.save()
+
     
 
 

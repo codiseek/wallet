@@ -85,6 +85,147 @@ updateModalCurrency() {
         }
     }
 
+
+
+   async addPayment(debtId, paymentAmount, note = '') {
+    try {
+        console.log('=== ADD PAYMENT REQUEST ===');
+        console.log('Debt ID:', debtId);
+        console.log('Payment Amount:', paymentAmount);
+        console.log('Note:', note);
+
+        const formData = new FormData();
+        formData.append('payment_amount', paymentAmount.toString());
+        if (note) {
+            formData.append('note', note);
+        }
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+
+        const response = await fetch(`/api/debts/${debtId}/add_payment/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        console.log('=== ADD PAYMENT RESPONSE ===');
+        console.log('Status:', response.status);
+        console.log('Data:', data);
+
+        if (data.success) {
+            return data;
+        } else {
+            this.showError(data.error || 'Ошибка при добавлении платежа');
+            return null;
+        }
+
+    } catch (error) {
+        console.error('=== ADD PAYMENT ERROR ===');
+        console.error('Error:', error);
+        this.showError('Ошибка соединения с сервером');
+        return null;
+    }
+}
+
+
+
+async payFullDebt(debtId, debtDiv, debt) {
+    try {
+        console.log('=== PAY FULL DEBT START ===');
+        
+        // Показываем индикатор загрузки
+        const payFullBtn = debtDiv.querySelector('.pay-full-debt');
+        const originalText = payFullBtn.innerHTML;
+        payFullBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Обработка...';
+        payFullBtn.disabled = true;
+        
+        const formData = new FormData();
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+
+        const response = await fetch(`/api/debts/${debtId}/pay_full/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        console.log('Pay full debt response:', data);
+
+        if (data.success) {
+            // Закрываем форму платежа
+            const paymentForm = debtDiv.querySelector('.payment-form');
+            if (paymentForm) {
+                paymentForm.classList.add('hidden');
+            }
+            
+            // Обновляем данные долга
+            if (data.debt) {
+                Object.keys(data.debt).forEach(key => {
+                    debt[key] = data.debt[key];
+                });
+                console.log('Updated debt after full payment:', debt);
+                
+                // Визуально обновляем карточку
+                this.updateDebtCardVisuals(debtDiv, debt);
+                
+                // Перезагружаем историю платежей
+                await this.loadAndRenderPaymentHistory(debt.id, debtDiv);
+            }
+            
+            // ОБНОВЛЯЕМ ВЕСЬ СПИСОК И СТАТИСТИКУ
+            this.loadDebts();
+            this.loadStatistics();
+            this.loadDebtCount();
+            
+            this.showSuccess(data.message);
+        } else {
+            this.showError(data.error || 'Ошибка при погашении долга');
+        }
+
+    } catch (error) {
+        console.error('Pay full debt error:', error);
+        this.showError('Ошибка соединения с сервером');
+    } finally {
+        // Восстанавливаем кнопку
+        const payFullBtn = debtDiv.querySelector('.pay-full-debt');
+        if (payFullBtn) {
+            payFullBtn.innerHTML = 'Всю сумму';
+            payFullBtn.disabled = false;
+        }
+        console.log('=== PAY FULL DEBT END ===');
+    }
+}
+
+
+async loadDebtPayments(debtId) {
+    try {
+        const response = await fetch(`/api/debts/${debtId}/payments/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            return data.payments;
+        } else {
+            return [];
+        }
+    } catch (error) {
+        return [];
+    }
+}
+
+
+
     // Обновляем валюту в списке долгов
     updateDebtsListCurrency() {
         const debtsList = document.getElementById('debtsList');
@@ -451,274 +592,634 @@ updateModalCurrency() {
     }
 
 createDebtElement(debt) {
-        const debtDiv = document.createElement('div');
-        
-        let gradientClass, borderClass, statusClass, statusIcon, statusText, daysClass, daysIcon;
-        
-        if (debt.status === 'paid') {
-            gradientClass = 'bg-gradient-to-br from-green-500/10 to-emerald-500/10';
-            borderClass = 'border-green-500/20 hover:border-green-400/40';
-            statusClass = 'bg-green-500/20 text-green-400 border-green-500/30';
-            statusIcon = 'fa-check-circle';
-            statusText = 'Погашен';
-            daysClass = 'text-green-400';
-            daysIcon = 'fa-trophy';
-        } else if (debt.is_overdue) {
-            gradientClass = 'bg-gradient-to-br from-red-500/10 to-orange-500/10';
-            borderClass = 'border-red-500/20 hover:border-red-400/40';
-            statusClass = 'bg-red-500/20 text-red-400 border-red-500/30';
-            statusIcon = 'fa-exclamation-triangle';
-            statusText = 'Просрочен';
-            daysClass = 'text-red-400';
-            daysIcon = 'fa-clock';
-        } else {
-            gradientClass = 'bg-gradient-to-br from-blue-500/10 to-purple-500/10';
-            borderClass = 'border-blue-500/20 hover:border-blue-400/40';
-            statusClass = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-            statusIcon = 'fa-clock';
-            statusText = 'Активный';
-            daysClass = debt.days_remaining <= 3 ? 'text-yellow-400' : 'text-green-400';
-            daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
-        }
-        
-        debtDiv.className = `${gradientClass} rounded-xl p-4 border ${borderClass} transition-all duration-300 debt-item relative cursor-pointer collapsed`;
-        
-        let whatsappLink = '';
-        if (debt.phone && debt.phone !== 'Не указан') {
-            const cleanPhone = debt.phone.replace(/\s+/g, '');
-            whatsappLink = `https://wa.me/${cleanPhone}`;
-        }
-        
-        debtDiv.innerHTML = `
-            <button 
-                class="absolute top-3 right-3 w-9 h-9 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-red-500/30 transition-all duration-200 delete-debt-btn z-20"
-                data-debt-id="${debt.id}"
-                data-no-toggle="true"
-            >
-                <i class="fas fa-trash text-gray-300 text-base"></i>
-            </button>
+    const debtDiv = document.createElement('div');
+    
+    // Определяем стили в зависимости от статуса
+    let gradientClass, borderClass, statusClass, statusIcon, statusText, daysClass, daysIcon;
+    
+    if (debt.status === 'paid') {
+        gradientClass = 'bg-gradient-to-br from-green-500/10 to-emerald-500/10';
+        borderClass = 'border-green-500/20 hover:border-green-400/40';
+        statusClass = 'bg-green-500/20 text-green-400 border-green-500/30';
+        statusIcon = 'fa-check-circle';
+        statusText = 'Погашен';
+        daysClass = 'text-green-400';
+        daysIcon = 'fa-trophy';
+    } else if (debt.status === 'partially_paid') {
+        gradientClass = 'bg-gradient-to-br from-yellow-500/10 to-amber-500/10';
+        borderClass = 'border-yellow-500/20 hover:border-yellow-400/40';
+        statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        statusIcon = 'fa-check-double';
+        statusText = 'Частично погашен';
+        daysClass = debt.days_remaining <= 3 ? 'text-yellow-400' : 'text-green-400';
+        daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
+    } else if (debt.is_overdue) {
+        gradientClass = 'bg-gradient-to-br from-red-500/10 to-orange-500/10';
+        borderClass = 'border-red-500/20 hover:border-red-400/40';
+        statusClass = 'bg-red-500/20 text-red-400 border-red-500/30';
+        statusIcon = 'fa-exclamation-triangle';
+        statusText = 'Просрочен';
+        daysClass = 'text-red-400';
+        daysIcon = 'fa-clock';
+    } else {
+        gradientClass = 'bg-gradient-to-br from-blue-500/10 to-purple-500/10';
+        borderClass = 'border-blue-500/20 hover:border-blue-400/40';
+        statusClass = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+        statusIcon = 'fa-clock';
+        statusText = 'Активный';
+        daysClass = debt.days_remaining <= 3 ? 'text-yellow-400' : 'text-green-400';
+        daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
+    }
+    
+    // Расчет прогресса погашения
+    const progressPercentage = (debt.paid_amount / debt.amount) * 100;
+    
+    debtDiv.className = `${gradientClass} rounded-xl p-4 border ${borderClass} transition-all duration-300 debt-item relative cursor-pointer collapsed`;
+    
+    let whatsappLink = '';
+    if (debt.phone && debt.phone !== 'Не указан') {
+        const cleanPhone = debt.phone.replace(/\s+/g, '');
+        whatsappLink = `https://wa.me/${cleanPhone}`;
+    }
+    
+    debtDiv.innerHTML = `
+        <!-- Кнопка удаления -->
+        <button 
+            class="absolute top-3 right-3 w-9 h-9 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-red-500/30 transition-all duration-200 delete-debt-btn z-20"
+            data-debt-id="${debt.id}"
+            data-no-toggle="true"
+        >
+            <i class="fas fa-trash text-gray-300 text-base"></i>
+        </button>
 
-            <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10" data-no-toggle="true">
-                <div class="text-center mb-3">
-                    <p class="text-red-400 font-semibold">Удалить должника?</p>
-                    <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
-                </div>
-                <div class="flex space-x-3 w-full">
-                    <button class="cancel-delete flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors" data-no-toggle="true">
-                        Отмена
-                    </button>
-                    <button class="confirm-delete flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors" data-no-toggle="true">
-                        Да, удалить!
-                    </button>
-                </div>
+        <!-- Подтверждение удаления -->
+        <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10" data-no-toggle="true">
+            <div class="text-center mb-3">
+                <p class="text-red-400 font-semibold">Удалить должника?</p>
+                <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
+            </div>
+            <div class="flex space-x-3 w-full">
+                <button class="cancel-delete flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors" data-no-toggle="true">
+                    Отмена
+                </button>
+                <button class="confirm-delete flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors" data-no-toggle="true">
+                    Да, удалить!
+                </button>
+            </div>
+        </div>
+
+        <!-- Основная информация -->
+        <div class="debt-main-info">
+            <div class="text-center mb-4">
+                <h3 class="font-bold text-white text-xl mb-2">${this.escapeHtml(debt.debtor_name)}</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass} status-badge-transition">
+                    <i class="fas ${statusIcon} mr-1.5"></i>
+                    ${statusText}
+                </span>
             </div>
 
-            <!-- Основная информация (всегда видима) -->
-            <div class="debt-main-info">
-                <div class="text-center mb-4">
-                    <h3 class="font-bold text-white text-xl mb-2">${this.escapeHtml(debt.debtor_name)}</h3>
+            <!-- Прогресс погашения -->
+            ${debt.status !== 'paid' ? `
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                    <span>Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
+                    <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
                 </div>
-
-                <div class="flex justify-center items-center space-x-6 mb-2">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-400 mb-1">Сумма долга</p>
-                        <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
-                    </div>
-                    <div class="h-8 w-px bg-gray-600"></div>
-                    <div class="text-center">
-                        <p class="text-sm text-gray-400 mb-1">Срок возврата</p>
-                        <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
-                    </div>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full progress-bar-transition" style="width: ${progressPercentage}%"></div>
                 </div>
             </div>
+            ` : ''}
 
-            <!-- Дополнительная информация (скрыта по умолчанию) -->
-            <div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
-                ${debt.days_remaining !== null && debt.status === 'active' ? `
+            <div class="flex justify-center items-center space-x-6 mb-2">
                 <div class="text-center">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
-                        <i class="fas ${daysIcon} mr-1.5"></i>
-                        ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
-                    </span>
+                    <p class="text-sm text-gray-400 mb-1">Общая сумма</p>
+                    <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
                 </div>
-                ` : ''}
-                
-                ${debt.status === 'delay_7' ? `
-                    <div class="text-center">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
-                            <i class="fas fa-clock mr-1.5"></i>
-                            +7 дней отсрочка
-                        </span>
-                    </div>
-                ` : ''}
-                
-                <div class="space-y-3">
-                    ${debt.phone && debt.phone !== 'Не указан' ? `
-                        <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
-                            <div class="flex items-center text-gray-300">
-                                <i class="fas fa-phone mr-3 text-blue-400"></i>
-                                <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
-                            </div>
-                            <div class="flex space-x-2">
-                                <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
-                                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
-                                   data-no-toggle="true">
-                                    <i class="fas fa-phone text-sm"></i>
-                                </a>
-                                ${whatsappLink ? `
-                                <a href="${whatsappLink}" 
-                                   target="_blank"
-                                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
-                                   data-no-toggle="true">
-                                    <i class="fab fa-whatsapp text-sm"></i>
-                                </a>
-                                ` : ''}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${debt.address ? `
-                        <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
-                            <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
-                            <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                ${debt.description ? `
-                    <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
-                        <p class="text-gray-300 text-sm leading-relaxed">
-                            <i class="fas fa-comment mr-2 text-yellow-400"></i>
-                            ${this.escapeHtml(debt.description)}
-                        </p>
-                    </div>
-                ` : ''}
-                
-                <div class="flex justify-between items-center pt-4 border-t border-gray-700/50">
-                    <div class="text-gray-500 text-xs flex items-center">
-                        <i class="fas fa-calendar-plus mr-1.5"></i>
-                        Добавлен: ${this.escapeHtml(debt.created_at)}
-                    </div>
-                    
-                    <div class="relative">
-                        <button class="status-dropdown-btn bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex items-center"
-                                data-no-toggle="true">
-                            <span>${this.getStatusText(debt.status)}</span>
-                            <i class="fas fa-chevron-up ml-2 text-xs"></i>
-                        </button>
-                        
-                        <div class="status-dropdown absolute right-0 bottom-full mb-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-[100]">
-                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'text-white'}" data-status="active" data-no-toggle="true">
-                                Активный
-                            </button>
-                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'text-white'}" data-status="paid" data-no-toggle="true">
-                                Погашенный
-                            </button>
-                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors ${debt.status === 'delay_7' ? 'bg-yellow-500/20 text-yellow-400' : 'text-white'}" data-status="delay_7" data-no-toggle="true">
-                                Отсрочка 7 дней
-                            </button>
-                        </div>
-                    </div>
+                <div class="h-8 w-px bg-gray-600"></div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-400 mb-1">Срок возврата</p>
+                    <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Подсказка для развертывания -->
-            <div class="text-center mt-3 pt-3 border-t border-gray-700/30">
-                <p class="text-xs text-gray-500">Тапните чтобы развернуть</p>
+        <!-- Дополнительная информация -->
+       <!-- Дополнительная информация -->
+<div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
+    ${debt.days_remaining !== null && debt.status !== 'paid' ? `
+    <div class="text-center">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
+            <i class="fas ${daysIcon} mr-1.5"></i>
+            ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
+        </span>
+    </div>
+    ` : ''}
+    
+    ${debt.status === 'delay_7' ? `
+        <div class="text-center">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                <i class="fas fa-clock mr-1.5"></i>
+                +7 дней отсрочка
+            </span>
+        </div>
+    ` : ''}
+    
+    <!-- Контактная информация -->
+    <div class="space-y-3">
+        ${debt.phone && debt.phone !== 'Не указан' ? `
+            <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
+                <div class="flex items-center text-gray-300">
+                    <i class="fas fa-phone mr-3 text-blue-400"></i>
+                    <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
+                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                       data-no-toggle="true">
+                        <i class="fas fa-phone text-sm"></i>
+                    </a>
+                    ${whatsappLink ? `
+                    <a href="${whatsappLink}" 
+                       target="_blank"
+                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                       data-no-toggle="true">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                    </a>
+                    ` : ''}
+                </div>
             </div>
-        `;
+        ` : ''}
         
-        // Обработчик для сворачивания/разворачивания карточки
-        debtDiv.addEventListener('click', (e) => {
-            // Игнорируем клики на элементах с data-no-toggle="true"
-            if (e.target.closest('[data-no-toggle="true"]')) {
-                return;
-            }
+        ${debt.address ? `
+            <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
+                <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
+                <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
+            </div>
+        ` : ''}
+    </div>
+    
+    <!-- Описание (перенесено под адрес) -->
+    ${debt.description ? `
+        <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+            <p class="text-gray-300 text-sm leading-relaxed">
+                <i class="fas fa-comment mr-2 text-yellow-400"></i>
+                ${this.escapeHtml(debt.description)}
+            </p>
+        </div>
+    ` : ''}
+    
+    <!-- Кнопки действий -->
+    ${debt.status !== 'paid' ? `
+    <div class="flex space-x-3">
+        <button class="pay-debt-btn flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                data-no-toggle="true">
             
-            const details = debtDiv.querySelector('.debt-details');
-            const isCollapsed = debtDiv.classList.contains('collapsed');
+            Погасить
+        </button>
+        <button class="delay-debt-btn bg-red-600 hover:bg-red-500 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                data-no-toggle="true">
             
-            if (isCollapsed) {
-                // Разворачиваем
-                debtDiv.classList.remove('collapsed');
-                details.classList.remove('hidden');
-                debtDiv.style.transform = 'scale(1.02)';
+            Отсрочка
+        </button>
+    </div>
+    
+    <!-- Форма погашения (скрыта по умолчанию) -->
+    <div class="payment-form hidden bg-gray-800/50 rounded-lg p-4 border border-gray-700" data-no-toggle="true">
+    <div class="mb-3" data-no-toggle="true">
+        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Сумма платежа</label>
+        <input type="number" 
+               class="payment-amount w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors"
+               placeholder="0.00"
+               step="0.01"
+               min="0.01"
+               max="${debt.remaining_amount}"
+               data-no-toggle="true">
+        <p class="text-gray-500 text-xs mt-1" data-no-toggle="true">Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</p>
+    </div>
+    <div class="mb-3" data-no-toggle="true">
+        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Примечание (необязательно)</label>
+        <textarea class="payment-note w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors resize-none"
+                  rows="2"
+                  placeholder="Комментарий к платежу..."
+                  data-no-toggle="true"></textarea>
+    </div>
+    <div class="flex space-x-3" data-no-toggle="true">
+        
+        <button class="pay-full-debt flex-1 py-3 rounded-lg bg-gray-600 hover:bg-green-500 text-white font-semibold transition-colors"
+                data-no-toggle="true">
+            Всю сумму
+        </button>
+        <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
+                data-no-toggle="true">
+            Внести часть
+        </button>
+    </div>
+</div>
+    ` : ''}
+    
+    <!-- История платежей (будет скрыта если платежей нет) -->
+    <div class="payment-history">
+        <h4 class="text-gray-400 font-semibold mb-3 flex items-center">
+            <i class="fas fa-history mr-2"></i>
+            История платежей
+        </h4>
+        <div class="payment-history-list space-y-2 max-h-40 overflow-y-auto">
+            <div class="text-center text-gray-500 py-4">
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                Загрузка...
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex justify-between items-center pt-4 border-t border-gray-700/50">
+        <div class="text-gray-500 text-xs flex items-center">
+            <i class="fas fa-calendar-plus mr-1.5"></i>
+            Добавлен: ${this.escapeHtml(debt.created_at)}
+        </div>
+    </div>
+</div>
+
+        <!-- Подсказка для развертывания -->
+        <div class="text-center mt-3 pt-3 border-t border-gray-700/30">
+            <p class="text-xs text-gray-500">Тапните чтобы развернуть</p>
+        </div>
+    `;
+    
+    // Добавляем обработчики событий
+    this.addDebtEventListeners(debtDiv, debt);
+    
+    return debtDiv;
+}
+
+addDebtEventListeners(debtDiv, debt) {
+    // Обработчик для сворачивания/разворачивания карточки
+    debtDiv.addEventListener('click', (e) => {
+        if (e.target.closest('[data-no-toggle="true"]')) {
+            return;
+        }
+        
+        const details = debtDiv.querySelector('.debt-details');
+        const isCollapsed = debtDiv.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            debtDiv.classList.remove('collapsed');
+            details.classList.remove('hidden');
+            debtDiv.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                debtDiv.style.transform = '';
+            }, 300);
+            
+            // Загружаем историю платежей при разворачивании
+            this.loadAndRenderPaymentHistory(debt.id, debtDiv);
+        } else {
+            debtDiv.classList.add('collapsed');
+            details.classList.add('hidden');
+        }
+    });
+
+    // Обработчики для кнопки удаления
+    const deleteBtn = debtDiv.querySelector('.delete-debt-btn');
+    const deleteConfirm = debtDiv.querySelector('.delete-confirm');
+    const cancelDelete = debtDiv.querySelector('.cancel-delete');
+    const confirmDelete = debtDiv.querySelector('.confirm-delete');
+    
+    if (deleteBtn && deleteConfirm && cancelDelete && confirmDelete) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteConfirm.classList.remove('hidden');
+        });
+        
+        cancelDelete.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteConfirm.classList.add('hidden');
+        });
+        
+        confirmDelete.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteDebt(debt.id);
+        });
+    }
+    
+    // Обработчики для кнопок погашения и отсрочки
+    const payBtn = debtDiv.querySelector('.pay-debt-btn');
+    const delayBtn = debtDiv.querySelector('.delay-debt-btn');
+    const paymentForm = debtDiv.querySelector('.payment-form');
+    
+    // Исправленный обработчик для кнопки "Погасить"
+    if (payBtn && paymentForm) {
+        payBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Pay button clicked'); // Для отладки
+            
+            // Закрываем другие открытые формы платежей
+            document.querySelectorAll('.payment-form').forEach(form => {
+                if (form !== paymentForm) {
+                    form.classList.add('hidden');
+                }
+            });
+            
+            // Переключаем видимость формы
+            paymentForm.classList.toggle('hidden');
+            
+            // Автофокус на поле ввода суммы при открытии формы
+            if (!paymentForm.classList.contains('hidden')) {
                 setTimeout(() => {
-                    debtDiv.style.transform = '';
-                }, 300);
-            } else {
-                // Сворачиваем
-                debtDiv.classList.add('collapsed');
-                details.classList.add('hidden');
+                    const amountInput = paymentForm.querySelector('.payment-amount');
+                    if (amountInput) {
+                        amountInput.focus();
+                        amountInput.select();
+                    }
+                }, 150);
+            }
+        });
+    }
+    
+    if (delayBtn) {
+        delayBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.changeStatus(debt.id, 'delay_7');
+        });
+    }
+    
+    // Обработчики для формы платежа
+    const confirmPayment = debtDiv.querySelector('.confirm-payment');
+    const payFullDebtBtn = debtDiv.querySelector('.pay-full-debt');
+    const cancelPayment = debtDiv.querySelector('.cancel-payment');
+    
+    if (confirmPayment) {
+        confirmPayment.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.processPayment(debt, debtDiv);
+        });
+    }
+    
+    if (payFullDebtBtn) {
+        payFullDebtBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.payFullDebt(debt.id, debtDiv, debt);
+        });
+    }
+    
+    if (cancelPayment) {
+        cancelPayment.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            paymentForm.classList.add('hidden');
+        });
+    }
+    
+    // Обработчики для полей ввода в форме погашения
+    const paymentAmountInput = debtDiv.querySelector('.payment-amount');
+    const paymentNoteInput = debtDiv.querySelector('.payment-note');
+    
+    if (paymentAmountInput) {
+        paymentAmountInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        paymentAmountInput.addEventListener('input', (e) => {
+            e.stopPropagation();
+            // Автоматическая валидация максимальной суммы
+            const maxAmount = parseFloat(e.target.max);
+            const currentAmount = parseFloat(e.target.value);
+            if (currentAmount > maxAmount) {
+                e.target.value = maxAmount;
             }
         });
 
-        // Добавляем обработчики для кнопки удаления
-        const deleteBtn = debtDiv.querySelector('.delete-debt-btn');
-        const deleteConfirm = debtDiv.querySelector('.delete-confirm');
-        const cancelDelete = debtDiv.querySelector('.cancel-delete');
-        const confirmDelete = debtDiv.querySelector('.confirm-delete');
-        
-        if (deleteBtn && deleteConfirm && cancelDelete && confirmDelete) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteConfirm.classList.remove('hidden');
-            });
-            
-            cancelDelete.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteConfirm.classList.add('hidden');
-            });
-            
-            confirmDelete.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.deleteDebt(debt.id);
-            });
-        }
-        
-        // Обработчики для dropdown статуса
-        const dropdownBtn = debtDiv.querySelector('.status-dropdown-btn');
-        const dropdown = debtDiv.querySelector('.status-dropdown');
-        
-        if (dropdownBtn && dropdown) {
-            dropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('hidden');
-            });
-            
-            const statusOptions = dropdown.querySelectorAll('.status-option');
-            statusOptions.forEach(option => {
-                option.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const newStatus = e.target.dataset.status;
-                    this.changeStatus(debt.id, newStatus);
-                    dropdown.classList.add('hidden');
-                });
-            });
-            
-            document.addEventListener('click', () => {
-                dropdown.classList.add('hidden');
-            });
-        }
-        
-        const callBtn = debtDiv.querySelector('a[href^="tel:"]');
-        if (callBtn) {
-            callBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-        
-        const whatsappBtn = debtDiv.querySelector('a[href^="https://wa.me/"]');
-        if (whatsappBtn) {
-            whatsappBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-        
-        return debtDiv;
+        // Обработчик для клавиши Enter в поле суммы
+        paymentAmountInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.processPayment(debt, debtDiv);
+            }
+        });
     }
-
     
+    if (paymentNoteInput) {
+        paymentNoteInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Обработчик для клавиши Enter в поле примечания
+        paymentNoteInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                this.processPayment(debt, debtDiv);
+            }
+        });
+    }
+}
+
+
+
+async loadAndRenderPaymentHistory(debtId, debtDiv) {
+    const paymentHistoryBlock = debtDiv.querySelector('.payment-history');
+    const paymentList = debtDiv.querySelector('.payment-history-list');
+    
+    if (!paymentHistoryBlock || !paymentList) {
+        console.log('Payment history elements not found');
+        return;
+    }
+    
+    console.log('Loading payment history for debt:', debtId);
+    
+    try {
+        const payments = await this.loadDebtPayments(debtId);
+        console.log('Loaded payments:', payments);
+        
+        if (payments.length === 0) {
+            // Скрываем весь блок истории платежей если платежей нет
+            paymentHistoryBlock.classList.add('hidden');
+        } else {
+            // Показываем блок и заполняем платежами
+            paymentHistoryBlock.classList.remove('hidden');
+            paymentList.innerHTML = payments.map(payment => `
+                <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-money-bill-wave text-green-400 mr-3"></i>
+                        <div>
+                            <p class="text-white font-semibold">${formatAmount(payment.amount)} ${this.currencySymbol}</p>
+                            <p class="text-gray-400 text-xs">${payment.payment_date}</p>
+                            ${payment.note ? `<p class="text-gray-500 text-xs mt-1">${this.escapeHtml(payment.note)}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        console.log('Payment history rendered');
+    } catch (error) {
+        console.error('Error loading payment history:', error);
+        // В случае ошибки тоже скрываем блок
+        paymentHistoryBlock.classList.add('hidden');
+    }
+}
+
+
+
+async processPayment(debt, debtDiv) {
+    console.log('=== PROCESS PAYMENT START ===');
+    
+    const paymentAmountInput = debtDiv.querySelector('.payment-amount');
+    const paymentNoteInput = debtDiv.querySelector('.payment-note');
+    const paymentForm = debtDiv.querySelector('.payment-form');
+    
+    const paymentAmount = parseFloat(paymentAmountInput.value);
+    const note = paymentNoteInput.value.trim();
+    
+    console.log('Payment amount from input:', paymentAmount);
+    console.log('Note from input:', note);
+    console.log('Debt remaining amount:', debt.remaining_amount);
+    
+    if (!paymentAmount || paymentAmount <= 0) {
+        console.log('Invalid payment amount');
+        this.showError('Введите корректную сумму платежа');
+        return;
+    }
+    
+    if (paymentAmount > debt.remaining_amount) {
+        console.log('Payment amount exceeds remaining amount');
+        this.showError(`Сумма платежа не может превышать ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}`);
+        return;
+    }
+    
+    // Показываем индикатор загрузки
+    const confirmBtn = debtDiv.querySelector('.confirm-payment');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Обработка...';
+    confirmBtn.disabled = true;
+    
+    try {
+        console.log('Calling addPayment...');
+        const result = await this.addPayment(debt.id, paymentAmount, note);
+        console.log('addPayment result:', result);
+        
+        if (result && result.success) {
+            console.log('Payment successful, updating UI...');
+            
+            // Очищаем форму
+            paymentAmountInput.value = '';
+            paymentNoteInput.value = '';
+            paymentForm.classList.add('hidden');
+            
+            // ОБНОВЛЯЕМ ДАННЫЕ ДОЛГА ИЗ ОТВЕТА СЕРВЕРА
+            if (result.debt) {
+                // Полностью заменяем объект debt новыми данными
+                Object.keys(result.debt).forEach(key => {
+                    debt[key] = result.debt[key];
+                });
+                console.log('Updated debt object:', debt);
+            }
+            
+            // Визуально обновляем прогресс-бар и статус
+            this.updateDebtCardVisuals(debtDiv, debt);
+            
+            // Перезагружаем историю платежей
+            await this.loadAndRenderPaymentHistory(debt.id, debtDiv);
+            
+            // ОБНОВЛЯЕМ ВЕСЬ СПИСОК ДОЛГОВ И СТАТИСТИКУ
+            this.loadDebts();
+            this.loadStatistics();
+            this.loadDebtCount();
+            
+            this.showSuccess(result.message || 'Платеж успешно добавлен');
+            console.log('UI update complete');
+            
+        } else {
+            console.log('Payment failed:', result);
+            this.showError(result?.error || 'Ошибка при добавлении платежа');
+        }
+    } catch (error) {
+        console.error('Payment process error:', error);
+        this.showError('Ошибка соединения с сервером');
+    } finally {
+        // Восстанавливаем кнопку
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+        console.log('=== PROCESS PAYMENT END ===');
+    }
+}
+
+
+
+    // Добавьте этот метод для визуального обновления карточки
+updateDebtCardVisuals(debtDiv, debt) {
+    console.log('Updating debt card visuals for debt:', debt);
+    
+    // Обновляем прогресс-бар
+    const progressPercentage = (debt.paid_amount / debt.amount) * 100;
+    console.log('Progress percentage:', progressPercentage);
+    
+    // Находим прогресс-бар - это элемент перед формой платежа
+    const progressBarContainer = debtDiv.querySelector('.debt-main-info .mb-4');
+    if (progressBarContainer) {
+        const progressFill = progressBarContainer.querySelector('.bg-green-500');
+        if (progressFill) {
+            progressFill.style.width = `${progressPercentage}%`;
+            console.log('Progress bar updated to:', progressFill.style.width);
+        }
+        
+        // Обновляем текстовые значения
+        const spans = progressBarContainer.querySelectorAll('span');
+        if (spans.length >= 2) {
+            spans[0].textContent = `Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
+            spans[1].textContent = `Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}`;
+            console.log('Text labels updated');
+        }
+    }
+    
+    // Обновляем статус
+    const statusBadge = debtDiv.querySelector('.debt-main-info .inline-flex');
+    if (statusBadge) {
+        let statusClass, statusIcon, statusText;
+        
+        if (debt.status === 'paid') {
+            statusClass = 'bg-green-500/20 text-green-400 border-green-500/30';
+            statusIcon = 'fa-check-circle';
+            statusText = 'Погашен';
+        } else if (debt.status === 'partially_paid') {
+            statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+            statusIcon = 'fa-check-double';
+            statusText = 'Частично погашен';
+        } else if (debt.is_overdue) {
+            statusClass = 'bg-red-500/20 text-red-400 border-red-500/30';
+            statusIcon = 'fa-exclamation-triangle';
+            statusText = 'Просрочен';
+        } else {
+            statusClass = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+            statusIcon = 'fa-clock';
+            statusText = 'Активный';
+        }
+        
+        statusBadge.className = `inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}`;
+        statusBadge.innerHTML = `<i class="fas ${statusIcon} mr-1.5"></i>${statusText}`;
+        console.log('Status badge updated to:', statusText);
+    }
+    
+    // Обновляем максимальную сумму в форме
+    const maxAmountInput = debtDiv.querySelector('.payment-amount');
+    if (maxAmountInput) {
+        maxAmountInput.max = debt.remaining_amount;
+        const maxAmountText = debtDiv.querySelector('.text-gray-500.text-xs');
+        if (maxAmountText) {
+            maxAmountText.textContent = `Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}`;
+        }
+        console.log('Max amount updated to:', debt.remaining_amount);
+    }
+    
+    // Обновляем общую сумму долга, если нужно
+    const totalAmountEl = debtDiv.querySelector('.text-2xl.font-bold.text-white');
+    if (totalAmountEl) {
+        totalAmountEl.textContent = `${formatAmount(debt.amount)} ${this.currencySymbol}`;
+    }
+}
+
+
 
     async changeStatus(debtId, newStatus) {
         try {

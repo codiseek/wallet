@@ -6,13 +6,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import Category, Transaction
+from .models import Category, Transaction, Debt, DebtPayment
 from decimal import Decimal, InvalidOperation
 from django.db.models import Sum
 from django.db import transaction
 import random
 import string
 from django.core.cache import cache
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from datetime import datetime, date, timedelta  # Добавьте date
 from django.contrib.auth.models import User 
@@ -23,7 +25,6 @@ from django.db.models import Sum, Count, Q
 from webpush import send_user_notification
 from webpush import send_group_notification
 from .models import Note
-from django.utils import timezone
 from django.core.cache import cache
 from .models import Debt
 from .forms import DebtForm
@@ -38,6 +39,179 @@ from .models import (
     SystemNotification, UserNotification,
     NotificationChat, ChatMessage, Todo
 )
+
+@login_required
+@csrf_exempt
+@require_POST
+def add_debt_payment(request, debt_id):
+    try:
+        debt = Debt.objects.get(id=debt_id, user=request.user)
+        payment_amount = Decimal(request.POST.get('payment_amount', '0'))
+        note = request.POST.get('note', '').strip()
+
+        if payment_amount <= 0:
+            return JsonResponse({
+                'success': False,
+                'error': 'Сумма платежа должна быть больше 0'
+            })
+
+        if payment_amount > debt.remaining_amount:
+            return JsonResponse({
+                'success': False,
+                'error': f'Сумма платежа не может превышать оставшуюся сумму ({debt.remaining_amount})'
+            })
+
+        # Создаем запись о платеже
+        payment = DebtPayment.objects.create(
+            debt=debt,
+            amount=payment_amount,
+            note=note
+        )
+
+        # Обновляем сумму погашения в долге
+        debt.paid_amount += payment_amount
+        debt.update_status()
+
+        # Получаем обновленные данные долга
+        debts_data = get_debt_data(debt)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Платеж на сумму {payment_amount} успешно добавлен',
+            'debt': debts_data,  # Убедитесь, что это поле есть
+            'payment': {
+                'id': payment.id,
+                'amount': float(payment.amount),
+                'payment_date': payment.payment_date.isoformat(),
+                'note': payment.note or ''
+            }
+        })
+
+    except Debt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Долг не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка при добавлении платежа: {str(e)}'
+        })
+    
+
+
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def pay_full_debt(request, debt_id):
+    """Полное погашение долга"""
+    try:
+        debt = Debt.objects.get(id=debt_id, user=request.user)
+        
+        if debt.remaining_amount <= 0:
+            return JsonResponse({
+                'success': False,
+                'error': 'Долг уже полностью погашен'
+            })
+
+        # Создаем запись о полном платеже
+        payment = DebtPayment.objects.create(
+            debt=debt,
+            amount=debt.remaining_amount,
+            note='Полное погашение долга'
+        )
+
+        # Обновляем долг
+        debt.paid_amount = debt.amount
+        debt.update_status()
+
+        # Получаем обновленные данные долга
+        debts_data = get_debt_data(debt)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Долг полностью погашен на сумму {debt.amount}',
+            'debt': debts_data,
+            'payment': {
+                'id': payment.id,
+                'amount': float(payment.amount),
+                'payment_date': payment.payment_date.isoformat(),
+                'note': payment.note
+            }
+        })
+
+    except Debt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Долг не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка при погашении долга: {str(e)}'
+        })
+
+@login_required
+def get_debt_payments(request, debt_id):
+    """Получение истории платежей по долгу"""
+    try:
+        debt = Debt.objects.get(id=debt_id, user=request.user)
+        payments = debt.payments.all().order_by('-payment_date')
+        
+        payments_data = []
+        for payment in payments:
+            payments_data.append({
+                'id': payment.id,
+                'amount': float(payment.amount),
+                'payment_date': payment.payment_date.strftime('%d.%m.%Y %H:%M'),
+                'note': payment.note or ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'payments': payments_data
+        })
+        
+    except Debt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Долг не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+def get_debt_data(debt):
+    """Вспомогательная функция для получения данных долга"""
+    days_remaining = None
+    is_overdue = False
+    
+    if debt.status in ['active', 'delay_7', 'partially_paid']:
+        today = timezone.now().date()
+        days_remaining = (debt.due_date - today).days
+        is_overdue = debt.due_date < today
+    
+    return {
+        'id': debt.id,
+        'debtor_name': debt.debtor_name,
+        'phone': debt.phone or 'Не указан',
+        'address': debt.address or 'Не указан',
+        'amount': float(debt.amount),
+        'paid_amount': float(debt.paid_amount),
+        'remaining_amount': float(debt.remaining_amount),
+        'due_date': debt.due_date.strftime('%d.%m.%Y'),
+        'description': debt.description or '',
+        'status': debt.status,
+        'status_display': debt.get_status_display(),
+        'days_remaining': days_remaining,
+        'is_overdue': is_overdue,
+        'created_at': debt.created_at.strftime('%d.%m.%Y %H:%M'),
+    }
+
 
 
 def check_overdue_debts():
@@ -109,12 +283,12 @@ def debt_list(request):
         debts = Debt.objects.filter(user=request.user)
         
         if filter_type == 'active':
-            # Активные - все кроме погашенных (включая отсроченные)
+            # Активные - все кроме полностью погашенных (включая частично погашенные и отсроченные)
             debts = debts.exclude(status='paid')
         elif filter_type == 'overdue':
             # Просроченные - активные долги с просроченной датой
             debts = debts.filter(
-                status__in=['active', 'delay_7'], 
+                status__in=['active', 'delay_7', 'partially_paid'], 
                 due_date__lt=timezone.now().date()
             )
         elif filter_type == 'paid':
@@ -123,28 +297,7 @@ def debt_list(request):
         
         debts_data = []
         for debt in debts:
-            # Вычисляем days_remaining для активных долгов
-            days_remaining = None
-            is_overdue = False
-            
-            if debt.status in ['active', 'delay_7']:
-                today = timezone.now().date()
-                days_remaining = (debt.due_date - today).days
-                is_overdue = debt.due_date < today
-            
-            debts_data.append({
-                'id': debt.id,
-                'debtor_name': debt.debtor_name,
-                'phone': debt.phone or 'Не указан',
-                'address': debt.address or 'Не указан',
-                'amount': float(debt.amount),
-                'due_date': debt.due_date.strftime('%d.%m.%Y'),
-                'description': debt.description or '',
-                'status': debt.status,
-                'days_remaining': days_remaining,
-                'is_overdue': is_overdue,
-                'created_at': debt.created_at.strftime('%d.%m.%Y %H:%M'),
-            })
+            debts_data.append(get_debt_data(debt))
         
         print(f"Returning {len(debts_data)} debts for filter '{filter_type}'")
         return JsonResponse({'success': True, 'debts': debts_data})
@@ -154,6 +307,7 @@ def debt_list(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
+    
 
 
 
@@ -338,21 +492,20 @@ def delete_debt(request, debt_id):
 
 @login_required
 def debt_statistics(request):
-    """Получить статистику по долгам - ИСПРАВЛЕННАЯ ЛОГИКА"""
+    """Получить статистику по долгам - ОБНОВЛЕННАЯ ЛОГИКА"""
     try:
         debts = Debt.objects.filter(user=request.user)
         
-        # ОБЩАЯ СУММА: только активные долги (active + delay_7)
-        total_amount = debts.filter(status__in=['active', 'delay_7']).aggregate(Sum('amount'))['amount__sum'] or 0
+        # ОБЩАЯ СУММА: только активные долги (active + delay_7 + partially_paid) - оставшаяся сумма
+        active_debts = debts.filter(status__in=['active', 'delay_7', 'partially_paid'])
+        total_amount = sum([debt.remaining_amount for debt in active_debts])
         
-        # ПРОСРОЧЕНО: только активные долги с просроченной датой
-        overdue_amount = debts.filter(
-            status__in=['active', 'delay_7'], 
-            due_date__lt=timezone.now().date()
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        # ПРОСРОЧЕНО: только активные долги с просроченной датой - оставшаяся сумма
+        overdue_debts = active_debts.filter(due_date__lt=timezone.now().date())
+        overdue_amount = sum([debt.remaining_amount for debt in overdue_debts])
         
-        # ПОГАШЕНО: только долги со статусом paid
-        paid_amount = debts.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+        # ПОГАШЕНО: сумма всех платежей по всем долгам
+        paid_amount = sum([debt.paid_amount for debt in debts])
         
         print(f"Statistics - Active Total: {total_amount}, Overdue: {overdue_amount}, Paid: {paid_amount}")
         
