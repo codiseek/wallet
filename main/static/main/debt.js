@@ -450,7 +450,7 @@ updateModalCurrency() {
         });
     }
 
-    createDebtElement(debt) {
+createDebtElement(debt) {
         const debtDiv = document.createElement('div');
         
         let gradientClass, borderClass, statusClass, statusIcon, statusText, daysClass, daysIcon;
@@ -481,7 +481,7 @@ updateModalCurrency() {
             daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
         }
         
-        debtDiv.className = `${gradientClass} rounded-xl p-4 border ${borderClass} transition-all duration-300 hover:scale-[1.02] debt-item relative`;
+        debtDiv.className = `${gradientClass} rounded-xl p-4 border ${borderClass} transition-all duration-300 debt-item relative cursor-pointer collapsed`;
         
         let whatsappLink = '';
         if (debt.phone && debt.phone !== 'Не указан') {
@@ -493,126 +493,166 @@ updateModalCurrency() {
             <button 
                 class="absolute top-3 right-3 w-9 h-9 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-red-500/30 transition-all duration-200 delete-debt-btn z-20"
                 data-debt-id="${debt.id}"
+                data-no-toggle="true"
             >
                 <i class="fas fa-trash text-gray-300 text-base"></i>
             </button>
 
-            <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10">
+            <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10" data-no-toggle="true">
                 <div class="text-center mb-3">
                     <p class="text-red-400 font-semibold">Удалить должника?</p>
                     <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
                 </div>
                 <div class="flex space-x-3 w-full">
-                    <button class="cancel-delete flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors">
+                    <button class="cancel-delete flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors" data-no-toggle="true">
                         Отмена
                     </button>
-                    <button class="confirm-delete flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors">
+                    <button class="confirm-delete flex-1 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors" data-no-toggle="true">
                         Да, удалить!
                     </button>
                 </div>
             </div>
 
-            <div class="text-center mb-4">
-                <h3 class="font-bold text-white text-xl mb-2">${this.escapeHtml(debt.debtor_name)}</h3>
+            <!-- Основная информация (всегда видима) -->
+            <div class="debt-main-info">
+                <div class="text-center mb-4">
+                    <h3 class="font-bold text-white text-xl mb-2">${this.escapeHtml(debt.debtor_name)}</h3>
+                </div>
+
+                <div class="flex justify-center items-center space-x-6 mb-2">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-400 mb-1">Сумма долга</p>
+                        <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
+                    </div>
+                    <div class="h-8 w-px bg-gray-600"></div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-400 mb-1">Срок возврата</p>
+                        <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex justify-center items-center space-x-6 mb-2">
+            <!-- Дополнительная информация (скрыта по умолчанию) -->
+            <div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
+                ${debt.days_remaining !== null && debt.status === 'active' ? `
                 <div class="text-center">
-    <p class="text-sm text-gray-400 mb-1">Сумма долга</p>
-    <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
-                </div>
-                <div class="h-8 w-px bg-gray-600"></div>
-                <div class="text-center">
-                    <p class="text-sm text-gray-400 mb-1">Срок возврата</p>
-                    <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
-                </div>
-            </div>
-            
-          ${debt.days_remaining !== null && debt.status === 'active' ? `
-    <div class="text-center mb-3 mt-4">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
-            <i class="fas ${daysIcon} mr-1.5"></i>
-            ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
-        </span>
-    </div>
-` : ''}
-            
-            ${debt.status === 'delay_7' ? `
-                <div class="text-center mb-4">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
-                        <i class="fas fa-clock mr-1.5"></i>
-                        +7 дней отсрочка
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
+                        <i class="fas ${daysIcon} mr-1.5"></i>
+                        ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
                     </span>
                 </div>
-            ` : ''}
-            
-            <div class="space-y-3 mb-4">
-                ${debt.phone && debt.phone !== 'Не указан' ? `
-                    <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
-                        <div class="flex items-center text-gray-300">
-                            <i class="fas fa-phone mr-3 text-blue-400"></i>
-                            <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
-                               class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                                <i class="fas fa-phone text-sm"></i>
-                            </a>
-                            ${whatsappLink ? `
-                            <a href="${whatsappLink}" 
-                               target="_blank"
-                               class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
-                                <i class="fab fa-whatsapp text-sm"></i>
-                            </a>
-                            ` : ''}
-                        </div>
+                ` : ''}
+                
+                ${debt.status === 'delay_7' ? `
+                    <div class="text-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                            <i class="fas fa-clock mr-1.5"></i>
+                            +7 дней отсрочка
+                        </span>
                     </div>
                 ` : ''}
                 
-                ${debt.address ? `
-                    <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
-                        <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
-                        <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
-                    </div>
-                ` : ''}
-            </div>
-            
-            ${debt.description ? `
-                <div class="mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
-                    <p class="text-gray-300 text-sm leading-relaxed">
-                        <i class="fas fa-comment mr-2 text-yellow-400"></i>
-                        ${this.escapeHtml(debt.description)}
-                    </p>
-                </div>
-            ` : ''}
-            
-            <div class="flex justify-between items-center pt-4 border-t border-gray-700/50">
-                <div class="text-gray-500 text-xs flex items-center">
-                    <i class="fas fa-calendar-plus mr-1.5"></i>
-                    Добавлен: ${this.escapeHtml(debt.created_at)}
-                </div>
-                
-                <div class="relative">
-                    <button class="status-dropdown-btn bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex items-center">
-                        <span>${this.getStatusText(debt.status)}</span>
-                        <i class="fas fa-chevron-up ml-2 text-xs"></i>
-                    </button>
+                <div class="space-y-3">
+                    ${debt.phone && debt.phone !== 'Не указан' ? `
+                        <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-phone mr-3 text-blue-400"></i>
+                                <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
+                                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                                   data-no-toggle="true">
+                                    <i class="fas fa-phone text-sm"></i>
+                                </a>
+                                ${whatsappLink ? `
+                                <a href="${whatsappLink}" 
+                                   target="_blank"
+                                   class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                                   data-no-toggle="true">
+                                    <i class="fab fa-whatsapp text-sm"></i>
+                                </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                     
-                    <div class="status-dropdown absolute right-0 bottom-full mb-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-[100]">
-                        <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'text-white'}" data-status="active">
-                            Активный
+                    ${debt.address ? `
+                        <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
+                            <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
+                            <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                ${debt.description ? `
+                    <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                        <p class="text-gray-300 text-sm leading-relaxed">
+                            <i class="fas fa-comment mr-2 text-yellow-400"></i>
+                            ${this.escapeHtml(debt.description)}
+                        </p>
+                    </div>
+                ` : ''}
+                
+                <div class="flex justify-between items-center pt-4 border-t border-gray-700/50">
+                    <div class="text-gray-500 text-xs flex items-center">
+                        <i class="fas fa-calendar-plus mr-1.5"></i>
+                        Добавлен: ${this.escapeHtml(debt.created_at)}
+                    </div>
+                    
+                    <div class="relative">
+                        <button class="status-dropdown-btn bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex items-center"
+                                data-no-toggle="true">
+                            <span>${this.getStatusText(debt.status)}</span>
+                            <i class="fas fa-chevron-up ml-2 text-xs"></i>
                         </button>
-                        <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'text-white'}" data-status="paid">
-                            Погашенный
-                        </button>
-                        <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors ${debt.status === 'delay_7' ? 'bg-yellow-500/20 text-yellow-400' : 'text-white'}" data-status="delay_7">
-                            Отсрочка 7 дней
-                        </button>
+                        
+                        <div class="status-dropdown absolute right-0 bottom-full mb-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-[100]">
+                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'text-white'}" data-status="active" data-no-toggle="true">
+                                Активный
+                            </button>
+                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700 ${debt.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'text-white'}" data-status="paid" data-no-toggle="true">
+                                Погашенный
+                            </button>
+                            <button class="status-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors ${debt.status === 'delay_7' ? 'bg-yellow-500/20 text-yellow-400' : 'text-white'}" data-status="delay_7" data-no-toggle="true">
+                                Отсрочка 7 дней
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Подсказка для развертывания -->
+            <div class="text-center mt-3 pt-3 border-t border-gray-700/30">
+                <p class="text-xs text-gray-500">Тапните чтобы развернуть</p>
             </div>
         `;
         
+        // Обработчик для сворачивания/разворачивания карточки
+        debtDiv.addEventListener('click', (e) => {
+            // Игнорируем клики на элементах с data-no-toggle="true"
+            if (e.target.closest('[data-no-toggle="true"]')) {
+                return;
+            }
+            
+            const details = debtDiv.querySelector('.debt-details');
+            const isCollapsed = debtDiv.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // Разворачиваем
+                debtDiv.classList.remove('collapsed');
+                details.classList.remove('hidden');
+                debtDiv.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    debtDiv.style.transform = '';
+                }, 300);
+            } else {
+                // Сворачиваем
+                debtDiv.classList.add('collapsed');
+                details.classList.add('hidden');
+            }
+        });
+
         // Добавляем обработчики для кнопки удаления
         const deleteBtn = debtDiv.querySelector('.delete-debt-btn');
         const deleteConfirm = debtDiv.querySelector('.delete-confirm');
@@ -636,7 +676,7 @@ updateModalCurrency() {
             });
         }
         
-        // Остальные обработчики (статус, звонки и т.д.) остаются без изменений
+        // Обработчики для dropdown статуса
         const dropdownBtn = debtDiv.querySelector('.status-dropdown-btn');
         const dropdown = debtDiv.querySelector('.status-dropdown');
         
@@ -677,6 +717,8 @@ updateModalCurrency() {
         
         return debtDiv;
     }
+
+    
 
     async changeStatus(debtId, newStatus) {
         try {
