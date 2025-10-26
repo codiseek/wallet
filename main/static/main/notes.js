@@ -62,12 +62,11 @@ function updateNotesIcon(notesCount) {
     }
 }
 
-// Функция для инициализации иконки заметок
 function initNotesIcon() {
     const notesIconBtn = document.getElementById('notesIconBtn');
     
     if (notesIconBtn) {
-        notesIconBtn.addEventListener('click', function() {
+        notesIconBtn.addEventListener('click', function(event) {
             // Используем существующую функцию переключения вкладок
             if (typeof window.switchToTab === 'function') {
                 window.switchToTab('notes');
@@ -91,11 +90,21 @@ function initNotesIcon() {
                     navItem.classList.add('active');
                 }
             }
+            
+            // Скрываем блок баланса (если нужно)
+            const balanceBlock = document.querySelector('.mobile-header .bg-gradient-to-r');
+            if (balanceBlock) {
+                balanceBlock.classList.add('hidden');
+            }
+            
+            // ПРОКРУЧИВАЕМ К ВЕРХУ СТРАНИЦЫ ДЛЯ ВКЛАДКИ NOTES
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Останавливаем всплытие события
+            event.stopPropagation();
         });
     }
 }
-
-
 
 
 // НОВАЯ ФУНКЦИЯ: Очистка старых уведомлений

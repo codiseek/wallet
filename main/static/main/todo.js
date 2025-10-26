@@ -24,71 +24,83 @@ class TodoManager {
     }
 
     initEventListeners() {
-        document.getElementById('saveTodoBtn').addEventListener('click', () => this.saveTodo());
-        document.getElementById('closeTodoModalHeaderBtn').addEventListener('click', () => this.closeModal());
-        document.getElementById('todoModal').addEventListener('click', (e) => {
-            if (e.target.id === 'todoModal') this.closeModal();
-        });
+    document.getElementById('saveTodoBtn').addEventListener('click', () => this.saveTodo());
+    document.getElementById('closeTodoModalHeaderBtn').addEventListener('click', () => this.closeModal());
+    document.getElementById('todoModal').addEventListener('click', (e) => {
+        if (e.target.id === 'todoModal') this.closeModal();
+    });
 
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.setFilter(e.currentTarget.dataset.filter);
-            });
+    // Обновленный селектор для фильтров
+    document.querySelectorAll('.todo-filter-tab').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            this.setFilter(e.currentTarget.dataset.filter);
         });
-    }
+    });
+}
 
-    setFilter(filter) {
-        this.currentFilter = filter;
+setFilter(filter) {
+    this.currentFilter = filter;
+    
+    // Находим все кнопки фильтров todo
+    const filterButtons = document.querySelectorAll('.todo-filter-tab');
+    
+    filterButtons.forEach(btn => {
+        // Удаляем активные классы
+        btn.classList.remove('active', 'bg-gray-700', 'text-white');
+        // Добавляем неактивные классы
+        btn.classList.add('text-gray-400');
         
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active', 'bg-blue-500/20', 'text-blue-400', 'border-blue-500/30', 
-                                'bg-green-500/20', 'text-green-400', 'border-green-500/30',
-                                'bg-gray-800/40', 'text-gray-400', 'border-gray-600/30');
-            
-            if (btn.dataset.filter === filter) {
-                if (filter === 'active') {
-                    btn.classList.add('active', 'bg-blue-500/20', 'text-blue-400', 'border-blue-500/30');
-                } else {
-                    btn.classList.add('active', 'bg-green-500/20', 'text-green-400', 'border-green-500/30');
-                }
-            } else {
-                btn.classList.add('bg-gray-800/40', 'text-gray-400', 'border-gray-600/30');
-            }
-        });
-        
-        this.renderFilteredTodos();
-    }
+        // Если эта кнопка соответствует текущему фильтру, делаем ее активной
+        if (btn.dataset.filter === filter) {
+            btn.classList.remove('text-gray-400');
+            btn.classList.add('active', 'bg-gray-700', 'text-white');
+        }
+    });
+    
+    this.renderFilteredTodos();
+}
 
 
 openAddModal() {
-    this.currentEditingTodo = null;
-    document.getElementById('todoModalTitle').innerHTML = 'Новая задача';
-    document.getElementById('todoTitleInput').value = '';
-    document.getElementById('todoDescriptionInput').value = '';
-    this.openModal();
-}
-
-openEditModal(todo) {
-    this.currentEditingTodo = todo;
-    document.getElementById('todoModalTitle').innerHTML = 'Редактирование';
-    document.getElementById('todoTitleInput').value = todo.title;
-    document.getElementById('todoDescriptionInput').value = todo.description || '';
-    this.openModal();
-}
-
-openModal() {
-    const modal = document.getElementById('todoModal');
-    if (modal) {
-        animateModal(modal, true);
+        this.currentEditingTodo = null;
+        document.getElementById('todoModalTitle').innerHTML = 'Новая задача';
+        document.getElementById('todoTitleInput').value = '';
+        document.getElementById('todoDescriptionInput').value = '';
+        this.openModal();
     }
-}
 
-closeModal() {
-    const modal = document.getElementById('todoModal');
-    if (modal) {
-        animateModal(modal, false);
+    openEditModal(todo) {
+        this.currentEditingTodo = todo;
+        document.getElementById('todoModalTitle').innerHTML = 'Редактирование';
+        document.getElementById('todoTitleInput').value = todo.title;
+        document.getElementById('todoDescriptionInput').value = todo.description || '';
+        this.openModal();
     }
-}
+
+    openModal() {
+        const modal = document.getElementById('todoModal');
+        if (modal) {
+            animateModal(modal, true);
+        }
+    }
+
+    closeModal() {
+        const modal = document.getElementById('todoModal');
+        if (modal) {
+            animateModal(modal, false);
+            
+            // СБРАСЫВАЕМ ФОРМУ ПРИ ЗАКРЫТИИ МОДАЛКИ
+            this.resetTodoForm();
+        }
+    }
+
+    // ДОБАВЛЯЕМ НОВЫЙ МЕТОД ДЛЯ СБРОСА ФОРМЫ
+    resetTodoForm() {
+        document.getElementById('todoTitleInput').value = '';
+        document.getElementById('todoDescriptionInput').value = '';
+        this.currentEditingTodo = null;
+    }
+
    async saveTodo() {
     const title = document.getElementById('todoTitleInput').value.trim();
     const description = document.getElementById('todoDescriptionInput').value.trim();

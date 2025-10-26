@@ -187,6 +187,56 @@ updateModalCurrency() {
         }
     }
 
+    showSuccess(message) {
+        this.showModalNotification(message, 'success');
+    }
+
+    showError(message) {
+        this.showModalNotification(message, 'error');
+    }
+
+    showModalNotification(message, type) {
+        const notificationEl = document.getElementById('debtModalNotification');
+        if (!notificationEl) return;
+
+        // Очищаем предыдущие уведомления
+        notificationEl.innerHTML = '';
+        notificationEl.className = 'hidden mx-4 mt-4 p-3 rounded-lg border';
+
+        // Настраиваем стили в зависимости от типа
+        if (type === 'success') {
+            notificationEl.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/30');
+            notificationEl.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+        } else if (type === 'error') {
+            notificationEl.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/30');
+            notificationEl.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+
+        // Показываем уведомление
+        notificationEl.classList.remove('hidden');
+
+        // Автоматически скрываем через 5 секунд
+        setTimeout(() => {
+            notificationEl.classList.add('hidden');
+        }, 5000);
+
+        // Также скрываем при клике
+        notificationEl.addEventListener('click', () => {
+            notificationEl.classList.add('hidden');
+        });
+    }
+
+
     openDebtModal() {
         const modal = document.getElementById('debtModal');
         if (modal) {
@@ -208,10 +258,16 @@ updateModalCurrency() {
                 modal.classList.add('hidden');
             }
             this.resetDebtForm();
+            
+            // Скрываем уведомление при закрытии модалки
+            const notificationEl = document.getElementById('debtModalNotification');
+            if (notificationEl) {
+                notificationEl.classList.add('hidden');
+            }
         }
     }
 
-    resetDebtForm() {
+     resetDebtForm() {
         const form = document.getElementById('debtForm');
         if (form) {
             form.reset();
@@ -223,6 +279,12 @@ updateModalCurrency() {
             if (dueDateInput) {
                 const today = new Date().toISOString().split('T')[0];
                 dueDateInput.min = today;
+            }
+
+            // Скрываем уведомление при сбросе формы
+            const notificationEl = document.getElementById('debtModalNotification');
+            if (notificationEl) {
+                notificationEl.classList.add('hidden');
             }
         }
     }
@@ -712,55 +774,62 @@ updateModalCurrency() {
         this.loadDebts();
     }
 
-    async saveDebt() {
-        if (this.isSaving) {
-            return;
-        }
+   async saveDebt() {
+    if (this.isSaving) {
+        return;
+    }
 
-        const form = document.getElementById('debtForm');
-        if (!form) return;
-        
-        const formData = new FormData(form);
-        const saveBtn = document.getElementById('saveDebtBtn');
+    const form = document.getElementById('debtForm');
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const saveBtn = document.getElementById('saveDebtBtn');
 
-        const debtorName = formData.get('debtor_name')?.trim();
-        const amount = formData.get('amount');
-        const dueDate = formData.get('due_date');
-        const phone = formData.get('phone')?.trim();
-        const address = formData.get('address')?.trim();
+    // Сначала скрываем предыдущие уведомления
+    const notificationEl = document.getElementById('debtModalNotification');
+    if (notificationEl) {
+        notificationEl.classList.add('hidden');
+    }
 
-        if (!debtorName || debtorName.length < 2) {
-            this.showError('Введите корректное ФИО должника (минимум 2 символа)');
-            return;
-        }
+    // Валидация полей
+    const debtorName = formData.get('debtor_name')?.trim();
+    const amount = formData.get('amount');
+    const dueDate = formData.get('due_date');
+    const phone = formData.get('phone')?.trim();
 
-        if (!amount || parseFloat(amount) <= 0) {
-            this.showError('Введите корректную сумму долга (больше 0)');
-            return;
-        }
+    if (!debtorName || debtorName.length < 2) {
+        this.showError('Введите корректное ФИО должника (минимум 2 символа)');
+        return;
+    }
 
-        if (!dueDate) {
-            this.showError('Выберите срок возврата');
-            return;
-        }
+    if (!amount || parseFloat(amount) <= 0) {
+        this.showError('Введите корректную сумму долга (больше 0)');
+        return;
+    }
 
-        const selectedDate = new Date(dueDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-            this.showError('Дата возврата не может быть в прошлом');
-            return;
-        }
+    if (!dueDate) {
+        this.showError('Выберите срок возврата');
+        return;
+    }
 
-        if (phone && !this.validatePhone(phone)) {
-            this.showError('Введите корректный номер телефона');
-            return;
-        }
+    const selectedDate = new Date(dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+        this.showError('Дата возврата не может быть в прошлом');
+        return;
+    }
 
-        formData.set('debtor_name', debtorName);
-        if (phone) formData.set('phone', phone);
-        if (address) formData.set('address', address);
+    if (phone && !this.validatePhone(phone)) {
+        this.showError('Введите корректный номер телефона');
+        return;
+    }
+
+       formData.set('debtor_name', debtorName);
+if (phone) formData.set('phone', phone);
+const address = formData.get('address')?.trim();
+if (address) formData.set('address', address);
 
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
         if (csrfToken) {
@@ -811,7 +880,7 @@ updateModalCurrency() {
         return phoneRegex.test(phone);
     }
 
-    async markAsPaid(debtId) {
+        async markAsPaid(debtId) {
         if (!confirm('Отметить долг как погашенный?')) return;
 
         try {
@@ -837,23 +906,7 @@ updateModalCurrency() {
             this.showError('Ошибка соединения');
         }
     }
-
-    showSuccess(message) {
-        if (window.showSuccessNotification) {
-            window.showSuccessNotification(message);
-        } else {
-            alert(message);
-        }
-    }
-
-    showError(message) {
-        if (window.showErrorNotification) {
-            window.showErrorNotification(message);
-        } else {
-            alert('Ошибка: ' + message);
-        }
-    }
-}
+} // ЗАКРЫТИЕ КЛАССА DebtManager - ДОЛЖНО БЫТЬ ЗДЕСЬ
 
 // Глобальная функция для обновления валюты во всех модулях
 window.updateAllCurrencyModules = function(currency) {
