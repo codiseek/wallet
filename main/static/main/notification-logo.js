@@ -1287,8 +1287,6 @@ async function deleteChatCompletely(notificationId, element) {
 // -----------------------------
 // Открытие детального просмотра уведомления
 // -----------------------------
-// notification-logo.js - обновленная функция openNotificationDetail
-// Обновленная функция открытия детального просмотра уведомления
 function openNotificationDetail(notificationId) {
     // Находим уведомление в массиве
     const notification = userNotifications.find(n => n.id == notificationId);
@@ -1345,7 +1343,9 @@ function openNotificationDetail(notificationId) {
     
     // Если уведомление не прочитано, помечаем как прочитанное
     if (!notification.is_read) {
-        markNotificationAsRead2(notificationId);
+        // Находим элемент уведомления в DOM перед вызовом markNotificationAsRead2
+        const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+        markNotificationAsRead2(notificationId, notificationElement);
     }
 }
 
@@ -1430,7 +1430,7 @@ function closeNotificationDetailModal() {
 // -----------------------------
 // Обновленная функция пометки уведомления как прочитанного
 // -----------------------------
-async function markNotificationAsRead2(notificationId) {
+async function markNotificationAsRead2(notificationId, notificationElement) {
     try {
         const response = await fetch(`/notifications/${notificationId}/read/`, {
             method: 'POST',
@@ -1450,9 +1450,8 @@ async function markNotificationAsRead2(notificationId) {
                 userNotifications[notificationIndex].read_at = new Date().toISOString();
             }
             
-            // Обновляем интерфейс
-            const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
-            if (notificationElement) {
+            // Обновляем интерфейс только если элемент существует
+            if (notificationElement && notificationElement.classList) {
                 updateNotificationElementStyle(notificationElement, false);
             }
             
@@ -1464,7 +1463,6 @@ async function markNotificationAsRead2(notificationId) {
         console.error('Ошибка при отметке уведомления как прочитанного:', error);
     }
 }
-
 
 // -----------------------------
 // Вспомогательная функция для обновления стиля элемента уведомления

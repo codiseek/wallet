@@ -1114,6 +1114,7 @@ padding: 0.5rem 0.75rem 1rem;
     align-items: center !important;
     pointer-events: none !important;
     z-index: 20 !important;
+    margin-top: 3px !important;
 }
 
 /* === Суперфикс для Android и iPhone === */

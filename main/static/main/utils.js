@@ -26,7 +26,7 @@ function showSuccessNotification(message) {
     const container = document.getElementById('notificationContainer');
     if (!container) return;
     const notification = document.createElement('div');
-    notification.className = 'notification-inline flex items-center px-3 py-1.5 rounded-lg text-sm bg-gray-800/80 backdrop-blur-sm border border-gray-700';
+    notification.className = 'notification-inline flex items-center px-3 py-1.5 rounded-lg text-sm bg-gray-800 border border-gray-700';
     notification.innerHTML = `<span><i class="fas fa-bell mr-2 text-blue-400"></i> ${message}</span>`;
 container.appendChild(notification);
 
