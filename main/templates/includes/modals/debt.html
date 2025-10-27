@@ -4,13 +4,12 @@
 {% block modal_id %}debtModal{% endblock %}
 
 {% block modal_content %}
-
-<!-- Модальное окно добавления долга -->
+<!-- Модальное окно добавления платежа -->
         <!-- Хедер -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between">
             <h2 class="text-xl font-bold flex items-center">
-
-                Создание долга
+                <i class="fas fa-plus-circle mr-2"></i>
+                Создание платежа
             </h2>
             <button id="closeDebtModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
                 <i class="fas fa-times mr-1"></i>Закрыть
@@ -20,19 +19,17 @@
          <!-- Контейнер для уведомлений внутри модалки -->
         <div id="debtModalNotification" class="hidden mx-4 mt-4 p-3 rounded-lg border"></div>
 
-
         <!-- Контент -->
         <div class="p-4 max-h-[60vh] overflow-y-auto">
             <form id="debtForm">
                 {% csrf_token %}
-               <!-- Обновите поля ввода в модалке: -->
-<div class="space-y-4">
-    <!-- ФИО -->
+               <div class="space-y-4">
+    <!-- Название платежа -->
     <div>
-        <label class="block text-gray-400 text-sm font-medium mb-2">Фамилия и Имя *</label>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Название платежа *</label>
         <input type="text" name="debtor_name" required minlength="2"
                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
-               placeholder="Введите ФИО должника">
+               placeholder="Введите название платежа или ФИО">
         <p class="text-red-400 text-xs mt-1 hidden" id="debtorNameError">Минимум 2 символа</p>
     </div>
 
@@ -53,22 +50,21 @@
                placeholder="ул. Пушкина, д. 10">
     </div>
 
-    <!-- Сумма долга -->
+    <!-- Сумма платежа -->
     <div>
-        <label class="block text-gray-400 text-sm font-medium mb-2">Сумма долга *</label>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Сумма платежа *</label>
         <input type="number" name="amount" step="0.01" required min="0.01"
                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
                placeholder="0.00">
         <p class="text-red-400 text-xs mt-1 hidden" id="amountError">Сумма должна быть больше 0</p>
     </div>
 
-    <!-- Срок возврата -->
+    <!-- Срок оплаты -->
     <div>
-        <label class="block text-gray-400 text-sm font-medium mb-2">Срок возврата *</label>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Срок оплаты *</label>
         <input type="date" name="due_date" required
                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                min="{{ today }}">
-       <class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
         <p class="text-red-400 text-xs mt-1 hidden" id="dueDateError">Выберите корректную дату</p>
     </div>
 
@@ -95,4 +91,5 @@
                     <i class="fas fa-save mr-2"></i>Сохранить
                 </button>
             </div>
+        </div>
 {% endblock %}

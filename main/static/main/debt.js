@@ -89,9 +89,7 @@ updateModalCurrency() {
 
    async addPayment(debtId, paymentAmount, note = '') {
     try {
-        console.log('=== ADD PAYMENT REQUEST ===');
-        console.log('Debt ID:', debtId);
-        console.log('Payment Amount:', paymentAmount);
+        
         console.log('Note:', note);
 
         const formData = new FormData();
@@ -114,9 +112,7 @@ updateModalCurrency() {
         });
 
         const data = await response.json();
-        console.log('=== ADD PAYMENT RESPONSE ===');
-        console.log('Status:', response.status);
-        console.log('Data:', data);
+       
 
         if (data.success) {
             return data;
@@ -140,7 +136,6 @@ async payFullDebt(debtId, debtDiv, debt) {
     const payFullBtn = debtDiv.querySelector('.pay-full-debt'); // Объявляем один раз
     
     try {
-        console.log('=== PAY FULL DEBT START ===');
         
         // Сбрасываем состояние кнопки подтверждения
         if (payFullBtn && payFullBtn.classList.contains('confirm-mode')) {
@@ -168,7 +163,6 @@ async payFullDebt(debtId, debtDiv, debt) {
         });
 
         const data = await response.json();
-        console.log('Pay full debt response:', data);
 
         if (data.success) {
             // Закрываем форму платежа
@@ -182,7 +176,6 @@ async payFullDebt(debtId, debtDiv, debt) {
                 Object.keys(data.debt).forEach(key => {
                     debt[key] = data.debt[key];
                 });
-                console.log('Updated debt after full payment:', debt);
                 
                 // Визуально обновляем карточку
                 this.updateDebtCardVisuals(debtDiv, debt);
@@ -198,7 +191,7 @@ async payFullDebt(debtId, debtDiv, debt) {
             
             this.showSuccess(data.message);
         } else {
-            this.showError(data.error || 'Ошибка при погашении долга');
+            this.showError(data.error || 'Ошибка при оплате платежа');
         }
 
     } catch (error) {
@@ -211,7 +204,6 @@ async payFullDebt(debtId, debtDiv, debt) {
             payFullBtn.disabled = false;
             this.resetConfirmationMode(payFullBtn);
         }
-        console.log('=== PAY FULL DEBT END ===');
     }
 }
 
@@ -512,7 +504,7 @@ async loadDebtPayments(debtId) {
                 this.loadStatistics();
                 this.loadDebtCount();
             } else {
-                this.showError(data.message || 'Ошибка при удалении должника');
+                this.showError(data.message || 'Ошибка при удалении платежа');
             }
 
         } catch (error) {
@@ -550,7 +542,7 @@ async loadDebtPayments(debtId) {
                 debtsList.classList.add('hidden');
                 emptyState.classList.remove('hidden');
             } else {
-                this.showError('Ошибка загрузки списка долгов: ' + (data.error || 'неизвестная ошибка'));
+                this.showError('Ошибка загрузки списка платежей: ' + (data.error || 'неизвестная ошибка'));
                 debtsList.classList.add('hidden');
                 emptyState.classList.add('hidden');
             }
@@ -643,7 +635,7 @@ createDebtElement(debt) {
         borderClass = 'border-green-500/20 hover:border-green-400/40';
         statusClass = 'bg-green-500/20 text-green-400 border-green-500/30';
         statusIcon = 'fa-check-circle';
-        statusText = 'Погашен';
+        statusText = 'Выполнен';
         daysClass = 'text-green-400';
         daysIcon = 'fa-trophy';
     } else if (debt.status === 'partially_paid') {
@@ -651,7 +643,7 @@ createDebtElement(debt) {
         borderClass = 'border-yellow-500/20 hover:border-yellow-400/40';
         statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
         statusIcon = 'fa-check-double';
-        statusText = 'Частично погашен';
+        statusText = 'Частично выполнен';
         daysClass = debt.days_remaining <= 3 ? 'text-yellow-400' : 'text-green-400';
         daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
     } else if (debt.is_overdue) {
@@ -693,10 +685,10 @@ createDebtElement(debt) {
             <i class="fas fa-trash text-gray-300 text-base"></i>
         </button>
 
-        <!-- Подтверждение удаления -->
+ <!-- Подтверждение удаления -->
         <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10" data-no-toggle="true">
             <div class="text-center mb-3">
-                <p class="text-red-400 font-semibold">Удалить должника?</p>
+                <p class="text-red-400 font-semibold">Удалить платеж?</p>
                 <p class="text-gray-400 text-sm">Это действие нельзя отменить</p>
             </div>
             <div class="flex space-x-3 w-full">
@@ -709,54 +701,54 @@ createDebtElement(debt) {
             </div>
         </div>
 
-        <!-- Основная информация -->
+       <!-- Основная информация -->
         <div class="debt-main-info">
+            <div class="text-center mb-4">
+                <h3 class="font-bold text-white text-xl mb-3">${this.escapeHtml(debt.debtor_name)}</h3>
+                <div class="flex flex-wrap justify-center items-center gap-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass} status-badge-transition">
+                        <i class="fas ${statusIcon} mr-1.5"></i>
+                        ${statusText}
+                    </span>
+                    
+                    <!-- Блок с ежедневной суммой -->
+                    ${debt.status !== 'paid' && !debt.is_overdue && debt.days_remaining > 0 ? `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-300 border border-gray-500/30">
+                            <i class="fas fa-calendar-day mr-1.5 text-gray-400"></i>
+                            ${formatAmount(Math.round(debt.remaining_amount / debt.days_remaining))} ${this.currencySymbol} / день
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
 
-<div class="text-center mb-4">
-    <h3 class="font-bold text-white text-xl mb-3">${this.escapeHtml(debt.debtor_name)}</h3>
-    <div class="flex flex-wrap justify-center items-center gap-2">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass} status-badge-transition">
-            <i class="fas ${statusIcon} mr-1.5"></i>
-            ${statusText}
-        </span>
-        
-        <!-- Блок с ежедневной суммой - показываем только для активных долгов с days_remaining > 0 -->
-        ${debt.status !== 'paid' && !debt.is_overdue && debt.days_remaining > 0 ? `
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-300 border border-gray-500/30">
-                <i class="fas fa-vault mr-1.5 text-gray-400"></i>
-                ${formatAmount(Math.round(debt.remaining_amount / debt.days_remaining))} ${this.currencySymbol} / день
-            </span>
-        ` : ''}
-    </div>
-</div>
+           <!-- Прогресс выполнения -->
+            ${debt.status !== 'paid' ? `
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                    <span>Выполнено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
+                    <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full progress-bar-transition" style="width: ${progressPercentage}%"></div>
+                </div>
+            </div>
+            ` : ''}
 
-            <!-- Прогресс погашения -->
-${debt.status !== 'paid' ? `
-<div class="mb-4">
-    <div class="flex justify-between text-sm text-gray-400 mb-1">
-        <span>Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
-        <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
-    </div>
-    <div class="w-full bg-gray-700 rounded-full h-2">
-        <div class="bg-green-500 h-2 rounded-full progress-bar-transition" style="width: ${progressPercentage}%"></div>
-    </div>
-</div>
-` : ''}
-
-            <div class="flex justify-center items-center space-x-6 mb-2">
+             <div class="flex justify-center items-center space-x-6 mb-2">
                 <div class="text-center">
                     <p class="text-sm text-gray-400 mb-1">Общая сумма</p>
                     <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
                 </div>
                 <div class="h-8 w-px bg-gray-600"></div>
                 <div class="text-center">
-                    <p class="text-sm text-gray-400 mb-1">Срок возврата</p>
+                    <p class="text-sm text-gray-400 mb-1">Срок оплаты</p>
                     <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Дополнительная информация -->
+
+
        <!-- Дополнительная информация -->
 <div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
   ${debt.days_remaining !== null && debt.status !== 'paid' ? `
@@ -819,76 +811,67 @@ ${debt.status !== 'paid' ? `
         </div>
     ` : ''}
     
-    <!-- Кнопки действий -->
-    ${debt.status !== 'paid' ? `
-    <div class="flex space-x-3">
-        <button class="pay-debt-btn flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
-                data-no-toggle="true">
-            
-            Погасить
-        </button>
-        <button class="delay-debt-btn bg-red-600 hover:bg-red-500 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center"
-                data-no-toggle="true">
-            
-            Отсрочка
-        </button>
-    </div>
-    
-    <!-- Форма погашения (скрыта по умолчанию) -->
-    <div class="payment-form hidden bg-gray-800/50 rounded-lg p-4 border border-gray-700" data-no-toggle="true">
-    <div class="mb-3" data-no-toggle="true">
-        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Сумма платежа</label>
-        <input type="number" 
-               class="payment-amount w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors"
-               placeholder="0.00"
-               step="0.01"
-               min="0.01"
-               max="${debt.remaining_amount}"
-               data-no-toggle="true">
-        <p class="text-gray-500 text-xs mt-1" data-no-toggle="true">Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</p>
-    </div>
-    <div class="mb-3" data-no-toggle="true">
-        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Примечание (необязательно)</label>
-        <textarea class="payment-note w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors resize-none"
-                  rows="2"
-                  placeholder="Комментарий к платежу..."
-                  data-no-toggle="true"></textarea>
-    </div>
-    <div class="flex space-x-3" data-no-toggle="true">
-        
-        <button class="pay-full-debt flex-1 py-3 rounded-lg bg-gray-600 hover:bg-green-500 text-white font-semibold transition-colors"
-        data-no-toggle="true">
-    Всю сумму
-</button>
-        <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
-                data-no-toggle="true">
-            Внести часть
-        </button>
-    </div>
-</div>
-    ` : ''}
-    
-    <!-- История платежей (будет скрыта если платежей нет) -->
-    <div class="payment-history">
-        <h4 class="text-gray-400 font-semibold mb-3 flex items-center">
-            <i class="fas fa-history mr-2"></i>
-            История платежей
-        </h4>
-        <div class="payment-history-list space-y-2 max-h-40 overflow-y-auto">
-            <div class="text-center text-gray-500 py-4">
-                <i class="fas fa-spinner fa-spin mr-2"></i>
-                Загрузка...
+   <!-- Кнопки действий -->
+            ${debt.status !== 'paid' ? `
+            <div class="flex space-x-3">
+                <button class="pay-debt-btn flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                        data-no-toggle="true">
+                    
+                    Внести платеж
+                </button>
+                <button class="delay-debt-btn bg-orange-600 hover:bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                        data-no-toggle="true">
+                   
+                    Отсрочка
+                </button>
             </div>
-        </div>
-    </div>
     
-    <div class="flex justify-between items-center pt-4 border-t border-gray-700/50">
-        <div class="text-gray-500 text-xs flex items-center">
-            <i class="fas fa-calendar-plus mr-1.5"></i>
-            Добавлен: ${this.escapeHtml(debt.created_at)}
-        </div>
-    </div>
-</div>
+   <!-- Форма платежа -->
+            <div class="payment-form hidden bg-gray-800/50 rounded-lg p-4 border border-gray-700" data-no-toggle="true">
+                <div class="mb-3" data-no-toggle="true">
+                    <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Сумма платежа</label>
+                    <input type="number" 
+                           class="payment-amount w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors"
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0.01"
+                           max="${debt.remaining_amount}"
+                           data-no-toggle="true">
+                    <p class="text-gray-500 text-xs mt-1" data-no-toggle="true">Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</p>
+                </div>
+                <div class="mb-3" data-no-toggle="true">
+                    <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Примечание (необязательно)</label>
+                    <textarea class="payment-note w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors resize-none"
+                              rows="2"
+                              placeholder="Комментарий к платежу..."
+                              data-no-toggle="true"></textarea>
+                </div>
+                <div class="flex space-x-3" data-no-toggle="true">
+                    <button class="pay-full-debt flex-1 py-3 border-gray-700 rounded-lg hover:bg-gray-500 text-white font-semibold transition-colors"
+                            data-no-toggle="true">
+                        Полная сумма
+                    </button>
+                    <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
+                            data-no-toggle="true">
+                        Внести часть
+                    </button>
+                </div>
+            </div>
+            ` : ''}
+    
+    <!-- История платежей -->
+            <div class="payment-history">
+                <h4 class="text-gray-400 font-semibold mb-3 flex items-center">
+                    <i class="fas fa-history mr-2"></i>
+                    История платежей
+                </h4>
+                <div class="payment-history-list space-y-2 max-h-40 overflow-y-auto">
+                    <div class="text-center text-gray-500 py-4">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                        Загрузка...
+                    </div>
+                </div>
+            </div>
 
         <!-- Подсказка для развертывания -->
         <div class="text-center mt-3 pt-3 border-t border-gray-700/30">
@@ -1229,7 +1212,7 @@ updateDebtCardVisuals(debtDiv, debt) {
         // Обновляем текстовые значения (без ежедневной суммы)
         const spans = progressBarContainer.querySelectorAll('span');
         if (spans.length >= 2) {
-            spans[0].textContent = `Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
+            spans[0].textContent = `Выполнено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
             spans[1].textContent = `Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}`;
             console.log('Text labels updated');
         }
@@ -1246,11 +1229,11 @@ if (statusContainer) {
         if (debt.status === 'paid') {
             statusClass = 'bg-green-500/20 text-green-400 border-green-500/30';
             statusIcon = 'fa-check-circle';
-            statusText = 'Погашен';
+            statusText = 'Выполнен';
         } else if (debt.status === 'partially_paid') {
             statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
             statusIcon = 'fa-check-double';
-            statusText = 'Частично погашен';
+            statusText = 'Частично выполнен';
         } else if (debt.is_overdue) {
             statusClass = 'bg-red-500/20 text-red-400 border-red-500/30';
             statusIcon = 'fa-exclamation-triangle';
@@ -1391,7 +1374,7 @@ renderStatistics(stats) {
                 <div class="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center mx-auto mb-2">
                     <i class="fas fa-check-circle text-green-400 text-sm"></i>
                 </div>
-                <p class="text-gray-400 text-xs mb-0.5">Погашено</p>
+                <p class="text-gray-400 text-xs mb-0.5">Выполнено</p>
                 <p class="text-white font-semibold text-xl">${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
             </div>
         </div>
@@ -1440,7 +1423,7 @@ renderStatistics(stats) {
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-        this.showError('Введите корректную сумму долга (больше 0)');
+        this.showError('Введите корректную сумму платежа (больше 0)');
         return;
     }
 
@@ -1511,7 +1494,7 @@ if (address) formData.set('address', address);
     }
 
         async markAsPaid(debtId) {
-        if (!confirm('Отметить долг как погашенный?')) return;
+        if (!confirm('Отметить платеж как выполненный?')) return;
 
         try {
             const response = await fetch(`/debts/${debtId}/mark_paid/`, {

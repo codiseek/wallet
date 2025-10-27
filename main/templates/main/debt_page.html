@@ -6,8 +6,8 @@
                 <!-- Заголовок и кнопка добавления -->
                 <div class="flex justify-between items-center -mt-3 mb-6">
                     <h2 class="text-lg -mt-2 font-bold flex items-center">
-                        <i class="fa-solid fa-skull mr-2"></i>
-                        Список долгов
+                        <i class="fa-solid fa-solid fa-arrows-spin mr-2"></i>
+                        Платежи и долги
                     </h2>
                     <button id="addDebtBtn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3">
                         <i class="fas fa-plus mr-1"></i> Добавить
@@ -16,7 +16,7 @@
 
                <div id="debtStatistics" class="bg-gray-800/60 rounded-lg p-4 border border-gray-700/50 mb-6">
     <div class="grid grid-cols-3 divide-x divide-gray-700">
-        <!-- Общая -->
+        <!-- Общая сумма -->
         <div class="text-center px-2">
             <div class="w-9 h-9 rounded-full bg-blue-500/15 flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-wallet text-blue-400 text-sm"></i>
@@ -34,12 +34,12 @@
             <p class="text-white font-semibold text-lg">0 <span class="currency-symbol">₽</span></p>
         </div>
 
-        <!-- Погашено -->
+        <!-- Выполнено -->
         <div class="text-center px-2">
             <div class="w-9 h-9 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-check-circle text-green-400 text-sm"></i>
             </div>
-            <p class="text-gray-400 text-xs mb-0.5">Погашено</p>
+            <p class="text-gray-400 text-xs mb-0.5">Выполнено</p>
             <p class="text-white font-semibold text-lg">0 <span class="currency-symbol">₽</span></p>
         </div>
     </div>
@@ -54,20 +54,19 @@
                         Просроченные
                     </button>
                     <button class="debt-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="paid">
-                        Погашенные
+                        Выполненные
                     </button>
                 </div>
 
-                <!-- Остальной код остается без изменений -->
-                <!-- Список должников -->
+                <!-- Список платежей -->
                 <div class="space-y-4" id="debtsList">
                     <!-- Контент будет загружаться через JavaScript -->
                 </div>
 
                 <!-- Пустое состояние -->
                 <div id="emptyDebtsState" class="text-center py-8">
-                    <i class="fa-solid fa-skull text-8xl text-gray-500 mb-3"></i>
-                    <p class="text-gray-400">Список должников пуст</p>
+                    <i class="fa-solid fa-calendar-check text-8xl text-gray-500 mb-3"></i>
+                    <p class="text-gray-400">Список платежей пуст</p>
                 </div>
 
                 <!-- Индикатор загрузки -->
@@ -79,5 +78,3 @@
         </div>
     </div>
 </div>
-
-<!-- Модальное окно и остальной код остается без изменений -->

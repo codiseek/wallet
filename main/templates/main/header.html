@@ -33,7 +33,7 @@
 </button>
 
 <button id="debtIconBtn" class="nav-button relative w-9 h-9 bg-rose-500/20 rounded-lg flex items-center justify-center transition-colors hidden" data-tab="debt">
-    <i class="fa-solid fa-skull text-rose-400 text-sm"></i>
+    <i class="fa-solid fa-solid fa-arrows-spin text-rose-400 text-sm"></i>
     <div id="debtCounter" class="absolute -top-1 -right-1 w-4 h-4 bg-gray-500 text-white rounded-full text-xs flex items-center justify-center hidden"></div>
 </button>
 
@@ -74,35 +74,11 @@
         <!-- Долг -->
         <button id="openDebtModalFromMenu" class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-rose-500/20 text-gray-200 hover:text-white transition-all duration-200 group text-left">
             <div class="w-9 h-9 bg-rose-500/20 rounded-lg flex items-center justify-center group-hover:bg-rose-500 transition-colors flex-shrink-0">
-                <i class="fa-solid fa-skull text-rose-400 text-sm group-hover:text-white"></i>
+
+                <i class="fa-solid fa-arrows-spin text-rose-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Долг</span>
+            <span class="text-lg font-medium whitespace-nowrap">Платеж</span>
         </button>
-
-
-
-<!-- ПЛАТЕЖ -->
-<button 
-    data-tab="reminders"
-    class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg bg-gray-800/20 text-gray-600 cursor-not-allowed transition-all duration-200 group text-left relative border border-gray-700/50"
-    disabled
-    title="Скоро будет доступно"
->
-    <div class="w-9 h-9 bg-gray-700/40 rounded-lg flex items-center justify-center flex-shrink-0">
-        <i class="fa-solid fa-clock-rotate-left text-gray-500 text-sm"></i>
-    </div>
-    <div class="flex-1">
-        <span class="text-lg font-medium whitespace-nowrap">Платеж</span>
-    </div>
-    
-    <!-- Бейдж с иконкой - поднят выше и левее -->
-    <div class="absolute -top-1 -right-1 flex items-center space-x-1 bg-gray-700/90 px-2 py-1 rounded-lg border border-gray-600/50 shadow-lg">
-        <i class="fas fa-tools text-gray-300 text-xs"></i>
-        <span class="text-gray-300 text-xs font-medium">скоро</span>
-    </div>
-</button>
-
-
 
 
 

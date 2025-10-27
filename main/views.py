@@ -113,14 +113,14 @@ def pay_full_debt(request, debt_id):
         if debt.remaining_amount <= 0:
             return JsonResponse({
                 'success': False,
-                'error': 'Долг уже полностью погашен'
+                'error': 'Платеж уже полностью оплачен'
             })
 
         # Создаем запись о полном платеже
         payment = DebtPayment.objects.create(
             debt=debt,
             amount=debt.remaining_amount,
-            note='Полное погашение долга'
+            note='Полная оплата платежа'
         )
 
         # Обновляем долг
@@ -132,7 +132,7 @@ def pay_full_debt(request, debt_id):
 
         return JsonResponse({
             'success': True,
-            'message': f'Долг полностью погашен на сумму {debt.amount}',
+            'message': f'Платеж полностью оплачен на сумму {debt.amount}',
             'debt': debts_data,
             'payment': {
                 'id': payment.id,
@@ -145,12 +145,12 @@ def pay_full_debt(request, debt_id):
     except Debt.DoesNotExist:
         return JsonResponse({
             'success': False,
-            'error': 'Долг не найден'
+            'error': 'Платеж не найден'
         })
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': f'Ошибка при погашении долга: {str(e)}'
+            'error': f'Ошибка при оплате платежа: {str(e)}'
         })
 
 @login_required
@@ -177,7 +177,7 @@ def get_debt_payments(request, debt_id):
     except Debt.DoesNotExist:
         return JsonResponse({
             'success': False,
-            'error': 'Долг не найден'
+            'error': 'Платеж не найден'
         })
     except Exception as e:
         return JsonResponse({
@@ -227,8 +227,8 @@ def check_overdue_debts():
         for debt in overdue_debts:
             # Создаем системное уведомление о просрочке
             notification = SystemNotification.objects.create(
-                title='🔔 Просроченный долг',
-                message=f'Долг от {debt.debtor_name} на сумму {debt.amount} просрочен. Срок возврата был {debt.due_date.strftime("%d.%m.%Y")}.',
+                title='Просроченный платеж!',
+                message=f'Платеж от {debt.debtor_name} на сумму {debt.amount} не оплачен. Срок оплаты был {debt.due_date.strftime("%d.%m.%Y")}.',
                 created_by=debt.user,  # Владелец долга создает уведомление себе
                 target_user=debt.user,  # Персональное уведомление
                 has_chat=True  # Разрешаем обсуждение в чате
@@ -247,7 +247,7 @@ def check_overdue_debts():
             ChatMessage.objects.create(
                 chat=chat,
                 user=debt.user,
-                message=f"Долг от {debt.debtor_name} просрочен. Сумма: {debt.amount}. Срок был: {debt.due_date.strftime('%d.%m.%Y')}."
+                message=f"Платеж от {debt.debtor_name} не оплачен. Сумма: {debt.amount}. Срок был: {debt.due_date.strftime('%d.%m.%Y')}."
             )
             
             # Помечаем, что уведомление отправлено
@@ -257,7 +257,7 @@ def check_overdue_debts():
             
             print(f"Создано уведомление о просрочке для долга {debt.id}")
         
-        return f"Проверено {len(overdue_debts)} просроченных долгов"
+        return f"Проверено {len(overdue_debts)} просроченных платежей"
         
     except Exception as e:
         print(f"Ошибка при проверке просроченных долгов: {str(e)}")
