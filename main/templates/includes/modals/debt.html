@@ -1,0 +1,98 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}debtModal{% endblock %}
+
+{% block modal_content %}
+
+<!-- Модальное окно добавления долга -->
+        <!-- Хедер -->
+        <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold flex items-center">
+
+                Создание долга
+            </h2>
+            <button id="closeDebtModalHeaderBtn" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                <i class="fas fa-times mr-1"></i>Закрыть
+            </button>
+        </div>
+
+         <!-- Контейнер для уведомлений внутри модалки -->
+        <div id="debtModalNotification" class="hidden mx-4 mt-4 p-3 rounded-lg border"></div>
+
+
+        <!-- Контент -->
+        <div class="p-4 max-h-[60vh] overflow-y-auto">
+            <form id="debtForm">
+                {% csrf_token %}
+               <!-- Обновите поля ввода в модалке: -->
+<div class="space-y-4">
+    <!-- ФИО -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Фамилия и Имя *</label>
+        <input type="text" name="debtor_name" required minlength="2"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="Введите ФИО должника">
+        <p class="text-red-400 text-xs mt-1 hidden" id="debtorNameError">Минимум 2 символа</p>
+    </div>
+
+    <!-- Телефон -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Номер телефона</label>
+        <input type="tel" name="phone" pattern="^[\+]?[0-9\s\-\(\)]{10,}$"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="+7 (999) 123-45-67">
+        <p class="text-red-400 text-xs mt-1 hidden" id="phoneError">Введите корректный номер телефона</p>
+    </div>
+
+    <!-- Адрес -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Адрес</label>
+        <input type="text" name="address"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="ул. Пушкина, д. 10">
+    </div>
+
+    <!-- Сумма долга -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Сумма долга *</label>
+        <input type="number" name="amount" step="0.01" required min="0.01"
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+               placeholder="0.00">
+        <p class="text-red-400 text-xs mt-1 hidden" id="amountError">Сумма должна быть больше 0</p>
+    </div>
+
+    <!-- Срок возврата -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Срок возврата *</label>
+        <input type="date" name="due_date" required
+               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+               min="{{ today }}">
+       <class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+        <p class="text-red-400 text-xs mt-1 hidden" id="dueDateError">Выберите корректную дату</p>
+    </div>
+
+    <!-- Комментарий -->
+    <div>
+        <label class="block text-gray-400 text-sm font-medium mb-2">Комментарий</label>
+        <textarea name="description"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+            rows="3"
+            placeholder="Дополнительная информация..."></textarea>
+    </div>
+</div>
+            </form>
+        </div>
+
+        <!-- Футер -->
+        <div class="p-4 border-t border-gray-700">
+            <div class="flex justify-end gap-3">
+                <button id="cancelDebtBtn" class="btn-secondary px-4 py-3">
+                    Отмена
+                </button>
+                <button id="saveDebtBtn"
+                        class="btn-primary px-4 py-3 flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i>Сохранить
+                </button>
+            </div>
+{% endblock %}
