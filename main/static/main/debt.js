@@ -711,26 +711,37 @@ createDebtElement(debt) {
 
         <!-- Основная информация -->
         <div class="debt-main-info">
-            <div class="text-center mb-4">
-                <h3 class="font-bold text-white text-xl mb-2">${this.escapeHtml(debt.debtor_name)}</h3>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass} status-badge-transition">
-                    <i class="fas ${statusIcon} mr-1.5"></i>
-                    ${statusText}
-                </span>
-            </div>
+
+<div class="text-center mb-4">
+    <h3 class="font-bold text-white text-xl mb-3">${this.escapeHtml(debt.debtor_name)}</h3>
+    <div class="flex flex-wrap justify-center items-center gap-2">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass} status-badge-transition">
+            <i class="fas ${statusIcon} mr-1.5"></i>
+            ${statusText}
+        </span>
+        
+        <!-- Блок с ежедневной суммой - показываем только для активных долгов с days_remaining > 0 -->
+        ${debt.status !== 'paid' && !debt.is_overdue && debt.days_remaining > 0 ? `
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-300 border border-gray-500/30">
+                <i class="fas fa-vault mr-1.5 text-gray-400"></i>
+                ${formatAmount(Math.round(debt.remaining_amount / debt.days_remaining))} ${this.currencySymbol} / день
+            </span>
+        ` : ''}
+    </div>
+</div>
 
             <!-- Прогресс погашения -->
-            ${debt.status !== 'paid' ? `
-            <div class="mb-4">
-                <div class="flex justify-between text-sm text-gray-400 mb-1">
-                    <span>Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
-                    <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
-                </div>
-                <div class="w-full bg-gray-700 rounded-full h-2">
-                    <div class="bg-green-500 h-2 rounded-full progress-bar-transition" style="width: ${progressPercentage}%"></div>
-                </div>
-            </div>
-            ` : ''}
+${debt.status !== 'paid' ? `
+<div class="mb-4">
+    <div class="flex justify-between text-sm text-gray-400 mb-1">
+        <span>Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
+        <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
+    </div>
+    <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="bg-green-500 h-2 rounded-full progress-bar-transition" style="width: ${progressPercentage}%"></div>
+    </div>
+</div>
+` : ''}
 
             <div class="flex justify-center items-center space-x-6 mb-2">
                 <div class="text-center">
@@ -748,23 +759,21 @@ createDebtElement(debt) {
         <!-- Дополнительная информация -->
        <!-- Дополнительная информация -->
 <div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
-    ${debt.days_remaining !== null && debt.status !== 'paid' ? `
-    <div class="text-center">
+  ${debt.days_remaining !== null && debt.status !== 'paid' ? `
+    <div class="flex flex-wrap justify-center items-center gap-2">
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
             <i class="fas ${daysIcon} mr-1.5"></i>
             ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
         </span>
-    </div>
-    ` : ''}
-    
-    ${debt.status === 'delay_7' ? `
-        <div class="text-center">
+        
+        ${debt.status === 'delay_7' ? `
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
                 <i class="fas fa-clock mr-1.5"></i>
-                +7 дней отсрочка
+                Получена отсрочка 7 дней
             </span>
-        </div>
-    ` : ''}
+        ` : ''}
+    </div>
+` : ''}
     
     <!-- Контактная информация -->
     <div class="space-y-3">
@@ -792,12 +801,12 @@ createDebtElement(debt) {
             </div>
         ` : ''}
         
-        ${debt.address ? `
-            <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
-                <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
-                <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
-            </div>
-        ` : ''}
+      ${debt.address && debt.address !== 'Не указан' && debt.address.trim() !== '' ? `
+    <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
+        <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
+        <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
+    </div>
+` : ''}
     </div>
     
     <!-- Описание (перенесено под адрес) -->
@@ -1091,16 +1100,17 @@ async loadAndRenderPaymentHistory(debtId, debtDiv) {
             // Показываем блок и заполняем платежами
             paymentHistoryBlock.classList.remove('hidden');
             paymentList.innerHTML = payments.map(payment => `
-                <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                    <div class="flex items-center">
-                        <i class="fas fa-money-bill-wave text-green-400 mr-3"></i>
-                        <div>
-                            <p class="text-white font-semibold">${formatAmount(payment.amount)} ${this.currencySymbol}</p>
-                            <p class="text-gray-400 text-xs">${payment.payment_date}</p>
-                            ${payment.note ? `<p class="text-gray-500 text-xs mt-1">${this.escapeHtml(payment.note)}</p>` : ''}
-                        </div>
-                    </div>
-                </div>
+                <div class="flex items-center bg-gray-700/30 rounded-lg p-3">
+    <div class="w-10 h-10 rounded-lg bg-green-500/15 flex items-center justify-center mr-3 flex-shrink-0">
+       <i class="fa-solid fa-hand-holding-dollar"></i>
+    </div>
+    <div>
+        <p class="text-white font-semibold">${formatAmount(payment.amount)} ${this.currencySymbol}</p>
+        <p class="text-gray-400 text-xs">${payment.payment_date}</p>
+        ${payment.note ? `<p class="text-gray-500 text-xs mt-1">${this.escapeHtml(payment.note)}</p>` : ''}
+    </div>
+</div>
+
             `).join('');
         }
         console.log('Payment history rendered');
@@ -1199,6 +1209,7 @@ async processPayment(debt, debtDiv) {
 
 
     // Добавьте этот метод для визуального обновления карточки
+// В метод updateDebtCardVisuals добавьте:
 updateDebtCardVisuals(debtDiv, debt) {
     console.log('Updating debt card visuals for debt:', debt);
     
@@ -1206,7 +1217,7 @@ updateDebtCardVisuals(debtDiv, debt) {
     const progressPercentage = (debt.paid_amount / debt.amount) * 100;
     console.log('Progress percentage:', progressPercentage);
     
-    // Находим прогресс-бар - это элемент перед формой платежа
+    // Находим прогресс-бар
     const progressBarContainer = debtDiv.querySelector('.debt-main-info .mb-4');
     if (progressBarContainer) {
         const progressFill = progressBarContainer.querySelector('.bg-green-500');
@@ -1215,7 +1226,7 @@ updateDebtCardVisuals(debtDiv, debt) {
             console.log('Progress bar updated to:', progressFill.style.width);
         }
         
-        // Обновляем текстовые значения
+        // Обновляем текстовые значения (без ежедневной суммы)
         const spans = progressBarContainer.querySelectorAll('span');
         if (spans.length >= 2) {
             spans[0].textContent = `Погашено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
@@ -1224,8 +1235,11 @@ updateDebtCardVisuals(debtDiv, debt) {
         }
     }
     
-    // Обновляем статус
-    const statusBadge = debtDiv.querySelector('.debt-main-info .inline-flex');
+    // Обновляем статус и ежедневную сумму
+   const statusContainer = debtDiv.querySelector('.debt-main-info .flex.flex-wrap');
+if (statusContainer) {
+    // Обновляем основной статус
+    const statusBadge = statusContainer.querySelector('.inline-flex');
     if (statusBadge) {
         let statusClass, statusIcon, statusText;
         
@@ -1252,6 +1266,19 @@ updateDebtCardVisuals(debtDiv, debt) {
         console.log('Status badge updated to:', statusText);
     }
     
+    // Удаляем старый бадж ежедневной суммы (если есть)
+    const dailyAmountBadge = statusContainer.querySelector('.bg-gray-500\\/20');
+    if (dailyAmountBadge) dailyAmountBadge.remove();
+    
+    // Добавляем бадж ежедневной суммы только для активных непросроченных долгов
+    if (debt.status !== 'paid' && !debt.is_overdue && debt.days_remaining > 0) {
+        const newDailyBadge = document.createElement('span');
+        newDailyBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-300 border border-gray-500/30';
+        newDailyBadge.innerHTML = `<i class="fas fa-vault mr-1.5 text-gray-400"></i>${formatAmount(Math.round(debt.remaining_amount / debt.days_remaining))} ${this.currencySymbol} / день`;
+        statusContainer.appendChild(newDailyBadge);
+    }
+}
+    
     // Обновляем максимальную сумму в форме
     const maxAmountInput = debtDiv.querySelector('.payment-amount');
     if (maxAmountInput) {
@@ -1269,7 +1296,6 @@ updateDebtCardVisuals(debtDiv, debt) {
         totalAmountEl.textContent = `${formatAmount(debt.amount)} ${this.currencySymbol}`;
     }
 }
-
 
 
     async changeStatus(debtId, newStatus) {
@@ -1344,33 +1370,33 @@ renderStatistics(stats) {
     const paidAmount = stats.paid_amount || 0;
 
     statsContainer.innerHTML = `
-        <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-400 text-xs">Общая сумма</p>
-                    <p class="text-white font-bold text-lg">${formatAmount(totalAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+        <div class="grid grid-cols-3 divide-x divide-gray-700">
+            <div class="text-center px-2">
+                <div class="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-wallet text-blue-400 text-sm"></i>
                 </div>
+                <p class="text-gray-400 text-xs mb-0.5">Общая</p>
+                <p class="text-white font-semibold text-xl">${formatAmount(totalAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
             </div>
-        </div>
-        <div class="bg-red-500/10 rounded-xl p-3 border border-red-500/30">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-red-400 text-xs">Просрочено</p>
-                    <p class="text-white font-bold text-lg">${formatAmount(overdueAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+
+            <div class="text-center px-2">
+                <div class="w-9 h-9 rounded-lg bg-red-500/15 flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-sm"></i>
                 </div>
+                <p class="text-gray-400 text-xs mb-0.5">Просрочено</p>
+                <p class="text-white font-semibold text-xl">${formatAmount(overdueAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
             </div>
-        </div>
-        <div class="bg-green-500/10 rounded-xl p-3 border border-green-500/30">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-green-400 text-xs">Погашено</p>
-                    <p class="text-white font-bold text-lg">${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+
+            <div class="text-center px-2">
+                <div class="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-check-circle text-green-400 text-sm"></i>
                 </div>
+                <p class="text-gray-400 text-xs mb-0.5">Погашено</p>
+                <p class="text-white font-semibold text-xl">${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
             </div>
         </div>
     `;
 }
-
 
     switchFilter(clickedTab) {
         document.querySelectorAll('.debt-filter-tab').forEach(tab => {
