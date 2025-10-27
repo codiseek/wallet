@@ -19,14 +19,35 @@ function formatAmount(amount) {
 
 
 class DebtManager {
-    constructor() {
-        this.currentFilter = 'active';
-        this.isSaving = false;
-        this.currencySymbol = this.getCurrencySymbol();
-        this.moveModalToGlobal();
-        this.init();
-        this.initMenuEventListener();
+constructor() {
+    this.currentFilter = 'active';
+    this.isSaving = false;
+    this.currencySymbol = this.getCurrencySymbol();
+    this.moveModalToGlobal();
+    this.init();
+    this.initMenuEventListener();
+    
+    // Добавьте эту строку
+    this.initCurrencyUpdates();
+}
+
+initCurrencyUpdates() {
+    // Обновляем валюту при загрузке
+    this.updateCurrency();
+    
+    // Слушаем глобальные события смены валюты
+    document.addEventListener('currencyUpdated', () => {
+        this.updateCurrency();
+    });
+}
+
+refreshDebtsOnCurrencyChange() {
+    if (this.currentFilter) {
+        this.loadDebts(); // Просто перезагружаем долги - это перерисует все карточки с новой валютой
     }
+}
+
+
 
     // Простой метод для получения символа валюты
    getCurrencySymbol() {
@@ -43,7 +64,14 @@ class DebtManager {
     // Обновляем валюту при вызове
 updateCurrency() {
     this.currencySymbol = this.getCurrencySymbol();
-    this.updateDebtDisplay();
+    
+    // Обновляем все элементы интерфейса долгов
+    this.updateStatisticsCurrency();
+    this.updateDebtsListCurrency();
+    this.updateModalCurrency();
+    
+    // ПЕРЕЗАГРУЖАЕМ ДОЛГИ - КАК В СТАТИСТИКЕ!
+    this.refreshDebtsOnCurrencyChange();
 }
 
     // Обновляем отображение долгов
@@ -51,7 +79,81 @@ updateDebtDisplay() {
     this.updateStatisticsCurrency();
     this.updateDebtsListCurrency();
     this.updateModalCurrency();
+    this.updateAllDebtCardsCurrency(); // Добавьте этот вызов
 }
+
+
+updateAllDebtCardsCurrency() {
+    const debtItems = document.querySelectorAll('.debt-item');
+    
+    debtItems.forEach(debtDiv => {
+        // Обновляем основную сумму
+        const amountEl = debtDiv.querySelector('.text-2xl.font-bold.text-white');
+        if (amountEl) {
+            const rawAmount = amountEl.getAttribute('data-raw-amount');
+            if (rawAmount) {
+                amountEl.textContent = `${formatAmount(rawAmount)} ${this.currencySymbol}`;
+            }
+        }
+        
+        // Обновляем суммы в прогресс-баре
+        const progressSpans = debtDiv.querySelectorAll('.debt-main-info .mb-4 span');
+        if (progressSpans.length >= 2) {
+            const paidRaw = progressSpans[0].getAttribute('data-raw-amount');
+            const remainingRaw = progressSpans[1].getAttribute('data-raw-amount');
+            
+            if (paidRaw) {
+                progressSpans[0].textContent = `Выполнено: ${formatAmount(paidRaw)} ${this.currencySymbol}`;
+                progressSpans[0].setAttribute('data-raw-amount', paidRaw);
+            }
+            if (remainingRaw) {
+                progressSpans[1].textContent = `Осталось: ${formatAmount(remainingRaw)} ${this.currencySymbol}`;
+                progressSpans[1].setAttribute('data-raw-amount', remainingRaw);
+            }
+        }
+        
+        // Обновляем ежедневную сумму
+        const dailyBadge = debtDiv.querySelector('.bg-gray-500\\/20');
+        if (dailyBadge) {
+            const dailyRaw = dailyBadge.getAttribute('data-raw-amount');
+            if (dailyRaw) {
+                dailyBadge.textContent = `${formatAmount(dailyRaw)} ${this.currencySymbol} / день`;
+                dailyBadge.setAttribute('data-raw-amount', dailyRaw);
+            }
+        }
+        
+        // Обновляем максимальную сумму в форме платежа
+        const maxAmountText = debtDiv.querySelector('.payment-form .text-gray-500.text-xs');
+        if (maxAmountText) {
+            const maxRaw = maxAmountText.getAttribute('data-raw-amount');
+            if (maxRaw) {
+                maxAmountText.textContent = `Максимум: ${formatAmount(maxRaw)} ${this.currencySymbol}`;
+                maxAmountText.setAttribute('data-raw-amount', maxRaw);
+            }
+        }
+        
+        // Обновляем историю платежей
+        this.updatePaymentHistoryCurrency(debtDiv);
+    });
+}
+
+
+// Добавьте метод для обновления валюты в истории платежей
+updatePaymentHistoryCurrency(debtDiv) {
+    const paymentItems = debtDiv.querySelectorAll('.payment-history-list .bg-gray-700\\/30');
+    
+    paymentItems.forEach(paymentItem => {
+        const amountEl = paymentItem.querySelector('.text-white.font-semibold');
+        if (amountEl) {
+            const rawAmount = amountEl.getAttribute('data-raw-amount');
+            if (rawAmount) {
+                amountEl.textContent = `${formatAmount(rawAmount)} ${this.currencySymbol}`;
+                amountEl.setAttribute('data-raw-amount', rawAmount);
+            }
+        }
+    });
+}
+
 
 
 // Добавьте новый метод для обновления валюты в модалке
@@ -62,29 +164,28 @@ updateModalCurrency() {
     });
 }
 
-    // Обновляем валюту в статистике
-    updateStatisticsCurrency() {
-        const statsContainer = document.getElementById('debtStatistics');
-        if (!statsContainer) return;
 
-        const totalAmountEl = statsContainer.querySelector('.bg-gray-800\\/50 .text-white');
-        const overdueAmountEl = statsContainer.querySelector('.bg-red-500\\/10 .text-white');
-        const paidAmountEl = statsContainer.querySelector('.bg-green-500\\/10 .text-white');
+updateStatisticsCurrency() {
+    const statsContainer = document.getElementById('debtStatistics');
+    if (!statsContainer) return;
 
-        if (totalAmountEl) {
-            const amount = totalAmountEl.textContent.replace(/[^\d.,]/g, '');
-            totalAmountEl.textContent = `${amount} ${this.currencySymbol}`;
+    const amountElements = statsContainer.querySelectorAll('[data-raw-amount]');
+    amountElements.forEach(element => {
+        const rawAmount = element.getAttribute('data-raw-amount');
+        if (rawAmount) {
+            element.textContent = formatAmount(rawAmount);
+            // Добавляем символ валюты как отдельный элемент
+            if (!element.querySelector('.currency-symbol')) {
+                const currencySpan = document.createElement('span');
+                currencySpan.className = 'currency-symbol';
+                currencySpan.textContent = ' ' + this.currencySymbol;
+                element.appendChild(currencySpan);
+            } else {
+                element.querySelector('.currency-symbol').textContent = ' ' + this.currencySymbol;
+            }
         }
-        if (overdueAmountEl) {
-            const amount = overdueAmountEl.textContent.replace(/[^\d.,]/g, '');
-            overdueAmountEl.textContent = `${amount} ${this.currencySymbol}`;
-        }
-        if (paidAmountEl) {
-            const amount = paidAmountEl.textContent.replace(/[^\d.,]/g, '');
-            paidAmountEl.textContent = `${amount} ${this.currencySymbol}`;
-        }
-    }
-
+    });
+}
 
 
    async addPayment(debtId, paymentAmount, note = '') {
@@ -643,9 +744,9 @@ createDebtElement(debt) {
         borderClass = 'border-yellow-500/20 hover:border-yellow-400/40';
         statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
         statusIcon = 'fa-check-double';
-        statusText = 'Частично выполнен';
+        statusText = 'Частично оплачен';
         daysClass = debt.days_remaining <= 3 ? 'text-yellow-400' : 'text-green-400';
-        daysIcon = debt.days_remaining <= 3 ? 'fa-exclamation' : 'fa-calendar';
+        daysIcon = debt.days_remaining <= 3 ? 'fa-triangle-exclamation' : 'fa-calendar';
     } else if (debt.is_overdue) {
         gradientClass = 'bg-gradient-to-br from-red-500/10 to-orange-500/10';
         borderClass = 'border-red-500/20 hover:border-red-400/40';
@@ -725,7 +826,10 @@ createDebtElement(debt) {
             ${debt.status !== 'paid' ? `
             <div class="mb-4">
                 <div class="flex justify-between text-sm text-gray-400 mb-1">
-                    <span>Выполнено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}</span>
+                <span>
+                    Оплачено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}
+                </span>
+        
                     <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
                 </div>
                 <div class="w-full bg-gray-700 rounded-full h-2">
@@ -1212,7 +1316,7 @@ updateDebtCardVisuals(debtDiv, debt) {
         // Обновляем текстовые значения (без ежедневной суммы)
         const spans = progressBarContainer.querySelectorAll('span');
         if (spans.length >= 2) {
-            spans[0].textContent = `Выполнено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
+            spans[0].textContent = `Оплачено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}`;
             spans[1].textContent = `Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}`;
             console.log('Text labels updated');
         }
@@ -1233,7 +1337,7 @@ if (statusContainer) {
         } else if (debt.status === 'partially_paid') {
             statusClass = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
             statusIcon = 'fa-check-double';
-            statusText = 'Частично выполнен';
+            statusText = 'Частично оплачен';
         } else if (debt.is_overdue) {
             statusClass = 'bg-red-500/20 text-red-400 border-red-500/30';
             statusIcon = 'fa-exclamation-triangle';
@@ -1359,7 +1463,9 @@ renderStatistics(stats) {
                     <i class="fas fa-wallet text-blue-400 text-sm"></i>
                 </div>
                 <p class="text-gray-400 text-xs mb-0.5">Общая</p>
-                <p class="text-white font-semibold text-xl">${formatAmount(totalAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                <p class="text-white font-semibold text-xl" data-raw-amount="${totalAmount}">
+                    ${formatAmount(totalAmount)} <span class="currency-symbol">${this.currencySymbol}</span>
+                </p>
             </div>
 
             <div class="text-center px-2">
@@ -1367,7 +1473,9 @@ renderStatistics(stats) {
                     <i class="fas fa-exclamation-triangle text-red-400 text-sm"></i>
                 </div>
                 <p class="text-gray-400 text-xs mb-0.5">Просрочено</p>
-                <p class="text-white font-semibold text-xl">${formatAmount(overdueAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                <p class="text-white font-semibold text-xl" data-raw-amount="${overdueAmount}">
+                    ${formatAmount(overdueAmount)} <span class="currency-symbol">${this.currencySymbol}</span>
+                </p>
             </div>
 
             <div class="text-center px-2">
@@ -1375,11 +1483,14 @@ renderStatistics(stats) {
                     <i class="fas fa-check-circle text-green-400 text-sm"></i>
                 </div>
                 <p class="text-gray-400 text-xs mb-0.5">Выполнено</p>
-                <p class="text-white font-semibold text-xl">${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span></p>
+                <p class="text-white font-semibold text-xl" data-raw-amount="${paidAmount}">
+                    ${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span>
+                </p>
             </div>
         </div>
     `;
 }
+
 
     switchFilter(clickedTab) {
         document.querySelectorAll('.debt-filter-tab').forEach(tab => {

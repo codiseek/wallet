@@ -35,28 +35,17 @@ function initNoteSystem() {
 
 // Функция для обновления иконки заметок в хедере
 function updateNotesIcon(notesCount) {
-    console.log('🎯 updateNotesIcon вызвана с notesCount:', notesCount);
     
     const notesIconBtn = document.getElementById('notesIconBtn');
     const notesCounter = document.getElementById('notesCounter');
 
-    console.log('🔍 Элементы найдены:', {
-        notesIconBtn: !!notesIconBtn,
-        notesCounter: !!notesCounter
-    });
 
-    if (!notesIconBtn || !notesCounter) {
-        console.log('❌ Элементы иконки не найдены!');
-        return;
-    }
 
     if (notesCount > 0) {
-        console.log('✅ Показываем иконку с счетчиком:', notesCount);
         notesIconBtn.classList.remove('hidden');
         notesCounter.classList.remove('hidden');
         notesCounter.textContent = notesCount > 99 ? '99+' : notesCount;
     } else {
-        console.log('🚫 Скрываем иконку (заметок нет)');
         notesIconBtn.classList.add('hidden');
         notesCounter.classList.add('hidden');
     }

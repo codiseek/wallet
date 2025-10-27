@@ -25,13 +25,17 @@ async function updateCurrency(currency) {
         const data = await response.json();
         
         if (data.success) {
-            // Обновляем глобальную переменную валюты
-            window.currentCurrency = currency;
-            
-            // ОБНОВЛЯЕМ ВСЕ МОДУЛИ С НОВОЙ ВАЛЮТОЙ
-            if (typeof window.updateAllCurrencyModules === 'function') {
-                window.updateAllCurrencyModules(currency);
-            }
+    window.currentCurrency = currency;
+    
+    // ОБНОВЛЯЕМ ВСЕ МОДУЛИ С НОВОЙ ВАЛЮТОЙ
+    if (typeof window.updateAllCurrencyModules === 'function') {
+        window.updateAllCurrencyModules(currency);
+    }
+    
+    // ДОБАВЬТЕ ЭТУ СТРОКУ - создаем событие для DebtManager
+    document.dispatchEvent(new CustomEvent('currencyUpdated', { 
+        detail: { currency: currency } 
+    }));
             
             // Обновляем интерфейс
             updateBalanceCurrencyIcon(currency);

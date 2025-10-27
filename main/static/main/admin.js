@@ -1,22 +1,29 @@
-// admin.js
+(function() {
+    // Проверяем, не инициализирована ли уже админ-панель
+    if (window.adminPanelInitialized) {
+        return;
+    }
 
-// Глобальные переменные для админ-панели
-let adminUsersModal = null;
-let currentAdminPage = 1;
-let adminUsers = [];
+    // Глобальные переменные для админ-панели
+    let adminUsersModal = null;
+    let currentAdminPage = 1;
+    let adminUsers = [];
 
-// Инициализация админ-панели
-function initAdminPanel() {
-    if (!document.querySelector('.admin-panel')) return;
-    
-    adminUsersModal = document.getElementById('adminUsersModal');
-    
-    // Загружаем статистику при открытии панели
-    loadAdminStats();
-    
-    // Инициализируем обработчики
-    initAdminHandlers();
-}
+    // Инициализация админ-панели
+    function initAdminPanel() {
+        if (!document.querySelector('.admin-panel')) return;
+        
+        adminUsersModal = document.getElementById('adminUsersModal');
+        
+        // Загружаем статистику при открытии панели
+        loadAdminStats();
+        
+        // Инициализируем обработчики
+        initAdminHandlers();
+    }
+
+
+
 
 // Загрузка статистики администратора
 // Обновленная функция loadAdminStats в admin.js
@@ -339,12 +346,17 @@ function searchUsers() {
     displayUsersList(filteredUsers, false);
 }
 
-// Инициализация при загрузке документа
-document.addEventListener('DOMContentLoaded', function() {
-    initAdminPanel();
-});
 
-// Экспорт функций для глобального использования
-window.toggleAdminUsersModal = toggleAdminUsersModal;
-window.loadMoreUsers = loadMoreUsers;
-window.searchUsers = searchUsers;
+
+ // Инициализация при загрузке документа
+    document.addEventListener('DOMContentLoaded', function() {
+        initAdminPanel();
+    });
+
+    // Экспорт функций для глобального использования
+    window.toggleAdminUsersModal = toggleAdminUsersModal;
+    window.loadMoreUsers = loadMoreUsers;
+    window.searchUsers = searchUsers;
+
+    window.adminPanelInitialized = true;
+})();

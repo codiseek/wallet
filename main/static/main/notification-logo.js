@@ -428,7 +428,6 @@ async function openChatModal(notificationId) {
 
 // Обновленная функция openAdminChat
 function openAdminChat(notificationId) {
-    console.log('👨‍💼 Админ открывает чат для уведомления:', notificationId);
     
     // Просто открываем чат, не закрывая уведомления
     openChatModal(notificationId);
@@ -438,7 +437,6 @@ function openAdminChat(notificationId) {
 // Обновленная функция loadChatMessages с получением информации об админе
 async function loadChatMessages(notificationId) {
     try {
-        console.log('Загрузка сообщений для уведомления:', notificationId);
         
         const response = await fetch(`/notifications/${notificationId}/chat/`, {
             method: 'GET',
@@ -522,7 +520,6 @@ function closeChatModalOnly() {
 // Загрузка сообщений чата
 async function loadChatMessages(notificationId) {
     try {
-        console.log('Загрузка сообщений для уведомления:', notificationId);
         
         const response = await fetch(`/notifications/${notificationId}/chat/`, {
             method: 'GET',
@@ -532,7 +529,6 @@ async function loadChatMessages(notificationId) {
         });
         
         const data = await response.json();
-        console.log('Получены данные чата:', data);
         
         if (data.success) {
             chatMessages = data.messages || [];
@@ -762,7 +758,6 @@ async function markChatAsRead(notificationId) {
                 updateNotificationsCounter2();
                 updateChatsTabIndicator();
             }
-            console.log(`✅ Чат ${notificationId} помечен как прочитанный`);
         }
     } catch (error) {
         console.error('Ошибка при отметке чата как прочитанного:', error);
@@ -881,7 +876,6 @@ function renderAdminChatsList(chats) {
 
 // Альтернативная версия - гарантированные обработчики
 function initChatsClickHandlers() {
-    console.log('🔄 Инициализация обработчиков чатов...');
     
     // Используем MutationObserver для отслеживания изменений DOM
     const adminChatsList = document.getElementById('adminChatsList');
@@ -892,21 +886,17 @@ function initChatsClickHandlers() {
     
     // Обработчик для делегирования событий
     const handleChatClick = (e) => {
-        console.log('🎯 Событие клика поймано:', e.target);
         
         const chatItem = e.target.closest('.chat-item');
         if (chatItem) {
-            console.log('✅ Найден chat-item:', chatItem);
             const notificationId = chatItem.getAttribute('data-notification-id');
             if (notificationId) {
-                console.log(`🎯 Открываем чат ${notificationId}`);
                 e.stopPropagation();
                 openAdminChat(parseInt(notificationId));
             } else {
                 console.error('❌ data-notification-id не найден');
             }
         } else {
-            console.log('❌ chat-item не найден по клику');
         }
     };
     
@@ -914,7 +904,6 @@ function initChatsClickHandlers() {
     adminChatsList.removeEventListener('click', handleChatClick);
     adminChatsList.addEventListener('click', handleChatClick);
     
-    console.log('✅ Обработчики чатов инициализированы');
 }
 
 // -----------------------------
@@ -922,7 +911,6 @@ function initChatsClickHandlers() {
 // -----------------------------
 function addChatItemClickHandlers() {
     const chatItems = document.querySelectorAll('.chat-item');
-    console.log(`🔗 Добавляем обработчики для ${chatItems.length} чатов`);
     
     chatItems.forEach(chatItem => {
         // Удаляем старые обработчики чтобы избежать дублирования
@@ -937,7 +925,6 @@ function addChatItemClickHandlers() {
             if (chatItem) {
                 const notificationId = chatItem.getAttribute('data-notification-id');
                 if (notificationId) {
-                    console.log(`🖱️ Клик по чату с notification_id: ${notificationId}`);
                     openAdminChat(parseInt(notificationId));
                 }
             }
@@ -966,7 +953,6 @@ function showEmptyChatsState() {
 // Открытие чата для админа
 // -----------------------------
 function openAdminChat(notificationId) {
-    console.log('👨‍💼 Админ открывает чат для уведомления:', notificationId);
     
     // Сначала открываем чат, потом закрываем уведомления
     openChatModal(notificationId);
@@ -1056,7 +1042,6 @@ async function loadLastChatMessagesForNotifications() {
         
         if (chatNotificationIds.length === 0) return;
         
-        console.log('🔄 Загружаем последние сообщения для чатов:', chatNotificationIds);
         
         // Загружаем последние сообщения для каждого чата
         for (const notificationId of chatNotificationIds) {
@@ -1090,10 +1075,8 @@ async function loadLastChatMessageForUser(notificationId) {
             if (notificationIndex !== -1) {
                 userNotifications[notificationIndex].last_chat_message = lastMessage.message;
                 userNotifications[notificationIndex].last_message_time = lastMessage.created_at;
-                console.log(`✅ Последнее сообщение для чата ${notificationId}:`, lastMessage.message);
             }
         } else {
-            console.log(`❌ Нет сообщений для чата ${notificationId}`);
         }
     } catch (error) {
         console.error(`Ошибка при загрузке последнего сообщения для чата ${notificationId}:`, error);
@@ -1406,7 +1389,6 @@ async function deleteAllNotifications() {
 // Обновленная функция обработки клика по уведомлению
 // Обновленная функция обработки клика по уведомлению
 function handleNotificationClick(notificationId, hasChat, isOverdueDebt) {
-    console.log('🖱️ Клик по уведомлению:', { notificationId, hasChat, isOverdueDebt });
     
     // Находим уведомление в массиве
     const notification = userNotifications.find(n => n.id == notificationId);
@@ -1414,7 +1396,6 @@ function handleNotificationClick(notificationId, hasChat, isOverdueDebt) {
     
     // ЕСЛИ ЭТО УВЕДОМЛЕНИЕ О ПРОСРОЧЕННОМ ДОЛГЕ - ПРОСТО ПОМЕЧАЕМ КАК ПРОЧИТАННОЕ
     if (isOverdueDebt) {
-        console.log('💰 Помечаем уведомление о просрочке как прочитанное');
         
         // Находим элемент уведомления в DOM
         const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
@@ -1439,7 +1420,6 @@ function handleNotificationClick(notificationId, hasChat, isOverdueDebt) {
 
 // Обновленная функция открытия чата из уведомления
 function openChatFromNotification(userNotificationId) {
-    console.log('💬 Пользователь открывает чат из уведомления:', userNotificationId);
     
     // Находим уведомление в массиве
     const notification = userNotifications.find(n => n.id == userNotificationId);
@@ -1554,10 +1534,8 @@ function openNotificationDetail(notificationId) {
     if (notification.cover_image) {
         coverImg.src = notification.cover_image;
         coverContainer.classList.remove('hidden');
-        console.log('✅ Обложка загружена:', notification.cover_image);
     } else {
         coverContainer.classList.add('hidden');
-        console.log('❌ Обложка отсутствует');
     }
     
     // Устанавливаем дату
@@ -2310,7 +2288,6 @@ function updateFilterButtons(activeFilter) {
 // -----------------------------
 // Обновляем функции открытия/закрытия модалки для управления флагом
 function openNotificationsModal2() {
-    console.log('Opening notifications modal 2');
     if (!notificationsModal2) return;
     
     isNotificationsModalOpen = true;
@@ -2347,7 +2324,6 @@ function openNotificationsModal2() {
     }, 10);
 }
 function closeNotificationsModal2() {
-    console.log('🔒 Закрытие модалки уведомлений');
     if (!notificationsModal2) return;
     
     isNotificationsModalOpen = false; // Сбрасываем флаг
@@ -2496,7 +2472,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Обновленная функция инициализации
 // -----------------------------
 function initNotifications2() {
-    console.log('DOM loaded - initializing notifications system 2');
     initNotificationsModal2();
     initNotificationDetailModal(); 
     initNotificationsFilters();

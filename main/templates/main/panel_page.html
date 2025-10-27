@@ -315,35 +315,38 @@
 
 
 
-            <!-- Статистика приложения -->
-            <div class="bg-zinc-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-                <h3 class="font-semibold text-white mb-3 flex items-center">
-                    <i class="fas fa-info-circle mr-2 text-blue-400"></i>
-                    О приложении
-                </h3>
-                
-                <div class="grid grid-cols-2 gap-3 text-center">
-                    <div class="bg-white/5 rounded-lg p-3">
-                        <div class="text-2xl font-bold text-blue-400">{{ transactions_count|default:0 }}</div>
-                        <div class="text-gray-300 text-xs">Транзакций</div>
-                    </div>
-                    <div class="bg-white/5 rounded-lg p-3">
-                        <div class="text-2xl font-bold text-green-400">{{ categories_count|default:0 }}</div>
-                        <div class="text-gray-300 text-xs">Категорий</div>
-                    </div>
-                </div>
-                
-                <div class="mt-4 pt-3 border-t border-white/10">
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-300">Версия</span>
-                        <span class="text-white">1.1</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm mt-2">
-                        <span class="text-gray-300">Обновлено</span>
-                        <span class="text-white">{% now "d.m.Y" %}</span>
-                    </div>
-                </div>
-            </div>
+      <!-- Управление данными -->
+<div class="bg-zinc-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+    <h3 class="font-semibold text-white mb-3 flex items-center">
+        <i class="fas fa-database mr-2 text-blue-400"></i>
+        Управление данными
+    </h3>
+    
+    <div class="grid grid-cols-2 gap-3">
+        <!-- Кнопка Импорт -->
+        <button class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2">
+            <i class="fas fa-download text-lg"></i>
+            <span class="font-medium">Импорт</span>
+        </button>
+
+        <!-- Кнопка Экспорт -->
+        <button class="bg-green-600 hover:bg-green-500 text-white py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2">
+            <i class="fas fa-upload text-lg"></i>
+            <span class="font-medium">Экспорт</span>
+        </button>
+    </div>
+    
+    <div class="mt-4 pt-3 border-t border-white/10">
+        <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">Версия</span>
+            <span class="text-white">1.1</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mt-2">
+            <span class="text-gray-300">Обновлено</span>
+            <span class="text-white">{% now "d.m.Y" %}</span>
+        </div>
+    </div>
+</div>
 
 
           <!-- Кнопка поддержки -->
