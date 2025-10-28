@@ -557,33 +557,47 @@ if (typeof showLoadingNotification === 'undefined') {
 
 
 <!-- Управление данными -->
-<div class="bg-zinc-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-    <h3 class="font-semibold text-white mb-3 flex items-center">
-        <i class="fas fa-database mr-2 text-blue-400"></i>
-        Управление данными
-    </h3>
-    
-    <div class="grid grid-cols-2 gap-3 mb-4">
-       <!-- Кнопка Экспорт -->
-<button id="exportBtn" onclick="exportData()" class="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex flex-col items-center justify-center space-y-2">
-    <i class="fas fa-download text-2xl"></i>
-    <span class="font-medium text-sm">Экспорт</span>
-    <span class="text-xs text-blue-200 opacity-80">Выгрузить данные</span>
-</button>
+<div class="bg-zinc-800/60 rounded-2xl p-5 mb-6 border border-gray-700/50 shadow-lg">
+  <h3 class="font-semibold text-white mb-4 flex items-center">
+    <i class="fas fa-database mr-2 text-blue-400"></i>
+    Управление данными
+  </h3>
 
-<!-- Кнопка Импорт -->
-<button id="importBtn" onclick="importData()" class="bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex flex-col items-center justify-center space-y-2">
-    <i class="fas fa-upload text-2xl"></i>
-    <span class="font-medium text-sm">Импорт</span>
-    <span class="text-xs text-green-200 opacity-80">Загрузить данные</span>
-</button>
-    </div>
-    
-    <!-- Скрытый input для импорта -->
-    <input type="file" id="importFileInput" accept=".json" class="hidden">
-    
-   
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <!-- Кнопка Экспорт -->
+    <button 
+      id="exportBtn" 
+      onclick="exportData()" 
+      class="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-blue-900/20"
+    >
+      <i class="fas fa-download text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+      <span class="font-semibold text-sm tracking-wide">Экспорт</span>
+      <span class="text-xs text-blue-200 opacity-80 mt-0.5">Сохранить данные</span>
+    </button>
+
+    <!-- Кнопка Импорт -->
+    <button 
+      id="importBtn" 
+      onclick="importData()" 
+      class="group bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-green-900/20"
+    >
+      <i class="fas fa-upload text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+      <span class="font-semibold text-sm tracking-wide">Импорт</span>
+      <span class="text-xs text-green-200 opacity-80 mt-0.5">Загрузить данные</span>
+    </button>
+  </div>
+
+  <!-- Скрытый input для импорта -->
+  <input type="file" id="importFileInput" accept=".json" class="hidden">
+
+  <!-- Информация о формате -->
+  <div class="text-gray-400 text-xs border-t border-gray-700/50 pt-3">
+    <i class="fas fa-info-circle text-blue-400 mr-1"></i>
+    Экспорт выполняется в формате <span class="text-blue-300 font-medium">JSON</span>.  
+    Импорт поддерживает только <span class="text-green-300 font-medium">JSON-файлы</span>, созданные через экспорт.
+  </div>
 </div>
+
 
           <!-- Кнопка поддержки -->
             <div class="text-center mt-6 mb-6">

@@ -786,7 +786,7 @@ createDebtElement(debt) {
             <i class="fas fa-trash text-gray-300 text-base"></i>
         </button>
 
- <!-- Подтверждение удаления -->
+        <!-- Подтверждение удаления -->
         <div class="delete-confirm hidden absolute inset-0 bg-gray-800 flex flex-col items-center justify-center rounded-2xl text-center p-4 z-10" data-no-toggle="true">
             <div class="text-center mb-3">
                 <p class="text-red-400 font-semibold">Удалить платеж?</p>
@@ -802,7 +802,7 @@ createDebtElement(debt) {
             </div>
         </div>
 
-       <!-- Основная информация -->
+        <!-- Основная информация -->
         <div class="debt-main-info">
             <div class="text-center mb-4">
                 <h3 class="font-bold text-white text-xl mb-3">${this.escapeHtml(debt.debtor_name)}</h3>
@@ -822,14 +822,13 @@ createDebtElement(debt) {
                 </div>
             </div>
 
-           <!-- Прогресс выполнения -->
+            <!-- Прогресс выполнения -->
             ${debt.status !== 'paid' ? `
             <div class="mb-4">
                 <div class="flex justify-between text-sm text-gray-400 mb-1">
-                <span>
-                    Оплачено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}
-                </span>
-        
+                    <span>
+                        Оплачено: ${formatAmount(debt.paid_amount)} ${this.currencySymbol}
+                    </span>
                     <span>Осталось: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</span>
                 </div>
                 <div class="w-full bg-gray-700 rounded-full h-2">
@@ -838,7 +837,7 @@ createDebtElement(debt) {
             </div>
             ` : ''}
 
-             <div class="flex justify-center items-center space-x-6 mb-2">
+            <div class="flex justify-center items-center space-x-6 mb-2">
                 <div class="text-center">
                     <p class="text-sm text-gray-400 mb-1">Общая сумма</p>
                     <p class="text-2xl font-bold text-white">${formatAmount(debt.amount)} ${this.currencySymbol}</p>
@@ -849,121 +848,122 @@ createDebtElement(debt) {
                     <p class="text-lg font-semibold text-white">${this.escapeHtml(debt.due_date)}</p>
                 </div>
             </div>
+
+            <!-- Подсказка для развертывания (ПЕРЕМЕЩЕНА В ОСНОВНУЮ ЧАСТЬ) -->
+            <div class="text-center mt-3 pt-3 border-t border-gray-700/30 collapse-hint">
+                <p class="text-xs text-gray-500">Тапните чтобы развернуть</p>
+            </div>
         </div>
 
-
-
-       <!-- Дополнительная информация -->
-<div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
-  ${debt.days_remaining !== null && debt.status !== 'paid' ? `
-    <div class="flex flex-wrap justify-center items-center gap-2">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
-            <i class="fas ${daysIcon} mr-1.5"></i>
-            ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
-        </span>
-        
-        ${debt.status === 'delay_7' ? `
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
-                <i class="fas fa-clock mr-1.5"></i>
-                Получена отсрочка 7 дней
-            </span>
-        ` : ''}
-    </div>
-` : ''}
-    
-    <!-- Контактная информация -->
-    <div class="space-y-3">
-        ${debt.phone && debt.phone !== 'Не указан' ? `
-            <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
-                <div class="flex items-center text-gray-300">
-                    <i class="fas fa-phone mr-3 text-blue-400"></i>
-                    <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
-                </div>
-                <div class="flex space-x-2">
-                    <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
-                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
-                       data-no-toggle="true">
-                        <i class="fas fa-phone text-sm"></i>
-                    </a>
-                    ${whatsappLink ? `
-                    <a href="${whatsappLink}" 
-                       target="_blank"
-                       class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
-                       data-no-toggle="true">
-                        <i class="fab fa-whatsapp text-sm"></i>
-                    </a>
+        <!-- Дополнительная информация -->
+        <div class="debt-details hidden space-y-4 mt-4 border-t border-gray-700/50 pt-4">
+            ${debt.days_remaining !== null && debt.status !== 'paid' ? `
+                <div class="flex flex-wrap justify-center items-center gap-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${daysClass} ${debt.days_remaining < 0 ? 'bg-red-500/20' : 'bg-green-500/20'}">
+                        <i class="fas ${daysIcon} mr-1.5"></i>
+                        ${debt.days_remaining < 0 ? `Просрочено на ${Math.abs(debt.days_remaining)} дн.` : `Осталось ${debt.days_remaining} дн.`}
+                    </span>
+                    
+                    ${debt.status === 'delay_7' ? `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                            <i class="fas fa-clock mr-1.5"></i>
+                            Получена отсрочка 7 дней
+                        </span>
                     ` : ''}
                 </div>
-            </div>
-        ` : ''}
-        
-      ${debt.address && debt.address !== 'Не указан' && debt.address.trim() !== '' ? `
-    <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
-        <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
-        <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
-    </div>
-` : ''}
-    </div>
-    
-    <!-- Описание (перенесено под адрес) -->
-    ${debt.description ? `
-        <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
-            <p class="text-gray-300 text-sm leading-relaxed">
-                <i class="fas fa-comment mr-2 text-yellow-400"></i>
-                ${this.escapeHtml(debt.description)}
-            </p>
-        </div>
-    ` : ''}
-    
-   <!-- Кнопки действий -->
-            ${debt.status !== 'paid' ? `
-            <div class="flex space-x-3">
-                <button class="pay-debt-btn flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
-                        data-no-toggle="true">
-                    
-                    Внести платеж
-                </button>
-                <button class="delay-debt-btn bg-orange-600 hover:bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center"
-                        data-no-toggle="true">
-                   
-                    Отсрочка
-                </button>
-            </div>
-    
-   <!-- Форма платежа -->
-            <div class="payment-form hidden bg-gray-800/50 rounded-lg p-4 border border-gray-700" data-no-toggle="true">
-                <div class="mb-3" data-no-toggle="true">
-                    <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Сумма платежа</label>
-                    <input type="number" 
-                           class="payment-amount w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors"
-                           placeholder="0.00"
-                           step="0.01"
-                           min="0.01"
-                           max="${debt.remaining_amount}"
-                           data-no-toggle="true">
-                    <p class="text-gray-500 text-xs mt-1" data-no-toggle="true">Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</p>
-                </div>
-                <div class="mb-3" data-no-toggle="true">
-                    <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Примечание (необязательно)</label>
-                    <textarea class="payment-note w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors resize-none"
-                              rows="2"
-                              placeholder="Комментарий к платежу..."
-                              data-no-toggle="true"></textarea>
-                </div>
-                <div class="flex space-x-3" data-no-toggle="true">
-                    <button class="pay-full-debt flex-1 py-3 border-gray-700 rounded-lg hover:bg-gray-500 text-white font-semibold transition-colors"
-                            data-no-toggle="true">
-                        Полная сумма
-                    </button>
-                    <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
-                            data-no-toggle="true">
-                        Внести часть
-                    </button>
-                </div>
-            </div>
             ` : ''}
-    
-    <!-- История платежей -->
+            
+            <!-- Контактная информация -->
+            <div class="space-y-3">
+                ${debt.phone && debt.phone !== 'Не указан' ? `
+                    <div class="flex items-center justify-between bg-gray-800/30 rounded-lg p-3">
+                        <div class="flex items-center text-gray-300">
+                            <i class="fas fa-phone mr-3 text-blue-400"></i>
+                            <span class="font-medium">${this.escapeHtml(debt.phone)}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="tel:${debt.phone.replace(/\s+/g, '')}" 
+                               class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                               data-no-toggle="true">
+                                <i class="fas fa-phone text-sm"></i>
+                            </a>
+                            ${whatsappLink ? `
+                            <a href="${whatsappLink}" 
+                               target="_blank"
+                               class="w-9 h-9 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg flex items-center justify-center transition-all duration-200"
+                               data-no-toggle="true">
+                                <i class="fab fa-whatsapp text-sm"></i>
+                            </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${debt.address && debt.address !== 'Не указан' && debt.address.trim() !== '' ? `
+                    <div class="flex items-center bg-gray-800/30 rounded-lg p-3">
+                        <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
+                        <span class="text-gray-300 font-medium">${this.escapeHtml(debt.address)}</span>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <!-- Описание -->
+            ${debt.description ? `
+                <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                    <p class="text-gray-300 text-sm leading-relaxed">
+                        <i class="fas fa-comment mr-2 text-yellow-400"></i>
+                        ${this.escapeHtml(debt.description)}
+                    </p>
+                </div>
+            ` : ''}
+            
+            <!-- Кнопки действий -->
+            ${debt.status !== 'paid' ? `
+                <div class="flex space-x-3">
+                    <button class="pay-debt-btn flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                            data-no-toggle="true">
+                        Внести платеж
+                    </button>
+                    <button class="delay-debt-btn bg-orange-600 hover:bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                            data-no-toggle="true">
+                        Отсрочка
+                    </button>
+                </div>
+        
+                <!-- Форма платежа -->
+                <div class="payment-form hidden bg-gray-800/50 rounded-lg p-4 border border-gray-700" data-no-toggle="true">
+                    <div class="mb-3" data-no-toggle="true">
+                        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Сумма платежа</label>
+                        <input type="number" 
+                               class="payment-amount w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors"
+                               placeholder="0.00"
+                               step="0.01"
+                               min="0.01"
+                               max="${debt.remaining_amount}"
+                               data-no-toggle="true">
+                        <p class="text-gray-500 text-xs mt-1" data-no-toggle="true">Максимум: ${formatAmount(debt.remaining_amount)} ${this.currencySymbol}</p>
+                    </div>
+                    <div class="mb-3" data-no-toggle="true">
+                        <label class="block text-gray-400 text-sm font-medium mb-2" data-no-toggle="true">Примечание (необязательно)</label>
+                        <textarea class="payment-note w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors resize-none"
+                                  rows="2"
+                                  placeholder="Комментарий к платежу..."
+                                  data-no-toggle="true"></textarea>
+                    </div>
+                    <div class="flex space-x-3" data-no-toggle="true">
+                        <button class="pay-full-debt flex-1 py-3 border-gray-700 rounded-lg hover:bg-gray-500 text-white font-semibold transition-colors"
+                                data-no-toggle="true">
+                            Полная сумма
+                        </button>
+                        <button class="confirm-payment flex-1 py-3 rounded-lg bg-blue-600 hover:bg-green-500 text-white font-semibold transition-colors"
+                                data-no-toggle="true">
+                            Внести часть
+                        </button>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- История платежей -->
             <div class="payment-history">
                 <h4 class="text-gray-400 font-semibold mb-3 flex items-center">
                     <i class="fas fa-history mr-2"></i>
@@ -977,9 +977,16 @@ createDebtElement(debt) {
                 </div>
             </div>
 
-        <!-- Подсказка для развертывания -->
-        <div class="text-center mt-3 pt-3 border-t border-gray-700/30">
-            <p class="text-xs text-gray-500">Тапните чтобы развернуть</p>
+            <!-- Блок даты публикации (ДОБАВЛЕН) -->
+            <div class="flex items-center justify-center text-gray-500 text-xs mt-4 pt-3 border-t border-gray-700/30">
+                <i class="fas fa-calendar mr-1.5"></i>
+                <span>Опубликовано: ${debt.created_at}</span>
+            </div>
+
+            <!-- Подсказка для сворачивания (добавлена в развернутом состоянии) -->
+            <div class="text-center mt-3 pt-3 border-t border-gray-700/30 expand-hint">
+                <p class="text-xs text-gray-500">Тапните чтобы свернуть</p>
+            </div>
         </div>
     `;
     
@@ -989,6 +996,8 @@ createDebtElement(debt) {
     return debtDiv;
 }
 
+
+
 addDebtEventListeners(debtDiv, debt) {
     // Обработчик для сворачивания/разворачивания карточки
     debtDiv.addEventListener('click', (e) => {
@@ -997,11 +1006,15 @@ addDebtEventListeners(debtDiv, debt) {
         }
         
         const details = debtDiv.querySelector('.debt-details');
+        const collapseHint = debtDiv.querySelector('.collapse-hint');
+        const expandHint = debtDiv.querySelector('.expand-hint');
         const isCollapsed = debtDiv.classList.contains('collapsed');
         
         if (isCollapsed) {
             debtDiv.classList.remove('collapsed');
             details.classList.remove('hidden');
+            collapseHint.classList.add('hidden'); // Скрываем подсказку развертывания
+            expandHint.classList.remove('hidden'); // Показываем подсказку сворачивания
             debtDiv.style.transform = 'scale(1.02)';
             setTimeout(() => {
                 debtDiv.style.transform = '';
@@ -1012,6 +1025,8 @@ addDebtEventListeners(debtDiv, debt) {
         } else {
             debtDiv.classList.add('collapsed');
             details.classList.add('hidden');
+            collapseHint.classList.remove('hidden'); // Показываем подсказку развертывания
+            expandHint.classList.add('hidden'); // Скрываем подсказку сворачивания
         }
     });
 
@@ -1482,7 +1497,7 @@ renderStatistics(stats) {
                 <div class="w-9 h-9 rounded-lg bg-green-500/15 flex items-center justify-center mx-auto mb-2">
                     <i class="fas fa-check-circle text-green-400 text-sm"></i>
                 </div>
-                <p class="text-gray-400 text-xs mb-0.5">Выполнено</p>
+                <p class="text-gray-400 text-xs mb-0.5">Оплачено</p>
                 <p class="text-white font-semibold text-xl" data-raw-amount="${paidAmount}">
                     ${formatAmount(paidAmount)} <span class="currency-symbol">${this.currencySymbol}</span>
                 </p>

@@ -2827,7 +2827,7 @@ def import_user_data(request):
             profile.save()
             print("Updated user profile")
         
-        # Восстанавливаем категории ТОЧНО как в исходных данных
+        # Восстанавливаем категории
         category_mapping = {}
         if 'categories' in data:
             for category_data in data['categories']:
@@ -2845,7 +2845,23 @@ def import_user_data(request):
             
             print(f"Created {len(data['categories'])} categories with original names")
         
-        # Восстанавливаем транзакции
+        # Вспомогательная функция для преобразования строк дат
+        def parse_date(date_string):
+            if not date_string:
+                return None
+            try:
+                # Пробуем разные форматы дат
+                for fmt in ('%Y-%m-%dT%H:%M:%S.%f%z', '%Y-%m-%dT%H:%M:%S%z', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'):
+                    try:
+                        return datetime.strptime(date_string, fmt)
+                    except ValueError:
+                        continue
+                # Если ничего не подошло, возвращаем None
+                return None
+            except (ValueError, TypeError):
+                return None
+        
+        # Восстанавливаем транзакции С ПРАВИЛЬНЫМИ ДАТАМИ
         if 'transactions' in data:
             transaction_count = 0
             for transaction_data in data['transactions']:
@@ -2858,22 +2874,29 @@ def import_user_data(request):
                 # Используем маппинг категорий
                 category_id = category_mapping.get(old_category_id)
                 
-                Transaction.objects.create(
+                # Преобразуем строку даты обратно в datetime
+                created_at = parse_date(transaction_data.get('created_at'))
+                if not created_at:
+                    created_at = timezone.now()  # fallback на текущее время
+                
+                transaction = Transaction.objects.create(
                     user=user,
                     amount=amount,
                     type=transaction_data['type'],
                     description=transaction_data.get('description', ''),
                     category_id=category_id,
-                    created_at=transaction_data.get('created_at'),
                     reserve_amount=reserve_amount
                 )
+                
+                # Обновляем created_at в обход auto_now_add
+                if created_at:
+                    Transaction.objects.filter(id=transaction.id).update(created_at=created_at)
+                
                 transaction_count += 1
             
-            print(f"Created {transaction_count} transactions")
+            print(f"Created {transaction_count} transactions with original dates")
 
-
-        
-        # Восстанавливаем долги
+        # Восстанавливаем долги С ПРАВИЛЬНЫМИ ДАТАМИ
         debt_mapping = {}
         if 'debts' in data:
             debt_count = 0
@@ -2885,24 +2908,37 @@ def import_user_data(request):
                 amount = Decimal(str(debt_data['amount']))
                 paid_amount = Decimal(str(debt_data.get('paid_amount', 0)))
                 
+                # Преобразуем строки дат
+                due_date = parse_date(debt_data.get('due_date'))
+                created_at = parse_date(debt_data.get('created_at'))
+                
+                if not due_date:
+                    due_date = timezone.now().date()
+                if not created_at:
+                    created_at = timezone.now()
+                
                 new_debt = Debt.objects.create(
                     user=user,
                     debtor_name=debt_data['debtor_name'],
                     amount=amount,
                     paid_amount=paid_amount,
-                    due_date=debt_data['due_date'],
+                    due_date=due_date,
                     status=debt_data.get('status', 'active'),
                     phone=debt_data.get('phone', ''),
                     address=debt_data.get('address', ''),
                     description=debt_data.get('description', '')
                 )
                 
+                # Обновляем created_at в обход auto_now_add
+                if created_at:
+                    Debt.objects.filter(id=new_debt.id).update(created_at=created_at)
+                
                 debt_mapping[old_id] = new_debt.id
                 debt_count += 1
             
-            print(f"Created {debt_count} debts")
+            print(f"Created {debt_count} debts with original dates")
         
-        # Восстанавливаем платежи по долгам
+        # Восстанавливаем платежи по долгам С ПРАВИЛЬНЫМИ ДАТАМИ
         if 'debt_payments' in data:
             payment_count = 0
             for payment_data in data['debt_payments']:
@@ -2913,44 +2949,76 @@ def import_user_data(request):
                     from decimal import Decimal
                     amount = Decimal(str(payment_data['amount']))
                     
-                    DebtPayment.objects.create(
+                    # Преобразуем строку даты
+                    payment_date = parse_date(payment_data.get('payment_date'))
+                    if not payment_date:
+                        payment_date = timezone.now()
+                    
+                    payment = DebtPayment.objects.create(
                         debt_id=debt_mapping[old_debt_id],
                         amount=amount,
                         note=payment_data.get('note', '')
                     )
+                    
+                    # Обновляем payment_date в обход auto_now_add
+                    if payment_date:
+                        DebtPayment.objects.filter(id=payment.id).update(payment_date=payment_date)
+                    
                     payment_count += 1
             
-            print(f"Created {payment_count} debt payments")
+            print(f"Created {payment_count} debt payments with original dates")
         
-        # Восстанавливаем заметки
+        # Восстанавливаем заметки С ПРАВИЛЬНЫМИ ДАТАМИ
         if 'notes' in data:
             note_count = 0
             for note_data in data['notes']:
-                Note.objects.create(
+                # Преобразуем строки дат
+                reminder_date = parse_date(note_data.get('reminder_date'))
+                created_at = parse_date(note_data.get('created_at'))
+                
+                if not created_at:
+                    created_at = timezone.now()
+                
+                note = Note.objects.create(
                     user=user,
                     title=note_data['title'],
                     content=note_data.get('content', ''),
-                    reminder_date=note_data.get('reminder_date'),
+                    reminder_date=reminder_date,
                     is_reminded=note_data.get('is_reminded', False)
                 )
+                
+                # Обновляем created_at в обход auto_now_add
+                if created_at:
+                    Note.objects.filter(id=note.id).update(created_at=created_at)
+                
                 note_count += 1
             
-            print(f"Created {note_count} notes")
+            print(f"Created {note_count} notes with original dates")
         
-        # Восстанавливаем задачи
+        # Восстанавливаем задачи С ПРАВИЛЬНЫМИ ДАТАМИ
         if 'todos' in data:
             todo_count = 0
             for todo_data in data['todos']:
-                Todo.objects.create(
+                # Преобразуем строку даты
+                created_at = parse_date(todo_data.get('created_at'))
+                if not created_at:
+                    created_at = timezone.now()
+                
+                todo = Todo.objects.create(
                     user=user,
                     title=todo_data['title'],
                     description=todo_data.get('description', ''),
                     is_completed=todo_data.get('is_completed', False),
                     priority=todo_data.get('priority', 'medium')
                 )
+                
+                # Обновляем created_at в обход auto_now_add
+                if created_at:
+                    Todo.objects.filter(id=todo.id).update(created_at=created_at)
+                
                 todo_count += 1
             
-            print(f"Created {todo_count} todos")
+            print(f"Created {todo_count} todos with original dates")
         
         return JsonResponse({
             'success': True, 
@@ -2960,6 +3028,5 @@ def import_user_data(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Ошибка чтения JSON файла'})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-    
+        return JsonResponse({'success': False, 'error': str(e)})    
 
