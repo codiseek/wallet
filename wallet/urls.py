@@ -84,4 +84,7 @@ urlpatterns = [
     path('api/debts/<int:debt_id>/add_payment/', views.add_debt_payment, name='add_debt_payment'),
     path('api/debts/<int:debt_id>/pay_full/', views.pay_full_debt, name='pay_full_debt'),
     path('api/debts/<int:debt_id>/payments/', views.get_debt_payments, name='get_debt_payments'),
+    path('export-data/', views.export_user_data, name='export_data'),
+    path('import-data/', views.import_user_data, name='import_data'),
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

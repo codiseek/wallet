@@ -3,7 +3,7 @@ import json
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import Category, Transaction, Debt, DebtPayment
@@ -32,6 +32,10 @@ from django.views.decorators.http import require_http_methods
 from .models import SystemNotification, UserNotification
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator, EmptyPage
+import uuid
+from django.core.files.storage import default_storage
+
+
 
 
 from .models import (
@@ -1687,7 +1691,7 @@ def get_transactions(request):
     limit = int(request.GET.get('limit', 10))
     category_id = request.GET.get('category', 'all')
     
-    # Определяем период фильтрации - ИСПРАВЛЕНО
+    # Определяем период фильтрации
     now = timezone.now()
     if filter_type == 'day':
         start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -1696,12 +1700,10 @@ def get_transactions(request):
         start_date = now - timedelta(days=6)
         start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-
     elif filter_type == 'month':
         start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         next_month = (start_date + timedelta(days=32)).replace(day=1)
         end_date = next_month - timedelta(microseconds=1)
-
         end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
     else:
         start_date = None
@@ -1714,7 +1716,7 @@ def get_transactions(request):
     if category_id != 'all':
         transactions = transactions.filter(category_id=category_id)
     
-    # Фильтруем по дате если выбран период - ИСПРАВЛЕНО
+    # Фильтруем по дате если выбран период
     if start_date and end_date:
         transactions = transactions.filter(created_at__range=[start_date, end_date])
     elif start_date:  # Для случая "все время" или других фильтров
@@ -1742,6 +1744,22 @@ def get_transactions(request):
     
     transactions_data = []
     for transaction in page_obj:
+        # ОБРАБОТКА СЛУЧАЯ, КОГДА КАТЕГОРИЯ = None
+        category_info = {
+            'id': None,
+            'name': 'Без категории',
+            'icon': 'fas fa-circle',
+            'color': '#999999'
+        }
+        
+        if transaction.category:
+            category_info = {
+                'id': transaction.category.id,
+                'name': transaction.category.name,
+                'icon': transaction.category.icon,
+                'color': transaction.category.color
+            }
+        
         transactions_data.append({
             'id': transaction.id,
             'amount': float(transaction.amount),
@@ -1749,20 +1767,19 @@ def get_transactions(request):
             'type': transaction.type,
             'description': transaction.description,
             'created_at': transaction.created_at.isoformat(),
-            'category_id': transaction.category.id,
-            'category_name': transaction.category.name,
-            'category_icon': transaction.category.icon,
-            'category_color': transaction.category.color,
+            'category_id': category_info['id'],
+            'category_name': category_info['name'],
+            'category_icon': category_info['icon'],
+            'category_color': category_info['color'],
         })
     
     return JsonResponse({
         'success': True,
         'transactions': transactions_data,
         'has_more': page_obj.has_next(),
-        'filter_type': filter_type,  # Добавляем информацию о текущем фильтре
-        'total_count': paginator.count  # Добавляем общее количество
+        'filter_type': filter_type,
+        'total_count': paginator.count
     })
-
 
 
 @login_required
@@ -2576,4 +2593,373 @@ def delete_chat_completely(request, notification_id):
         return JsonResponse({'success': False, 'error': 'Уведомление не найдено'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+@csrf_exempt
+@transaction.atomic
+def export_user_data(request):
+    """Экспорт всех данных пользователя"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Не авторизован'})
+    
+    try:
+        user = request.user
+        
+        # Собираем все данные пользователя
+        data = {
+            'export_info': {
+                'version': '1.0',
+                'export_date': timezone.now().isoformat(),
+                'user_id': user.id,
+                'username': user.username
+            },
+            'user_profile': {},
+            'categories': [],
+            'transactions': [],
+            'debts': [],
+            'debt_payments': [],
+            'notes': [],
+            'todos': []
+        }
+        
+        # Получаем профиль пользователя
+        try:
+            if hasattr(user, 'userprofile'):
+                profile = user.userprofile
+                data['user_profile'] = {
+                    'currency': profile.currency,
+                    'reserve_percentage': profile.reserve_percentage,
+                    'target_reserve': float(profile.target_reserve) if profile.target_reserve else 0.0,
+                    'password_changed': profile.password_changed
+                }
+        except Exception as e:
+            print(f"Error getting user profile: {e}")
+        
+        # ИСПРАВЛЕННЫЙ ЭКСПОРТ КАТЕГОРИЙ - БЕЗ created_at
+        try:
+            categories = Category.objects.filter(user=user)
+            categories_data = []
+            for category in categories:
+                categories_data.append({
+                    'id': category.id,
+                    'name': category.name,
+                    'icon': category.icon,
+                    'color': category.color,
+                    # Убрали created_at, так как его нет в модели
+                })
+            data['categories'] = categories_data
+            print(f"Exported {len(categories_data)} categories")
+        except Exception as e:
+            print(f"Error getting categories: {e}")
+        
+        # Получаем транзакции
+        try:
+            transactions = user.transaction_set.all()
+            transactions_data = []
+            for transaction in transactions:
+                transactions_data.append({
+                    'id': transaction.id,
+                    'amount': float(transaction.amount),
+                    'type': transaction.type,
+                    'description': transaction.description,
+                    'category_id': transaction.category_id,
+                    'created_at': transaction.created_at.isoformat() if transaction.created_at else None,
+                    'reserve_amount': float(transaction.reserve_amount)
+                })
+            data['transactions'] = transactions_data
+            print(f"Exported {len(transactions_data)} transactions")
+        except Exception as e:
+            print(f"Error getting transactions: {e}")
+        
+        # Получаем долги
+        try:
+            debts = user.debt_set.all()
+            debts_data = []
+            for debt in debts:
+                debts_data.append({
+                    'id': debt.id,
+                    'debtor_name': debt.debtor_name,
+                    'amount': float(debt.amount),
+                    'paid_amount': float(debt.paid_amount),
+                    'due_date': debt.due_date.isoformat() if debt.due_date else None,
+                    'status': debt.status,
+                    'phone': debt.phone,
+                    'address': debt.address,
+                    'description': debt.description,
+                    'created_at': debt.created_at.isoformat() if debt.created_at else None
+                })
+            data['debts'] = debts_data
+        except Exception as e:
+            print(f"Error getting debts: {e}")
+        
+        # Получаем платежи по долгам
+        try:
+            debt_ids = [debt['id'] for debt in data['debts']]
+            if debt_ids:
+                payments = DebtPayment.objects.filter(debt_id__in=debt_ids)
+                payments_data = []
+                for payment in payments:
+                    payments_data.append({
+                        'id': payment.id,
+                        'debt_id': payment.debt_id,
+                        'amount': float(payment.amount),
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None,
+                        'note': payment.note
+                    })
+                data['debt_payments'] = payments_data
+        except Exception as e:
+            print(f"Error getting debt payments: {e}")
+        
+        # Получаем заметки
+        try:
+            notes = user.note_set.all()
+            notes_data = []
+            for note in notes:
+                notes_data.append({
+                    'id': note.id,
+                    'title': note.title,
+                    'content': note.content,
+                    'reminder_date': note.reminder_date.isoformat() if note.reminder_date else None,
+                    'is_reminded': note.is_reminded,
+                    'created_at': note.created_at.isoformat() if note.created_at else None
+                })
+            data['notes'] = notes_data
+        except Exception as e:
+            print(f"Error getting notes: {e}")
+        
+        # Получаем задачи
+        try:
+            todos = user.todo_set.all()
+            todos_data = []
+            for todo in todos:
+                todos_data.append({
+                    'id': todo.id,
+                    'title': todo.title,
+                    'description': todo.description,
+                    'is_completed': todo.is_completed,
+                    'priority': todo.priority,
+                    'created_at': todo.created_at.isoformat() if todo.created_at else None
+                })
+            data['todos'] = todos_data
+        except Exception as e:
+            print(f"Error getting todos: {e}")
+        
+        # Создаем JSON файл
+        filename = f"backup_{user.username}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
+        response = HttpResponse(
+            json.dumps(data, ensure_ascii=False, indent=2, default=str),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+    
+@csrf_exempt
+@transaction.atomic
+def import_user_data(request):
+    """Импорт данных пользователя"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Не авторизован'})
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Только POST запросы'})
+    
+    try:
+        user = request.user
+        uploaded_file = request.FILES.get('backup_file')
+        
+        if not uploaded_file:
+            return JsonResponse({'success': False, 'error': 'Файл не выбран'})
+        
+        if not uploaded_file.name.endswith('.json'):
+            return JsonResponse({'success': False, 'error': 'Только JSON файлы'})
+        
+        # Читаем и парсим JSON
+        file_content = uploaded_file.read().decode('utf-8')
+        data = json.loads(file_content)
+        
+        # Валидация структуры файла
+        if 'export_info' not in data:
+            return JsonResponse({'success': False, 'error': 'Неверный формат файла'})
+        
+        # ПОЛНОЕ УДАЛЕНИЕ ВСЕХ СУЩЕСТВУЮЩИХ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+        print(f"Deleting all existing data for user {user.username}")
+        
+        # Удаляем транзакции
+        user.transaction_set.all().delete()
+        print("Deleted transactions")
+        
+        # Удаляем категории
+        user.category_set.all().delete()
+        print("Deleted categories")
+        
+        # Удаляем долги и их платежи
+        user.debt_set.all().delete()
+        print("Deleted debts")
+        
+        # Удаляем заметки
+        user.note_set.all().delete()
+        print("Deleted notes")
+        
+        # Удаляем задачи
+        user.todo_set.all().delete()
+        print("Deleted todos")
+        
+        # Восстанавливаем профиль пользователя
+        if 'user_profile' in data:
+            profile = user.userprofile
+            profile_data = data['user_profile']
+            
+            if 'currency' in profile_data:
+                profile.currency = profile_data['currency']
+            if 'reserve_percentage' in profile_data:
+                profile.reserve_percentage = profile_data['reserve_percentage']
+            if 'target_reserve' in profile_data:
+                from decimal import Decimal
+                profile.target_reserve = Decimal(str(profile_data['target_reserve']))
+            
+            profile.save()
+            print("Updated user profile")
+        
+        # Восстанавливаем категории ТОЧНО как в исходных данных
+        category_mapping = {}
+        if 'categories' in data:
+            for category_data in data['categories']:
+                old_id = category_data['id']
+                
+                # Создаем категорию с ТОЧНО ТАКИМИ ЖЕ данными
+                new_category = Category.objects.create(
+                    user=user,
+                    name=category_data['name'],  # Оригинальное название
+                    icon=category_data.get('icon', 'fas fa-tag'),
+                    color=category_data.get('color', '#3b82f6')
+                )
+                
+                category_mapping[old_id] = new_category.id
+            
+            print(f"Created {len(data['categories'])} categories with original names")
+        
+        # Восстанавливаем транзакции
+        if 'transactions' in data:
+            transaction_count = 0
+            for transaction_data in data['transactions']:
+                old_category_id = transaction_data.get('category_id')
+                
+                from decimal import Decimal
+                amount = Decimal(str(transaction_data['amount']))
+                reserve_amount = Decimal(str(transaction_data.get('reserve_amount', 0)))
+                
+                # Используем маппинг категорий
+                category_id = category_mapping.get(old_category_id)
+                
+                Transaction.objects.create(
+                    user=user,
+                    amount=amount,
+                    type=transaction_data['type'],
+                    description=transaction_data.get('description', ''),
+                    category_id=category_id,
+                    created_at=transaction_data.get('created_at'),
+                    reserve_amount=reserve_amount
+                )
+                transaction_count += 1
+            
+            print(f"Created {transaction_count} transactions")
+
+
+        
+        # Восстанавливаем долги
+        debt_mapping = {}
+        if 'debts' in data:
+            debt_count = 0
+            for debt_data in data['debts']:
+                old_id = debt_data['id']
+                
+                # Преобразуем float обратно в Decimal
+                from decimal import Decimal
+                amount = Decimal(str(debt_data['amount']))
+                paid_amount = Decimal(str(debt_data.get('paid_amount', 0)))
+                
+                new_debt = Debt.objects.create(
+                    user=user,
+                    debtor_name=debt_data['debtor_name'],
+                    amount=amount,
+                    paid_amount=paid_amount,
+                    due_date=debt_data['due_date'],
+                    status=debt_data.get('status', 'active'),
+                    phone=debt_data.get('phone', ''),
+                    address=debt_data.get('address', ''),
+                    description=debt_data.get('description', '')
+                )
+                
+                debt_mapping[old_id] = new_debt.id
+                debt_count += 1
+            
+            print(f"Created {debt_count} debts")
+        
+        # Восстанавливаем платежи по долгам
+        if 'debt_payments' in data:
+            payment_count = 0
+            for payment_data in data['debt_payments']:
+                old_debt_id = payment_data.get('debt_id')
+                
+                if old_debt_id in debt_mapping:
+                    # Преобразуем float обратно в Decimal
+                    from decimal import Decimal
+                    amount = Decimal(str(payment_data['amount']))
+                    
+                    DebtPayment.objects.create(
+                        debt_id=debt_mapping[old_debt_id],
+                        amount=amount,
+                        note=payment_data.get('note', '')
+                    )
+                    payment_count += 1
+            
+            print(f"Created {payment_count} debt payments")
+        
+        # Восстанавливаем заметки
+        if 'notes' in data:
+            note_count = 0
+            for note_data in data['notes']:
+                Note.objects.create(
+                    user=user,
+                    title=note_data['title'],
+                    content=note_data.get('content', ''),
+                    reminder_date=note_data.get('reminder_date'),
+                    is_reminded=note_data.get('is_reminded', False)
+                )
+                note_count += 1
+            
+            print(f"Created {note_count} notes")
+        
+        # Восстанавливаем задачи
+        if 'todos' in data:
+            todo_count = 0
+            for todo_data in data['todos']:
+                Todo.objects.create(
+                    user=user,
+                    title=todo_data['title'],
+                    description=todo_data.get('description', ''),
+                    is_completed=todo_data.get('is_completed', False),
+                    priority=todo_data.get('priority', 'medium')
+                )
+                todo_count += 1
+            
+            print(f"Created {todo_count} todos")
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Данные успешно импортированы! Создано: {len(data.get("categories", []))} категорий, {len(data.get("transactions", []))} транзакций, {len(data.get("debts", []))} долгов.'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Ошибка чтения JSON файла'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
 
