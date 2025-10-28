@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 22:05+0600\n"
+"POT-Creation-Date: 2025-10-28 23:05+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,10 +20,41 @@ msgstr ""
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: .\wallet\settings.py:111
-msgid "Русский"
+#: .\main\templates\main\balance.html:18
+msgid "Текущий баланс"
+msgstr "Текущий баланс"
+
+#: .\main\templates\main\balance.html:26
+msgid "Резерв:"
+msgstr "Резерв:"
+
+#: .\main\templates\main\panel_page.html:213
+msgid "Язык"
+msgstr ""
+
+#: .\main\templates\main\panel_page.html:225
+msgid "Выберите язык интерфейса."
+msgstr ""
+
+#: .\main\templates\main\panel_page.html:253
+msgid "Перевод в процессе"
+msgstr ""
+
+#: .\main\templates\main\panel_page.html:255
+msgid ""
+"Мы активно работаем над переводом приложения. Некоторые элементы интерфейса "
+"могут временно отображаться на русском языке. Перевод будет полностью "
+"завершен в ближайших обновлениях."
 msgstr ""
 
 #: .\wallet\settings.py:112
+msgid "Русский"
+msgstr ""
+
+#: .\wallet\settings.py:113
 msgid "English"
+msgstr ""
+
+#: .\wallet\settings.py:114
+msgid "Кыргызча"
 msgstr ""
