@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+from django.utils.translation import gettext_lazy as _
 
 load_dotenv()
 
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',          # ← должно быть сразу после SessionMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -49,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
 ]
+
 
 ROOT_URLCONF = 'wallet.urls'
 
@@ -63,6 +66,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                  'main.context_processors.user_language',
+                 'django.template.context_processors.i18n',
+
             ],
         },
     },
@@ -89,6 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
 # 🌈 STATIC FILES
@@ -101,6 +107,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 🔐 LOGIN
 LOGIN_URL = '/hello/'
+LANGUAGE_CODE = 'ru'  # язык по умолчанию
+LANGUAGES = [
+    ('ru', _('Русский')),
+    ('en', _('English')),
+    ('kg', _('Кыргызча')),
+]
+
+USE_I18N = True
+USE_L10N = True
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 CACHES = {
     'default': {

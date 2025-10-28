@@ -21,6 +21,8 @@ from main import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.conf.urls.i18n import i18n_patterns
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
@@ -87,5 +89,7 @@ urlpatterns = [
     path('export-data/', views.export_user_data, name='export_data'),
     path('import-data/', views.import_user_data, name='import_data'),
     path('update-language/', views.update_language, name='update_language'),
+    path('i18n/', include('django.conf.urls.i18n')),
+
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

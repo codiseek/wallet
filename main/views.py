@@ -34,6 +34,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator, EmptyPage
 import uuid
 from django.core.files.storage import default_storage
+from django.http import HttpResponseRedirect
+from django.utils import translation
 
 
 
@@ -3033,39 +3035,30 @@ def import_user_data(request):
 
 
 
-
-
 @login_required
 @require_POST
 def update_language(request):
-    """Обновление языка пользователя"""
-    try:
-        language = request.POST.get('language')
-        print(f"=== UPDATE LANGUAGE ===")
-        print(f"User: {request.user.username}")
-        print(f"Requested language: {language}")
-        
-        # ОБНОВЛЕННАЯ ПРОВЕРКА ЯЗЫКОВ
-        if language not in ['ru', 'en', 'kg']:
-            return JsonResponse({'success': False, 'error': 'Неверный язык'})
-        
-        # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
-        if not hasattr(request.user, 'userprofile'):
-            from .models import UserProfile
-            UserProfile.objects.create(user=request.user)
-        
-        # Обновляем язык в профиле пользователя
-        profile = request.user.userprofile
-        old_language = profile.language
+    """Обновление языка пользователя и активация локали"""
+    language = request.POST.get('language')
+    next_url = request.POST.get('next', '/')
+
+    if language not in ['ru', 'en', 'kg']:
+        return HttpResponseRedirect(next_url)
+
+    # Обновляем язык у пользователя
+    profile = getattr(request.user, 'userprofile', None)
+    if profile:
         profile.language = language
         profile.save()
-        
-        print(f"Updated language from {old_language} to {language}")
-        print(f"======================")
-        
-        return JsonResponse({'success': True})
-        
-    except Exception as e:
-        print(f"Error updating language: {str(e)}")
-        return JsonResponse({'success': False, 'error': str(e)})
-    
+
+    # Активируем язык немедленно
+    translation.activate(language)
+    request.session['django_language'] = language
+
+    # Создаём ответ с редиректом
+    response = HttpResponseRedirect(next_url)
+
+    # Добавляем cookie, чтобы LocaleMiddleware применился сразу
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
+
+    return response
