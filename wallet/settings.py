@@ -94,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'UTC'
 USE_I18N = True
-USE_L10N = True
+USE_L10N = False
 USE_TZ = True
 
 # 🌈 STATIC FILES
@@ -114,8 +114,8 @@ LANGUAGES = [
     ('kg', _('Кыргызча')),
 ]
 
-USE_I18N = True
-USE_L10N = False
+
+
 
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
