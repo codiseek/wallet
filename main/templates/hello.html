@@ -101,14 +101,51 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
             backdrop-filter: blur(10px);
         }
+
+        /* Новые стили для секции преимуществ */
+        .feature-mockup {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-mockup:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .mockup-container {
+            perspective: 1000px;
+        }
+        
+        .mockup-3d {
+            transform-style: preserve-3d;
+            transform: rotateX(5deg) rotateY(-5deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .mockup-container:hover .mockup-3d {
+            transform: rotateX(0deg) rotateY(0deg);
+        }
+        
+        .benefit-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(51, 65, 85, 0.5) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 <body class="gradient-bg text-gray-100 min-h-screen">
 
-
     <!-- Hero секция -->
     <section class="min-h-screen flex items-center justify-center relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-cyan-900/20"></div>
+      <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-cyan-900/20"></div>
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent"></div>
         <div class="container mx-auto px-4 py-16 text-center relative z-10">
             <div class="flex justify-center items-center mb-8">
@@ -276,6 +313,293 @@
     </div>
 </div>
     </section>
+
+
+  <!-- Новая секция: Преимущества и функционал -->
+    <section class="section-spacing relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/5 to-cyan-900/10"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span class="gradient-text">Все финансовые инструменты</span> в одном приложении
+                </h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Coinza объединяет все необходимое для полного контроля над вашими финансами
+                </p>
+            </div>
+
+            <!-- Основной учет и статистика -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+                <div class="mockup-container">
+                    <div class="feature-mockup bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 mockup-3d">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-chart-pie text-white text-sm"></i>
+                                </div>
+                                <span class="font-bold text-white">Статистика</span>
+                            </div>
+                            <span class="text-xs text-gray-400">Сегодня</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-800/50 rounded-xl p-4">
+                                <p class="text-gray-400 text-sm mb-1">Доходы</p>
+                                <p class="text-green-400 font-bold text-xl">25,000 ₽</p>
+                            </div>
+                            <div class="bg-gray-800/50 rounded-xl p-4">
+                                <p class="text-gray-400 text-sm mb-1">Расходы</p>
+                                <p class="text-red-400 font-bold text-xl">9,570 ₽</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-utensils text-red-400 text-sm"></i>
+                                    </div>
+                                    <span class="text-sm">Еда</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-red-400 font-bold text-sm">-2,450 ₽</span>
+                                    <div class="w-20 bg-gray-700 rounded-full h-1 mt-1">
+                                        <div class="bg-red-500 h-1 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-home text-blue-400 text-sm"></i>
+                                    </div>
+                                    <span class="text-sm">Жилье</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-blue-400 font-bold text-sm">-5,200 ₽</span>
+                                    <div class="w-20 bg-gray-700 rounded-full h-1 mt-1">
+                                        <div class="bg-blue-500 h-1 rounded-full" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">Учет расходов и доходов</h3>
+                    <p class="text-gray-400 mb-6 text-lg">
+                        Полный контроль над вашими финансами с детальной статистикой и наглядными отчетами
+                    </p>
+                    <div class="space-y-4">
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-chart-line text-green-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Автоматическая аналитика</h4>
+                                    <p class="text-gray-400 text-sm">Наглядные графики и отчеты по вашим финансам</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-tags text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Умные категории</h4>
+                                    <p class="text-gray-400 text-sm">Автоматическая сортировка по категориям расходов</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-bell text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Напоминания о платежах</h4>
+                                    <p class="text-gray-400 text-sm">Никогда не забывайте о важных платежах</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Система резервов и сбережений -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+                <div class="order-2 lg:order-1">
+                    <h3 class="text-2xl font-bold mb-4">Умные сбережения и резервы</h3>
+                    <p class="text-gray-400 mb-6 text-lg">
+                        Достигайте финансовых целей с автоматическим накоплением и системой резервов
+                    </p>
+                    <div class="space-y-4">
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-bullseye text-yellow-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Финансовые цели</h4>
+                                    <p class="text-gray-400 text-sm">Ставьте цели и отслеживайте прогресс</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-piggy-bank text-green-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Авто-резерв</h4>
+                                    <p class="text-gray-400 text-sm">Автоматическое откладывание процента от доходов</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card rounded-xl p-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-chart-bar text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">Прогресс в реальном времени</h4>
+                                    <p class="text-gray-400 text-sm">Следите за приближением к вашим целям</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-1 lg:order-2 mockup-container">
+                    <div class="feature-mockup bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 mockup-3d">
+                        <div class="flex items-center mb-6">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mr-3">
+                                <i class="fas fa-piggy-bank text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-white">Мои сбережения</h4>
+                                <p class="text-gray-400 text-sm">Прогресс к цели</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-4 mb-4 border border-blue-800/30">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-300 text-sm">Текущий резерв</span>
+                                <span class="text-blue-400 font-bold">15,430 ₽</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300 text-sm">Целевой резерв</span>
+                                <span class="text-purple-400 font-bold">50,000 ₽</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-400">Прогресс</span>
+                                <span class="text-yellow-400 font-bold">30.8%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-1000" style="width: 30.8%">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse-slow"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div>
+                                <p class="text-gray-400 text-xs">Накоплено</p>
+                                <p class="text-blue-400 font-bold">15,430 ₽</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-xs">Осталось</p>
+                                <p class="text-yellow-400 font-bold">34,570 ₽</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-xs">Выполнено</p>
+                                <p class="text-green-400 font-bold">30.8%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Дополнительные инструменты -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Задачи -->
+                <div class="feature-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-double text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Умные задачи</h3>
+                    <p class="text-gray-400 mb-4">Организуйте финансовые задачи и отслеживайте их выполнение</p>
+                    <div class="bg-gray-800/50 rounded-xl p-3 text-left">
+                        <div class="flex items-center mb-2">
+                            <div class="w-4 h-4 rounded-full border-2 border-blue-400 flex items-center justify-center mr-3">
+                                <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                            </div>
+                            <span class="text-sm">Оплатить интернет</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full border-2 border-gray-500 mr-3"></div>
+                            <span class="text-sm text-gray-500 line-through">Записаться к врачу</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Заметки -->
+                <div class="feature-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-sticky-note text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Умные заметки</h3>
+                    <p class="text-gray-400 mb-4">Создавайте заметки с напоминаниями для важных финансовых дел</p>
+                    <div class="bg-gray-800/50 rounded-xl p-3 text-left">
+                        <div class="flex items-start mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 mr-3">
+                                <i class="fas fa-bell text-blue-400 text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white text-sm font-semibold">Купить подарок на др</h4>
+                                <p class="text-gray-400 text-xs">Не забыть до 15 декабря</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Платежи и долги -->
+                <div class="feature-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hand-holding-usd text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Платежи и долги</h3>
+                    <p class="text-gray-400 mb-4">Контролируйте регулярные платежи и избегайте просрочек</p>
+                    <div class="bg-gray-800/50 rounded-xl p-3 text-left">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-red-500/20 rounded flex items-center justify-center mr-2">
+                                    <i class="fas fa-hand-holding-usd text-red-400 text-xs"></i>
+                                </div>
+                                <span class="text-sm">Долг другу</span>
+                            </div>
+                            <span class="text-red-400 text-sm font-bold">-5,000 ₽</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-1">
+                            <div class="bg-red-500 h-1 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 
     <!-- CTA секция -->
     <section class="section-spacing">

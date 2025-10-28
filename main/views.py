@@ -3030,3 +3030,42 @@ def import_user_data(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})    
 
+
+
+
+
+
+@login_required
+@require_POST
+def update_language(request):
+    """Обновление языка пользователя"""
+    try:
+        language = request.POST.get('language')
+        print(f"=== UPDATE LANGUAGE ===")
+        print(f"User: {request.user.username}")
+        print(f"Requested language: {language}")
+        
+        # ОБНОВЛЕННАЯ ПРОВЕРКА ЯЗЫКОВ
+        if language not in ['ru', 'en', 'kg']:
+            return JsonResponse({'success': False, 'error': 'Неверный язык'})
+        
+        # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
+        if not hasattr(request.user, 'userprofile'):
+            from .models import UserProfile
+            UserProfile.objects.create(user=request.user)
+        
+        # Обновляем язык в профиле пользователя
+        profile = request.user.userprofile
+        old_language = profile.language
+        profile.language = language
+        profile.save()
+        
+        print(f"Updated language from {old_language} to {language}")
+        print(f"======================")
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        print(f"Error updating language: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+    

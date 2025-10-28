@@ -91,6 +91,17 @@ class UserProfile(models.Model):
     default='c'
 )
     
+    LANGUAGE_CHOICES = [
+        ('ru', 'Русский'),
+        ('en', 'English'),
+        ('kg', 'Кыргызча'),
+    ]
+    language = models.CharField(
+        max_length=2,
+        choices=LANGUAGE_CHOICES,
+        default='ru'
+    )
+        
 
     def __str__(self):
         return f"{self.user.username} Profile"

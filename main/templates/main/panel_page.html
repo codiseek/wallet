@@ -9,8 +9,7 @@
 
     <h2 class="text-lg font-bold mb-4 flex items-center">
         <i class="fa-solid fa-sliders text-blue-400 mr-2"></i>
-
-        Панель управления
+ <span data-translate="panel.title">Панель управления</span>
     </h2>
     
 
@@ -47,7 +46,7 @@
                                 {% if user.email %}
                                     {{ user.email }}
                                 {% else %}
-                                    email не указан
+                                    <span data-translate="panel.email_not_provided">email не указан</span>
                                 {% endif %}
                             </p>
                         </div>
@@ -75,28 +74,28 @@
 <div class="bg-red-900/20 rounded-xl p-4 mb-6 border border-red-500/30 admin-panel">
     <h3 class="font-semibold text-white mb-4 flex items-center">
         <i class="fas fa-shield-alt mr-2 text-yellow-400"></i>
-        Администрирование
+        <span data-translate="panel.admin_panel">Администрирование</span>
     </h3>
     
     <!-- Основная кнопка -->
     <button onclick="toggleAdminUsersModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-3 mb-4">
         <i class="fas fa-users text-lg"></i>
-        <span class="text-base font-medium">Управление пользователями</span>
+        <span class="text-base font-medium" data-translate="panel.user_management">Управление пользователями</span>
     </button>
 
     <!-- Статистика пользователей -->
     <div class="grid grid-cols-3 gap-3 mb-4">
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="totalUsersCount" class="text-2xl font-bold text-green-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Всего пользователей</div>
+            <div class="text-gray-300 text-xs mt-1" data-translate="panel.total_users">Всего пользователей</div>
         </div>
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="newUsersWeekCount" class="text-2xl font-bold text-blue-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Новых за неделю</div>
+            <div class="text-gray-300 text-xs mt-1" data-translate="panel.new_this_week">Новых за неделю</div>
         </div>
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="activeTodayCount" class="text-2xl font-bold text-purple-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Активных сегодня</div>
+            <div class="text-gray-300 text-xs mt-1" data-translate="panel.active_today">Активных сегодня</div>
         </div>
     </div>
 
@@ -104,23 +103,20 @@
     <div class="bg-black/30 rounded-lg p-3 border border-white/10">
         <h4 class="text-white font-medium mb-2 flex items-center text-sm">
             <i class="fas fa-clock mr-2 text-gray-400"></i>
-            Последние регистрации
+            <span data-translate="panel.recent_registrations">Последние регистрации</span>
         </h4>
         
         <div id="recentUsersList">
             <!-- Динамический список будет здесь -->
             <div class="text-center py-4 text-gray-400">
                 <i class="fas fa-spinner animate-spin mr-2"></i>
-                Загрузка...
+                <span data-translate="panel.loading">Загрузка...</span>
             </div>
         </div>
     </div>
 </div>
 
 {% endif %}
-
-
-
 
 <!-- Модальное окно списка пользователей -->
 <div id="adminUsersModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
@@ -130,7 +126,7 @@
             <div>
                 <h3 class="text-lg font-bold text-white flex items-center">
                     <i class="fas fa-users mr-2 text-purple-400"></i>
-                    Список пользователей
+                    <span data-translate="panel.user_list">Список пользователей</span>
                 </h3>
             </div>
             <button onclick="toggleAdminUsersModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
@@ -146,6 +142,7 @@
                         type="text" 
                         id="usersSearchInput"
                         placeholder="Поиск по имени или email..." 
+                        data-translate-placeholder="panel.search_users"
                         class="w-full bg-gray-700 border border-gray-600 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-0 outline-none transition-all"
                         oninput="searchUsers()"
                     >
@@ -153,7 +150,7 @@
                 </div>
                 <button class="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-xl transition-colors flex items-center space-x-2">
                     <i class="fas fa-filter"></i>
-                    <span>Фильтры</span>
+                    <span data-translate="panel.filters">Фильтры</span>
                 </button>
             </div>
         </div>
@@ -163,7 +160,7 @@
             <!-- Лоадер -->
             <div id="usersListLoader" class="p-8 text-center">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
-                <p class="text-gray-400 mt-2">Загрузка пользователей...</p>
+                <p class="text-gray-400 mt-2" data-translate="panel.loading_users">Загрузка пользователей...</p>
             </div>
             
             <!-- Контент -->
@@ -180,7 +177,7 @@
                         class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl transition-colors hidden"
                     >
                         <i class="fas fa-plus mr-2"></i>
-                        Загрузить еще
+                        <span data-translate="panel.load_more">Загрузить еще</span>
                     </button>
                 </div>
             </div>
@@ -191,12 +188,63 @@
             <div class="flex justify-between items-center text-sm">
                 <div class="text-gray-400">
                     <i class="fas fa-info-circle mr-1"></i>
-                    Всего пользователей: <span id="modalTotalUsers" class="text-white font-semibold">0</span>
+                    <span data-translate="panel.total_users_count">Всего пользователей:</span> <span id="modalTotalUsers" class="text-white font-semibold">0</span>
                 </div>
                 <button class="text-purple-400 hover:text-purple-300 text-sm flex items-center space-x-1">
                     <i class="fas fa-download"></i>
-                    <span>Экспорт</span>
+                    <span data-translate="panel.export">Экспорт</span>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Блок выбора языка -->
+<div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <i class="fas fa-globe text-purple-400 text-sm"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-200" data-translate="panel.language">Язык</h3>
+        </div>
+        <span id="currentLanguage" class="text-sm text-purple-400 font-medium">
+            {% if user.userprofile.language == 'ru' %}Русский
+            {% elif user.userprofile.language == 'en' %}English
+            {% elif user.userprofile.language == 'kg' %}Кыргызча
+            {% else %}Русский{% endif %}
+        </span>
+    </div>
+
+    <p class="text-sm text-gray-400 mb-3" data-translate="panel.language_description">
+        Выберите язык интерфейса.
+    </p>
+
+    <div class="grid grid-cols-3 gap-2">
+        <button class="language-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user.userprofile.language == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600{% endif %}" data-language="ru" title="Русский">
+            <span class="text-white text-sm">Русский</span>
+        </button>
+        <button class="language-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user.userprofile.language == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600{% endif %}" data-language="en" title="English">
+            <span class="text-white text-sm">English</span>
+        </button>
+        <button class="language-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user.userprofile.language == 'kg' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600{% endif %}" data-language="kg" title="Кыргызча">
+            <span class="text-white text-sm">Кыргызча</span>
+        </button>
+    </div>
+
+    <!-- Уведомление о процессе перевода -->
+    <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+        <div class="flex items-start space-x-3">
+            <div class="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-info text-yellow-400 text-xs"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-yellow-400 text-xs font-medium mb-1">Перевод в процессе</p>
+                <p class="text-yellow-300/80 text-xs leading-relaxed">
+                    Мы активно работаем над переводом приложения. Некоторые элементы интерфейса могут временно отображаться на русском языке. Перевод будет полностью завершен в ближайших обновлениях.
+                </p>
             </div>
         </div>
     </div>
@@ -209,107 +257,108 @@
                         <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
                             <i class="fas fa-money-bill-wave text-green-400 text-sm"></i>
                         </div>
-                        <h3 class="text-base font-semibold text-gray-200">Валюта</h3>
+                         <h3 class="text-base font-semibold text-gray-200" data-translate="panel.currency">Валюта</h3>
                     </div>
                     <span id="currentCurrency" class="text-sm text-green-400 font-medium">
-                        {% if user_currency == 'c' %}сом
-                        {% elif user_currency == 'r' %}рубль
-                        {% elif user_currency == '$' %}доллар
-                        {% elif user_currency == '€' %}евро
-                        {% else %}сом{% endif %}
+                        {% if user_currency == 'c' %}<span data-translate="currencies.som">сом</span>
+            {% elif user_currency == 'r' %}<span data-translate="currencies.ruble">рубль</span>
+            {% elif user_currency == '$' %}<span data-translate="currencies.dollar">доллар</span>
+            {% elif user_currency == '€' %}<span data-translate="currencies.euro">евро</span>
+            {% else %}<span data-translate="currencies.som">сом</span>{% endif %}
                     </span>
                 </div>
 
-                <p class="text-sm text-gray-400 mb-3">
-                    Выберите валюту для отображения сумм.
-                </p>
+                <p class="text-sm text-gray-400 mb-3" data-translate="panel.currency_description">
+        Выберите валюту для отображения сумм.
+    </p>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c" title="Сом">
-                        <i class="fa-solid fa-c text-white text-lg"></i>
-                    </button>
-                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
-                        <i class="fas fa-ruble-sign text-white text-lg"></i>
-                    </button>
-                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$" title="Доллар">
-                        <i class="fas fa-dollar-sign text-white text-lg"></i>
-                    </button>
-                    <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
-                        <i class="fas fa-euro-sign text-white text-lg"></i>
-                    </button>
-                </div>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c" data-translate-title="currencies.som" title="Сом">
+            <i class="fa-solid fa-c text-white text-lg"></i>
+        </button>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r" data-translate-title="currencies.ruble" title="Рубль">
+            <i class="fas fa-ruble-sign text-white text-lg"></i>
+        </button>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$" data-translate-title="currencies.dollar" title="Доллар">
+            <i class="fas fa-dollar-sign text-white text-lg"></i>
+        </button>
+        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€" data-translate-title="currencies.euro" title="Евро">
+            <i class="fas fa-euro-sign text-white text-lg"></i>
+        </button>
+    </div>
+</div>
+
+          <!-- Настройка процента резерва -->
+<div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
             </div>
+            <h3 class="text-base font-semibold text-gray-200" data-translate="panel.reserve">Резерв</h3>
+        </div>
+        <span id="currentReservePercent" class="text-sm text-blue-400 font-medium">{{ reserve_percentage }}%</span>
+    </div>
 
-            <!-- Настройка процента резерва -->
-            <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
-                        </div>
-                        <h3 class="text-base font-semibold text-gray-200">Резерв</h3>
-                    </div>
-                    <span id="currentReservePercent" class="text-sm text-blue-400 font-medium">{{ reserve_percentage }}%</span>
+    <p class="text-sm text-gray-400 mb-3" data-translate="panel.reserve_description">
+        Укажите, сколько процентов от доходов автоматически откладывать в резерв.
+    </p>
+
+    <div class="flex items-center space-x-3 mb-4">
+        <input
+            type="number"
+            id="reservePercentageInput"
+            min="0"
+            max="100"
+            class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-blue-500 focus:ring-0 outline-none transition-all"
+            value="{{ reserve_percentage }}" 
+        >
+        <button
+            id="saveReserveBtn"
+            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
+        >
+            <i class="fas fa-save mr-2"></i>
+            <span data-translate="panel.save">Сохранить</span>
+        </button>
+    </div>
+
+               <!-- Блок для целевого резерва -->
+    <div class="pt-4 border-t border-gray-600/50">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <i class="fas fa-bullseye text-purple-400 text-sm"></i>
                 </div>
-
-                <p class="text-sm text-gray-400 mb-3">
-                    Укажите, сколько процентов от доходов автоматически откладывать в резерв.
-                </p>
-
-                <div class="flex items-center space-x-3 mb-4">
-                    <input
-                        type="number"
-                        id="reservePercentageInput"
-                        min="0"
-                        max="100"
-                        class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-blue-500 focus:ring-0 outline-none transition-all"
-                        value="{{ reserve_percentage }}" 
-                    >
-                    <button
-                        id="saveReserveBtn"
-                        class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
-                    >
-                        <i class="fas fa-save mr-2"></i>Сохранить
-                    </button>
-                </div>
-
-                <!-- Блок для целевого резерва -->
-                <div class="pt-4 border-t border-gray-600/50">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                <i class="fas fa-bullseye text-purple-400 text-sm"></i>
-                            </div>
-                            <h3 class="text-base font-semibold text-gray-200">Целевой резерв</h3>
-                        </div>
-                        <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} с</span>
-                    </div>
-
-
-                    <p class="text-sm text-gray-400 mb-3">
-                        Укажите сумму, которую хотите накопить.
-                    </p>
-
-                    <div class="flex items-center space-x-3">
-                        <input
-                            type="number"
-                            id="targetReserveInput"
-                            min="0"
-                            step="1000"
-                            class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-purple-500 focus:ring-0 outline-none transition-all"
-                            value="{{ target_reserve|floatformat:0 }}"
-                        >
-                        <button
-                            id="saveTargetReserveBtn"
-                            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
-                        >
-                            <i class="fas fa-save mr-2"></i>Сохранить
-                        </button>
-                    </div>
-                </div>
-
-                
+                <h3 class="text-base font-semibold text-gray-200" data-translate="panel.target_reserve">Целевой резерв</h3>
             </div>
+            <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} <span data-translate="currencies.som">сом</span></span>
+        </div>
+
+        <p class="text-sm text-gray-400 mb-3" data-translate="panel.target_reserve_description">
+            Укажите сумму, которую хотите накопить.
+        </p>
+
+        <div class="flex items-center space-x-3">
+            <input
+                type="number"
+                id="targetReserveInput"
+                min="0"
+                step="1000"
+                class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-purple-500 focus:ring-0 outline-none transition-all"
+                value="{{ target_reserve|floatformat:0 }}"
+            >
+            <button
+                id="saveTargetReserveBtn"
+                class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
+            >
+                <i class="fas fa-save mr-2"></i>
+                <span data-translate="panel.save">Сохранить</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
         
 <script>
 // Переменная для отслеживания состояния импорта
@@ -560,7 +609,7 @@ if (typeof showLoadingNotification === 'undefined') {
 <div class="bg-zinc-800/60 rounded-2xl p-5 mb-6 border border-gray-700/50 shadow-lg">
   <h3 class="font-semibold text-white mb-4 flex items-center">
     <i class="fas fa-database mr-2 text-blue-400"></i>
-    Управление данными
+    <span data-translate="panel.data_management">Управление данными</span>
   </h3>
 
   <div class="grid grid-cols-2 gap-4 mb-4">
@@ -571,8 +620,8 @@ if (typeof showLoadingNotification === 'undefined') {
       class="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-blue-900/20"
     >
       <i class="fas fa-download text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-sm tracking-wide">Экспорт</span>
-      <span class="text-xs text-blue-200 opacity-80 mt-0.5">Сохранить данные</span>
+      <span class="font-semibold text-sm tracking-wide" data-translate="panel.export">Экспорт</span>
+      <span class="text-xs text-blue-200 opacity-80 mt-0.5" data-translate="panel.save_data">Сохранить данные</span>
     </button>
 
     <!-- Кнопка Импорт -->
@@ -582,8 +631,8 @@ if (typeof showLoadingNotification === 'undefined') {
       class="group bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-green-900/20"
     >
       <i class="fas fa-upload text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-sm tracking-wide">Импорт</span>
-      <span class="text-xs text-green-200 opacity-80 mt-0.5">Загрузить данные</span>
+      <span class="font-semibold text-sm tracking-wide" data-translate="panel.import">Импорт</span>
+      <span class="text-xs text-green-200 opacity-80 mt-0.5" data-translate="panel.load_data">Загрузить данные</span>
     </button>
   </div>
 
@@ -593,19 +642,18 @@ if (typeof showLoadingNotification === 'undefined') {
   <!-- Информация о формате -->
   <div class="text-gray-400 text-xs border-t border-gray-700/50 pt-3">
     <i class="fas fa-info-circle text-blue-400 mr-1"></i>
-    Экспорт выполняется в формате <span class="text-blue-300 font-medium">JSON</span>.  
-    Импорт поддерживает только <span class="text-green-300 font-medium">JSON-файлы</span>, созданные через экспорт.
+    <span data-translate="panel.export_format">Экспорт выполняется в формате</span> <span class="text-blue-300 font-medium">JSON</span>.  
+    <span data-translate="panel.import_format">Импорт поддерживает только</span> <span class="text-green-300 font-medium">JSON-файлы</span>, <span data-translate="panel.created_through_export">созданные через экспорт.</span>
   </div>
 </div>
 
-
-          <!-- Кнопка поддержки -->
-            <div class="text-center mt-6 mb-6">
-                <button class="text-blue-400 hover:text-blue-300 text-sm flex items-center justify-center space-x-1 mx-auto">
-                    <i class="fas fa-headset"></i>
-                    <span>Служба поддержки</span>
-                </button>
-            </div>
+<!-- Кнопка поддержки -->
+<div class="text-center mt-6 mb-6">
+    <button class="text-blue-400 hover:text-blue-300 text-sm flex items-center justify-center space-x-1 mx-auto">
+        <i class="fas fa-headset"></i>
+        <span data-translate="panel.support">Служба поддержки</span>
+    </button>
+</div>
         </div>
     </div>
 </div>

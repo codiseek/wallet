@@ -13,7 +13,7 @@
     <div class="flex justify-between items-start relative z-10">
         <!-- Левая часть -->
         <div>
-            <p class="text-sm text-gray-300 mb-1">Текущий баланс</p>
+            <p class="text-sm text-gray-300 mb-1" data-translate="home.current_balance">Текущий баланс</p>
            <p class="text-3xl font-bold text-white">
     <span id="totalBalance" data-raw-value="{{ total|floatformat:0 }}">{{ total|floatformat:0 }}</span>
     <span class="currency-symbol">с</span>
@@ -21,7 +21,7 @@
 
 <!-- Резерв -->
 <div class="mt-3 flex items-center space-x-2">
-    <span class="text-sm text-gray-300">Резерв:</span>
+    <span class="text-sm text-gray-300" data-translate="home.reserve">Резерв:</span>
     <span class="text-blue-400 font-semibold text-lg" id="reserveAmount" data-raw-value="{{ current_reserve|floatformat:0 }}">{{ current_reserve|floatformat:0 }}</span>
     <span class="currency-symbol text-blue-400 font-semibold text-lg">с</span>
 </div>
@@ -32,7 +32,7 @@
     <div class="mt-5 relative z-10">
         <div class="flex justify-between items-end mb-2">
            <div class="text-left">
-    <p class="text-xs text-gray-400 mb-1">Доходы</p>
+    <p class="text-xs text-gray-400 mb-1" data-translate="home.income">Доходы</p>
     <p class="text-green-400 font-semibold">
         <span id="monthIncome">{{ income|floatformat:0 }}</span> <span class="currency-symbol">с</span>
     </p>

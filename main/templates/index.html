@@ -100,6 +100,11 @@
 
 
 <script>
+    // Передаем текущий язык из Django в JavaScript
+    window.userLanguage = '{{ user_language }}' || 'ru';
+</script>
+
+<script>
     // Передаем текущую валюту из Django в JavaScript
     window.currentCurrency = '{{ user_currency }}' || 'c';
     console.log('Текущая валюта из Django:', '{{ user_currency }}');
@@ -127,7 +132,7 @@
 
 <!-- Подключение Tailwind и JS -->
 <script src="https://cdn.tailwindcss.com"></script>
-
+<script src="/static/main/language.js"></script> 
 <script src="/static/main/utils.js"></script>
 <script src="/static/main/modals.js"></script>
 <script src="/static/main/notification-logo.js"></script>
@@ -143,6 +148,7 @@
 <script src="/static/main/navigation.js"></script>
 <script src="/static/main/admin.js"></script> 
 <script src="/static/main/todo.js"></script> 
+
 <script src="/static/main/app.js"></script>
 
     <script>
