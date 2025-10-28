@@ -6,6 +6,21 @@ from django.utils.translation import gettext_lazy as _
 
 load_dotenv()
 
+
+# Настройки сессий
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # или 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_SECURE = True  # Обязательно для HTTPS на Render
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Настройки языка
+LANGUAGE_COOKIE_SECURE = True
+LANGUAGE_COOKIE_SAMESITE = 'Lax'
+
+# Если используете CSRF
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qtg_^8)f75b71hu$r$m%r!^ww^m8q&j&0xg0fd2yw8v3xo-3jk')
