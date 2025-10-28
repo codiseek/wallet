@@ -115,7 +115,7 @@ LANGUAGES = [
 ]
 
 USE_I18N = True
-USE_L10N = True
+USE_L10N = False
 
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
