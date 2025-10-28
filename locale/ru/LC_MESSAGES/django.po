@@ -22,11 +22,11 @@ msgstr ""
 
 #: .\main\templates\main\balance.html:18
 msgid "Текущий баланс"
-msgstr "Текущий баланс"
+msgstr ""
 
 #: .\main\templates\main\balance.html:26
 msgid "Резерв:"
-msgstr "Резерв:"
+msgstr ""
 
 #: .\main\templates\main\panel_page.html:213
 msgid "Язык"

@@ -139,6 +139,28 @@
             border-color: rgba(59, 130, 246, 0.4);
             transform: translateY(-3px);
         }
+
+/* Плавная анимация галочки */
+.peer:checked + div i {
+    animation: checkPop 0.2s ease-out;
+}
+
+@keyframes checkPop {
+    0% {
+        transform: scale(0.8);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Улучшение ховер-эффекта */
+.group:hover .peer:not(:checked) + div {
+    border-color: #9ca3af;
+}
     </style>
 </head>
 <body class="gradient-bg text-gray-100 min-h-screen">
@@ -640,7 +662,7 @@
                 </div>
             </div>
             <div class="text-gray-500 text-sm">
-                &copy; 2025 koinda.app - Open Source проект.
+                &copy; 2025 coinza.app
             </div>
         </div>
     </footer>
@@ -689,20 +711,54 @@
       </button>
     </form>
 
-    <!-- Форма регистрации (изначально скрыта) -->
-    <form id="registerForm" class="space-y-4 hidden">
-      {% csrf_token %}
-      <input type="text" name="username" placeholder="Придумайте логин" required class="w-full p-3 rounded-lg bg-gray-700 text-white">
-      
-      <!-- Кнопка регистрации с состоянием загрузки -->
-      <button type="submit" class="register-submit-btn btn-primary w-full py-3 rounded-lg text-white font-semibold relative overflow-hidden">
+
+   <!-- В форме регистрации замените текущие поля на этот код -->
+
+<!-- Форма регистрации (изначально скрыта) -->
+<form id="registerForm" class="space-y-6 hidden">
+    {% csrf_token %}
+    <div>
+        <input type="text" name="username" placeholder="Придумайте логин" required 
+               class="w-full p-3 rounded-lg bg-gray-700 text-white"
+               pattern="[a-zA-Z0-9]+" 
+               title="Только латинские буквы и цифры (без пробелов)"
+               oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
+        <p class="text-xs text-gray-400 mt-1">Только латинские буквы и цифры</p>
+    </div>
+    
+<!-- Компактный вариант -->
+<div class="space-y-0">
+    <!-- Чекбокс -->
+    <label for="privacyAgreement" class="flex items-center space-x-3 w-full p-3 bg-gray-800/50 rounded-lg border border-gray-600/30 h-12 cursor-pointer group hover:border-gray-500/50 transition-colors">
+        <div class="relative">
+            <input id="privacyAgreement" name="privacy_agreement" type="checkbox" required
+                   class="sr-only peer">
+            <div class="w-5 h-5 border border-gray-400 rounded flex items-center justify-center transition-all duration-200
+                        peer-checked:bg-blue-500 peer-checked:border-blue-500 
+                        peer-checked:shadow-sm group-hover:border-gray-300">
+                <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></i>
+            </div>
+        </div>
+        <span class="text-sm text-gray-200 select-none">Я согласен на обработку данных</span>
+    </label>
+
+    <!-- Ссылка - без отступа сверху -->
+    <div class="text-center">
+        <button type="button" onclick="togglePrivacyModal()" 
+                class="text-xs text-blue-400 hover:text-blue-300 border-b border-dashed border-blue-400/50 hover:border-blue-300/50 pb-0.5 transition-colors">
+            Политика конфиденциальности
+        </button>
+    </div>
+</div>
+
+    <!-- Кнопка регистрации с состоянием загрузки -->
+    <button type="submit" class="register-submit-btn btn-primary w-full py-3 rounded-lg text-white font-semibold relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
         <span class="register-btn-text">Зарегистрироваться</span>
         <div class="register-spinner hidden absolute inset-0 flex items-center justify-center">
-          <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </button>
-    </form>
-
+    </button>
+</form>
     <!-- Ссылка переключения между формами -->
     <div class="mt-4 text-center">
       <button id="toggleAuthMode" class="text-blue-400 hover:text-blue-300 text-sm">
@@ -714,7 +770,209 @@
   </div>
 </div>
 
+
+
+
+
+
+
+
+<!-- Добавьте этот код в hello.html перед закрывающим тегом </body> -->
+
+<!-- Модальное окно политики конфиденциальности -->
+<div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Политика конфиденциальности</h2>
+            <button onclick="togglePrivacyModal()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-4 text-gray-300">
+            <div class="bg-gray-700/50 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-white mb-2">Сбор и использование данных</h3>
+                <p>Мы собираем только необходимую информацию для работы сервиса:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Логин пользователя</li>
+                    <li>Финансовые транзакции и категории</li>
+                    <li>Заметки и задачи</li>
+                    <li>Данные о долгах и платежах</li>
+                </ul>
+            </div>
+
+            <div class="bg-gray-700/50 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-white mb-2">Хранение данных</h3>
+                <p>Все ваши данные хранятся на защищенных серверах и не передаются третьим лицам. 
+                Мы используем современные методы шифрования для обеспечения безопасности вашей информации.</p>
+            </div>
+
+            <div class="bg-gray-700/50 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-white mb-2">Конфиденциальность</h3>
+                <p>Мы гарантируем, что:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Ваши данные не будут проданы или переданы третьим лицам</li>
+                    <li>Доступ к данным имеют только вы</li>
+                    <li>Все данные хранятся в зашифрованном виде</li>
+                    <li>Мы не имеем доступа к вашим паролям</li>
+                </ul>
+            </div>
+
+            <div class="bg-gray-700/50 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-white mb-2">Ваши права</h3>
+                <p>Вы можете в любой момент:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>Экспортировать все свои данные</li>
+                    <li>Удалить аккаунт и все связанные данные</li>
+                    <li>Запросить информацию о хранимых данных</li>
+                </ul>
+            </div>
+
+            <div class="text-center text-sm text-gray-400 mt-6">
+                <p>Используя наш сервис, вы соглашаетесь с условиями данной политики конфиденциальности.</p>
+                <p class="mt-2">Последнее обновление: {% now "d.m.Y" %}</p>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-6">
+            <button onclick="togglePrivacyModal()" class="btn-primary px-6 py-2 rounded-lg">
+                Понятно
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
 <script>
+
+
+// Добавьте этот код в секцию <script> в hello.html
+
+// Функции для модалки политики конфиденциальности
+function togglePrivacyModal() {
+    const modal = document.getElementById('privacyModal');
+    modal.classList.toggle('hidden');
+    modal.classList.toggle('flex');
+}
+
+// Закрытие модалки по клику вне окна
+document.getElementById('privacyModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        togglePrivacyModal();
+    }
+});
+
+// Функция для удаления пробелов из логина (используется в обеих формах)
+function sanitizeUsername(input) {
+    return input.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+}
+
+// Улучшенная валидация логина при вводе (для обеих форм)
+document.addEventListener('DOMContentLoaded', function() {
+    // Для формы авторизации
+    const loginUsername = document.querySelector('#loginForm input[name="username"]');
+    if (loginUsername) {
+        loginUsername.addEventListener('input', function() {
+            this.value = sanitizeUsername(this.value);
+        });
+    }
+
+    // Для формы регистрации
+    const registerUsername = document.querySelector('#registerForm input[name="username"]');
+    if (registerUsername) {
+        registerUsername.addEventListener('input', function() {
+            this.value = sanitizeUsername(this.value);
+        });
+    }
+});
+
+// Обновим обработчик формы регистрации для дополнительной проверки
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    // Дополнительная проверка чекбокса
+    const privacyCheckbox = document.getElementById('privacyAgreement');
+    if (!privacyCheckbox.checked) {
+        showButtonError('.register-submit-btn', "Необходимо согласие с политикой конфиденциальности");
+        return;
+    }
+
+    // Показываем загрузку на кнопке
+    setButtonLoading('.register-submit-btn', true);
+
+    const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    try {
+        const response = await fetch("{% url 'register' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Успешная регистрация и авторизация - перенаправляем на главную
+            window.location.href = "{% url 'index' %}";
+        } else {
+            showButtonError('.register-submit-btn', data.error || "Ошибка при регистрации");
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showButtonError('.register-submit-btn', "Ошибка соединения");
+    }
+});
+
+// Обновим обработчик формы авторизации для санации логина
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    // Санируем логин перед отправкой
+    const usernameInput = form.querySelector('input[name="username"]');
+    usernameInput.value = sanitizeUsername(usernameInput.value);
+
+    // Показываем загрузку на кнопке
+    setButtonLoading('.login-submit-btn', true);
+
+    const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    try {
+        const response = await fetch("{% url 'login' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        });
+
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            const data = await response.json().catch(() => ({}));
+            showButtonError('.login-submit-btn', data.error || "Неверный логин или пароль");
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showButtonError('.login-submit-btn', "Ошибка соединения");
+    }
+});
+
+
+
 function toggleLoginModal() {
   const modal = document.getElementById('loginModal');
   modal.classList.toggle('hidden');
@@ -724,24 +982,26 @@ function toggleLoginModal() {
   resetAuthForms();
 }
 
-// Функции для управления состояниями кнопок
+
+// Обновите функцию setButtonLoading в hello.html
 function setButtonLoading(buttonClass, isLoading) {
-  const btn = document.querySelector(buttonClass);
-  const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
-  const spinner = btn.querySelector('.login-spinner, .register-spinner');
-  
-  if (btn && btnText && spinner) {
-    if (isLoading) {
-      btn.disabled = true;
-      btnText.classList.add('opacity-0');
-      spinner.classList.remove('hidden');
-    } else {
-      btn.disabled = false;
-      btnText.classList.remove('opacity-0');
-      spinner.classList.add('hidden');
+    const btn = document.querySelector(buttonClass);
+    const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
+    const spinner = btn.querySelector('.login-spinner, .register-spinner');
+    
+    if (btn && btnText && spinner) {
+        if (isLoading) {
+            btn.disabled = true;
+            btnText.classList.add('opacity-0');
+            spinner.classList.remove('hidden');
+        } else {
+            btn.disabled = false;
+            btnText.classList.remove('opacity-0');
+            spinner.classList.add('hidden');
+        }
     }
-  }
 }
+
 
 function showButtonError(buttonClass, errorMessage) {
   const btn = document.querySelector(buttonClass);
