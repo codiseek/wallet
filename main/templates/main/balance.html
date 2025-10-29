@@ -20,14 +20,14 @@
         <div>
             <p class="text-sm text-gray-300 mb-1">{% trans "Текущий баланс" %}</p>
            <p class="text-3xl font-bold text-white">
-    <span id="totalBalance" data-raw-value="{{ total }}">{{ total }}</span>
+    <span id="totalBalance" data-raw-value="{{ total|stringformat:'f' }}">{{ total|stringformat:'f' }}</span>
     <span class="currency-symbol">с</span>
 </p>
 
 <!-- Резерв -->
 <div class="mt-3 flex items-center space-x-2">
     <span class="text-sm text-gray-300">{% trans "Резерв:" %}</span>
-    <span class="text-blue-400 font-semibold text-lg" id="reserveAmount" data-raw-value="{{ current_reserve }}">{{ current_reserve }}</span>
+    <span class="text-blue-400 font-semibold text-lg" id="reserveAmount" data-raw-value="{{ current_reserve|stringformat:'f' }}">{{ current_reserve|stringformat:'f' }}</span>
     <span class="currency-symbol text-blue-400 font-semibold text-lg">с</span>
 </div>
         </div>
@@ -39,13 +39,13 @@
            <div class="text-left">
     <p class="text-xs text-gray-400 mb-1">Доходы</p>
     <p class="text-green-400 font-semibold">
-        <span id="monthIncome">{{ income }}</span> <span class="currency-symbol">с</span>
+        <span id="monthIncome">{{ income|stringformat:'f' }}</span> <span class="currency-symbol">с</span>
     </p>
 </div>
 <div class="text-right">
     <p class="text-xs text-gray-400 mb-1">Расходы</p>
     <p class="text-red-400 text-sm font-semibold">
-        <span id="monthExpense" data-raw-value="{{ expense }}">{{ expense }}</span>
+        <span id="monthExpense" data-raw-value="{{ expense|stringformat:'f' }}">{{ expense|stringformat:'f' }}</span>
         <span class="currency-symbol">с</span>
     </p>
 </div>
