@@ -57,14 +57,20 @@ if (deleteAccountBtn) {
     }
 
     // ESC для закрытия
-    document.addEventListener('keydown', function(e) {
+   document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            if (profileModal && !profileModal.classList.contains('hidden')) {
+            const deleteModal = document.getElementById('deleteAccountModal');
+            const profileModal = document.getElementById('profileModal');
+            
+            // Если открыта модалка удаления - возвращаем к профилю
+            if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                backToProfileModal();
+            } 
+            // Если открыт профиль - закрываем его
+            else if (profileModal && !profileModal.classList.contains('hidden')) {
                 closeProfileModal();
             }
-            if (deleteAccountModal && !deleteAccountModal.classList.contains('hidden')) {
-                closeDeleteAccountModal();
-            }
+            // Закрываем меню в любом случае
             closeUserMenu();
         }
     });
@@ -72,11 +78,20 @@ if (deleteAccountBtn) {
 
 // Функции без параметра event
 function handleDeleteAccount() {
-    console.log('handleDeleteAccount called - closing profile modal');
-    closeProfileModal();
-    console.log('Opening delete account modal immediately');
-    openDeleteAccountModal();
+    const profileModal = document.getElementById('profileModal');
+    const deleteModal = document.getElementById('deleteAccountModal');
+    
+    if (profileModal && deleteModal) {
+        // просто прячем контент профиля
+        const content = profileModal.querySelector('.modal-content');
+        if (content) content.classList.add('hidden');
+
+        // показываем удаление
+        deleteModal.classList.remove('hidden');
+    }
 }
+
+
 
 function handleExportData() {
     closeProfileModal();
@@ -88,23 +103,48 @@ function openProfileModalFromMenu() {
     openProfileModal();
 }
 
+
+// Вместо closeDeleteAccountModal сделаем функцию возврата к профилю
+function backToProfileModal() {
+    console.log('backToProfileModal called');
+    
+    const profileModal = document.getElementById('profileModal');
+    const deleteModal = document.getElementById('deleteAccountModal');
+    
+    if (profileModal && deleteModal) {
+        deleteModal.classList.add('hidden');
+        profileModal.classList.remove('hidden');
+        console.log('Switched from delete to profile modal');
+    }
+}
+
 function openProfileModal() {
     console.log('openProfileModal called');
     loadProfileInfo();
+
     const modal = document.getElementById('profileModal');
     if (modal) {
+        // Показываем сам модальный контейнер
         modal.classList.remove('hidden');
-        console.log('Profile modal should be visible now');
+
+        // Показываем содержимое, если оно случайно скрыто
+        const content = modal.querySelector('.modal-content');
+        if (content) content.classList.remove('hidden');
+
+        console.log('Profile modal fully visible now');
     }
 }
+
 function closeProfileModal() {
     console.log('closeProfileModal called');
     const modal = document.getElementById('profileModal');
     if (modal) {
         modal.classList.add('hidden');
-        console.log('Profile modal hidden');
+        const content = modal.querySelector('.modal-content');
+        if (content) content.classList.remove('hidden'); // восстановим на всякий случай
     }
 }
+
 function openDeleteAccountModal() {
     console.log('openDeleteAccountModal called - attempting to open modal');
     const modal = document.getElementById('deleteAccountModal');
@@ -112,10 +152,21 @@ function openDeleteAccountModal() {
         console.error('Delete account modal not found!');
         return;
     }
+      console.log('Delete account modal found, removing hidden class');
+    console.log('Modal parent:', modal.parentElement);
+    console.log('Modal siblings:', modal.parentElement ? Array.from(modal.parentElement.children) : 'no parent');
     
-    console.log('Delete account modal found, removing hidden class');
     modal.classList.remove('hidden');
+    console.log('Modal classes after remove hidden:', modal.className);
     console.log('Modal should be visible now');
+    
+    // Принудительно проверим стили
+    setTimeout(() => {
+        const style = window.getComputedStyle(modal);
+        console.log('Modal display style:', style.display);
+        console.log('Modal visibility style:', style.visibility);
+        console.log('Modal opacity style:', style.opacity);
+    }, 100);
     
     // Сбрасываем чекбокс и блокируем кнопку
     const confirmDelete = document.getElementById('confirmDelete');
@@ -131,14 +182,15 @@ function openDeleteAccountModal() {
         };
     }
 }
-
 function closeDeleteAccountModal() {
-    console.log('closeDeleteAccountModal called');
-    const modal = document.getElementById('deleteAccountModal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    const deleteModal = document.getElementById('deleteAccountModal');
+    const profileModal = document.getElementById('profileModal');
+
+    if (deleteModal) deleteModal.classList.add('hidden');
+    if (profileModal) profileModal.classList.add('hidden');
 }
+
+
 
 function closeUserMenu() {
     const menu = document.getElementById('userMenu');
@@ -163,6 +215,8 @@ if (typeof animateModal === 'undefined') {
 
 
 
+// Функция для меню пользователя
+// Функция для меню пользователя
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
     if (menu) {
@@ -170,7 +224,7 @@ function toggleUserMenu() {
         
         // Закрытие меню при клике вне его
         document.addEventListener('click', function closeMenu(e) {
-            if (!menu.contains(e.target) && !e.target.closest('button[onclick="toggleUserMenu()"]')) {
+            if (!menu.contains(e.target) && !e.target.closest('.user-menu-btn')) {
                 menu.classList.add('hidden');
                 document.removeEventListener('click', closeMenu);
             }
@@ -235,32 +289,7 @@ function deleteAccount() {
     });
 }
 
-// Обработчики закрытия по клику вне модалок
-document.getElementById('profileModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeProfileModal();
-    }
-});
 
-document.getElementById('deleteAccountModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteAccountModal();
-    }
-});
-// ESC для закрытия
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (!document.getElementById('profileModal').classList.contains('hidden')) {
-            closeProfileModal();
-        }
-        if (!document.getElementById('deleteAccountModal').classList.contains('hidden')) {
-            closeDeleteAccountModal();
-        }
-        if (!document.getElementById('userMenu').classList.contains('hidden')) {
-            closeUserMenu();
-        }
-    }
-});
 
 
 
@@ -342,14 +371,50 @@ function updateProfileNotification(profile) {
 
 // Обработчик формы профиля
 document.addEventListener('DOMContentLoaded', function() {
-    const profileForm = document.getElementById('profileForm');
-    if (profileForm) {
-        profileForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveProfile();
+   const profileModal = document.getElementById('profileModal');
+    const deleteAccountModal = document.getElementById('deleteAccountModal');
+    
+    if (profileModal) {
+        profileModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfileModal();
+            }
         });
     }
+    
+
+     // Обработчик для кнопки меню пользователя
+// Обработчик для кнопки меню пользователя
+const userMenuBtn = document.querySelector('.user-menu-btn');
+if (userMenuBtn) {
+    userMenuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        toggleUserMenu();
+    });
+}
+    
+    // Обработчик для кнопки редактирования профиля в меню
+    const editProfileMenuBtn = document.querySelector('#userMenu button[onclick*="openProfileModalFromMenu"]');
+    if (editProfileMenuBtn) {
+        editProfileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            openProfileModalFromMenu();
+        });
+        editProfileMenuBtn.removeAttribute('onclick');
+    }
 });
+
+
+    if (deleteAccountModal) {
+        deleteAccountModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteAccountModal();
+            }
+        });
+    }
+
 
 function saveProfile() {
     const form = document.getElementById('profileForm');
