@@ -152,36 +152,45 @@ function openDeleteAccountModal() {
         console.error('Delete account modal not found!');
         return;
     }
-      console.log('Delete account modal found, removing hidden class');
-    console.log('Modal parent:', modal.parentElement);
-    console.log('Modal siblings:', modal.parentElement ? Array.from(modal.parentElement.children) : 'no parent');
     
+    console.log('Delete account modal found, removing hidden class');
     modal.classList.remove('hidden');
-    console.log('Modal classes after remove hidden:', modal.className);
     console.log('Modal should be visible now');
     
-    // Принудительно проверим стили
+    // Даем время для отрисовки DOM перед поиском элементов
     setTimeout(() => {
-        const style = window.getComputedStyle(modal);
-        console.log('Modal display style:', style.display);
-        console.log('Modal visibility style:', style.visibility);
-        console.log('Modal opacity style:', style.opacity);
-    }, 100);
-    
-    // Сбрасываем чекбокс и блокируем кнопку
-    const confirmDelete = document.getElementById('confirmDelete');
-    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-    
-    if (confirmDelete && deleteAccountBtn) {
-        confirmDelete.checked = false;
-        deleteAccountBtn.disabled = true;
+        // Сбрасываем чекбокс и блокируем кнопку
+        const confirmDelete = document.getElementById('confirmDelete');
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
         
-        // Удаляем старые обработчики и добавляем новый
-        confirmDelete.onchange = function() {
-            deleteAccountBtn.disabled = !this.checked;
-        };
-    }
+        console.log('Found elements:', {
+            confirmDelete: !!confirmDelete,
+            deleteAccountBtn: !!deleteAccountBtn
+        });
+        
+        if (confirmDelete && deleteAccountBtn) {
+            confirmDelete.checked = false;
+            deleteAccountBtn.disabled = true;
+            
+            // Удаляем старые обработчики и добавляем новый
+            confirmDelete.onchange = function() {
+                console.log('Checkbox changed:', this.checked);
+                deleteAccountBtn.disabled = !this.checked;
+            };
+            
+            // Также добавляем обработчик click для надежности
+            confirmDelete.onclick = function() {
+                console.log('Checkbox clicked:', this.checked);
+                deleteAccountBtn.disabled = !this.checked;
+            };
+        } else {
+            console.error('Could not find confirmDelete or deleteAccountBtn elements');
+        }
+    }, 50);
 }
+
+
+
 function closeDeleteAccountModal() {
     const deleteModal = document.getElementById('deleteAccountModal');
     const profileModal = document.getElementById('profileModal');
@@ -371,7 +380,7 @@ function updateProfileNotification(profile) {
 
 // Обработчик формы профиля
 document.addEventListener('DOMContentLoaded', function() {
-   const profileModal = document.getElementById('profileModal');
+    const profileModal = document.getElementById('profileModal');
     const deleteAccountModal = document.getElementById('deleteAccountModal');
     
     if (profileModal) {
@@ -382,17 +391,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    if (deleteAccountModal) {
+        deleteAccountModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteAccountModal();
+            }
+        });
+    }
 
-     // Обработчик для кнопки меню пользователя
-// Обработчик для кнопки меню пользователя
-const userMenuBtn = document.querySelector('.user-menu-btn');
-if (userMenuBtn) {
-    userMenuBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        toggleUserMenu();
-    });
-}
+    // Обработчик для кнопки меню пользователя
+    const userMenuBtn = document.querySelector('.user-menu-btn');
+    if (userMenuBtn) {
+        userMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleUserMenu();
+        });
+    }
     
     // Обработчик для кнопки редактирования профиля в меню
     const editProfileMenuBtn = document.querySelector('#userMenu button[onclick*="openProfileModalFromMenu"]');
@@ -404,16 +419,19 @@ if (userMenuBtn) {
         });
         editProfileMenuBtn.removeAttribute('onclick');
     }
+    
+    // Глобальный обработчик для чекбокса подтверждения удаления
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'confirmDelete') {
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+            if (deleteAccountBtn) {
+                deleteAccountBtn.disabled = !e.target.checked;
+                console.log('Global handler: checkbox changed, button disabled:', deleteAccountBtn.disabled);
+            }
+        }
+    });
 });
 
-
-    if (deleteAccountModal) {
-        deleteAccountModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDeleteAccountModal();
-            }
-        });
-    }
 
 
 function saveProfile() {

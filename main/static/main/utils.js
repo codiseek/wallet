@@ -1,15 +1,22 @@
 // -----------------------------
 // Улучшенная функция форматирования
 // -----------------------------
+// В utils.js обновите функцию formatAmount
 function formatAmount(amount) {
     // Если значение уже отформатировано (содержит пробелы), возвращаем как есть
     if (typeof amount === 'string' && amount.includes(' ')) {
         return amount;
     }
     
-    const number = typeof amount === 'string' ? 
-        parseFloat(amount.replace(/\s/g, '').replace(',', '.')) : 
-        amount || 0;
+    // Преобразуем строку с запятой в число с точкой
+    let number;
+    if (typeof amount === 'string') {
+        // Заменяем запятые на точки и убираем пробелы
+        const cleaned = amount.replace(/,/g, '.').replace(/\s/g, '');
+        number = parseFloat(cleaned) || 0;
+    } else {
+        number = amount || 0;
+    }
     
     // Округляем до целого числа
     const rounded = Math.round(number);
@@ -17,7 +24,6 @@ function formatAmount(amount) {
     // Форматируем с пробелами между тысячами
     return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
-
 
 // -----------------------------
 // Уведомления и мелкие UI-помощники

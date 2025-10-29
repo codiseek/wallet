@@ -107,6 +107,10 @@ AUTH_PASSWORD_VALIDATORS = [
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = False
+# Формат чисел по умолчанию
+DECIMAL_SEPARATOR = '.'
+THOUSAND_SEPARATOR = ' '
+NUMBER_GROUPING = 3
 
 
 # 🌈 STATIC FILES
