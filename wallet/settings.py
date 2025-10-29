@@ -12,10 +12,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # или 'django.contrib
 SESSION_COOKIE_SECURE = True  # Обязательно для HTTPS на Render
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Настройки языка
-LANGUAGE_COOKIE_SECURE = True
-LANGUAGE_COOKIE_SAMESITE = 'Lax'
-
 # Если используете CSRF
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -65,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'main.middleware.UserLanguageMiddleware', 
 ]
 
 
@@ -80,8 +77,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                 'main.context_processors.user_language',
-                 'django.template.context_processors.i18n',
+                'django.template.context_processors.i18n',
+                
 
             ],
         },
@@ -135,6 +132,13 @@ LANGUAGES = [
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
+
+
+# Убедитесь, что эти настройки присутствуют
+LANGUAGE_COOKIE_NAME = 'django_language'
+LANGUAGE_COOKIE_AGE = 365 * 24 * 60 * 60  # 1 год
+LANGUAGE_COOKIE_SECURE = True
+LANGUAGE_COOKIE_SAMESITE = 'Lax'
 
 CACHES = {
     'default': {

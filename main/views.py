@@ -1147,6 +1147,12 @@ from django_user_agents.utils import get_user_agent
 
 @login_required
 def index(request):
+
+     # Устанавливаем язык из профиля пользователя
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.language:
+        language = request.user.userprofile.language
+        translation.activate(language)
+
     user_agent = get_user_agent(request)
     
     # Если это ПК - перенаправляем на презентацию
@@ -3032,33 +3038,60 @@ def import_user_data(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})    
 
-
-
-
+@csrf_exempt
 @login_required
-@require_POST
 def update_language(request):
-    """Обновление языка пользователя и активация локали"""
-    language = request.POST.get('language')
-    next_url = request.POST.get('next', '/')
-
-    if language not in ['ru', 'en', 'kg']:
-        return HttpResponseRedirect(next_url)
-
-    # Обновляем язык у пользователя
-    profile = getattr(request.user, 'userprofile', None)
-    if profile:
-        profile.language = language
-        profile.save()
-
-    # Активируем язык немедленно
-    translation.activate(language)
-    request.session['django_language'] = language
-
-    # Создаём ответ с редиректом
-    response = HttpResponseRedirect(next_url)
-
-    # Добавляем cookie, чтобы LocaleMiddleware применился сразу
-    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
-
-    return response
+    """
+    Переключение языка интерфейса с сохранением в cookie
+    """
+    if request.method == "POST":
+        lang_code = request.POST.get("language")
+        
+        # Получаем список доступных кодов языков
+        available_languages = [lang[0] for lang in settings.LANGUAGES]
+        
+        # Проверка корректности кода языка
+        if lang_code in available_languages:
+            # Активируем язык для текущего запроса
+            translation.activate(lang_code)
+            
+            # Сохраняем в сессии
+            request.session[translation.LANGUAGE_SESSION_KEY] = lang_code
+            
+            # Обновляем язык в профиле пользователя (если есть поле)
+            if hasattr(request.user, 'userprofile'):
+                try:
+                    request.user.userprofile.language = lang_code
+                    request.user.userprofile.save()
+                except Exception as e:
+                    # Если поля language еще нет в модели, просто игнорируем
+                    print(f"Language field not available: {e}")
+            
+            # Создаем ответ
+            response = JsonResponse({
+                'success': True, 
+                'message': 'Язык изменен',
+                'language': lang_code,
+                'language_name': dict(settings.LANGUAGES).get(lang_code, lang_code)
+            })
+            
+            # Устанавливаем cookie
+            response.set_cookie(
+                settings.LANGUAGE_COOKIE_NAME,
+                lang_code,
+                max_age=settings.LANGUAGE_COOKIE_AGE,
+                secure=settings.LANGUAGE_COOKIE_SECURE,
+                samesite=settings.LANGUAGE_COOKIE_SAMESITE,
+            )
+            
+            return response
+        else:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Неверный код языка: {lang_code}. Доступные: {", ".join(available_languages)}'
+            })
+    
+    return JsonResponse({
+        'success': False, 
+        'error': 'Неверный метод запроса'
+    })

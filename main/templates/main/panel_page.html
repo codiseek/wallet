@@ -212,34 +212,36 @@
       </div>
       <h3 class="text-base font-semibold text-gray-200">{% trans "Язык" %}</h3>
     </div>
+    
     {% get_current_language as LANGUAGE_CODE %}
-<span id="currentLanguage" class="text-sm text-purple-400 font-medium">
-    {% if LANGUAGE_CODE == 'ru' %}Русский
-    {% elif LANGUAGE_CODE == 'en' %}English
-     {% elif LANGUAGE_CODE == 'kg' %}Кыргызча
-    {% else %}Русский{% endif %}
-</span>
-
+    <span id="currentLanguage" class="text-sm text-purple-400 font-medium">
+      {% if LANGUAGE_CODE == 'ru' %}{% trans "Русский" %}
+      {% elif LANGUAGE_CODE == 'en' %}{% trans "English" %}
+      {% elif LANGUAGE_CODE == 'kg' %}{% trans "Кыргызча" %}
+      {% else %}{% trans "Русский" %}{% endif %}
+    </span>
   </div>
 
   <p class="text-sm text-gray-400 mb-3">{% trans "Выберите язык интерфейса." %}</p>
 
   <!-- Форма смены языка -->
- <form action="{% url 'update_language' %}" method="post" class="grid grid-cols-3 gap-2">
-  {% csrf_token %}
-  <input type="hidden" name="next" value="{{ request.path }}">
+  <form action="{% url 'update_language' %}" method="post" class="grid grid-cols-3 gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
 
     <button type="submit" name="language" value="ru"
       class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">Русский</span>
+      <span class="text-white text-sm">{% trans "Русский" %}</span>
     </button>
+    
     <button type="submit" name="language" value="en"
       class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">English</span>
+      <span class="text-white text-sm">{% trans "English" %}</span>
     </button>
+    
     <button type="submit" name="language" value="kg"
       class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'kg' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">Кыргызча</span>
+      <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
     </button>
   </form>
 
@@ -367,7 +369,88 @@
     </div>
 </div>
 
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка переключения языка
+    const languageButtons = document.querySelectorAll('button[name="language"]');
+    
+    languageButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const form = this.closest('form');
+            const formData = new FormData(form);
+            const selectedLanguage = this.value;
+            
+            console.log('Changing language to:', selectedLanguage); // Для отладки
+            
+            // Показываем индикатор загрузки
+            const currentLanguage = document.getElementById('currentLanguage');
+            const originalText = currentLanguage.textContent;
+            currentLanguage.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // Отключаем кнопки на время запроса
+            languageButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            });
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data); // Для отладки
+                
+                if (data.success) {
+                    // Обновляем отображение текущего языка
+                    const languageNames = {
+                        'ru': 'Русский',
+                        'en': 'English', 
+                        'kg': 'Кыргызча'
+                    };
+                    currentLanguage.textContent = data.language_name || languageNames[selectedLanguage] || selectedLanguage;
+                    
+                    // Показываем уведомление об успехе
+                    if (window.showSuccessNotification) {
+                        showSuccessNotification(data.message || 'Язык успешно изменен!');
+                    }
+                    
+                    // Перезагружаем страницу через короткое время
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    
+                } else {
+                    currentLanguage.textContent = originalText;
+                    if (window.showErrorNotification) {
+                        showErrorNotification(data.error || 'Ошибка при смене языка');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                currentLanguage.textContent = originalText;
+                if (window.showErrorNotification) {
+                    showErrorNotification('Ошибка сети при смене языка');
+                }
+            })
+            .finally(() => {
+                // Включаем кнопки обратно
+                languageButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+            });
+        });
+    });
+});
+</script>
         
 <script>
 // Переменная для отслеживания состояния импорта

@@ -23,7 +23,7 @@ msgstr "Учурдагы баланс"
 
 #: .\main\templates\main\balance.html:26
 msgid "Резерв:"
-msgstr "Резерв"
+msgstr "Резерв:"
 
 #: .\main\templates\main\panel_page.html:213
 msgid "Язык"
