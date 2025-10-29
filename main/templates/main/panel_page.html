@@ -377,24 +377,27 @@ document.addEventListener('DOMContentLoaded', function() {
     languageButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             const form = this.closest('form');
             const formData = new FormData(form);
             const selectedLanguage = this.value;
-            
-            console.log('Changing language to:', selectedLanguage); // Для отладки
-            
+
+            // 👇 Важно: добавляем язык вручную, иначе он не передается
+            formData.append('language', selectedLanguage);
+
+            console.log('Changing language to:', selectedLanguage);
+
             // Показываем индикатор загрузки
             const currentLanguage = document.getElementById('currentLanguage');
             const originalText = currentLanguage.textContent;
             currentLanguage.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
+
             // Отключаем кнопки на время запроса
             languageButtons.forEach(btn => {
                 btn.disabled = true;
                 btn.style.opacity = '0.5';
             });
-            
+
             fetch(form.action, {
                 method: 'POST',
                 body: formData,
@@ -405,27 +408,24 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Server response:', data); // Для отладки
-                
+                console.log('Server response:', data);
+
                 if (data.success) {
-                    // Обновляем отображение текущего языка
                     const languageNames = {
                         'ru': 'Русский',
-                        'en': 'English', 
+                        'en': 'English',
                         'kg': 'Кыргызча'
                     };
                     currentLanguage.textContent = data.language_name || languageNames[selectedLanguage] || selectedLanguage;
-                    
-                    // Показываем уведомление об успехе
+
                     if (window.showSuccessNotification) {
                         showSuccessNotification(data.message || 'Язык успешно изменен!');
                     }
-                    
-                    // Перезагружаем страницу через короткое время
+
+                    // Перезагрузка страницы после смены языка
                     setTimeout(() => {
                         window.location.reload();
-                    }, 1000);
-                    
+                    }, 500);
                 } else {
                     currentLanguage.textContent = originalText;
                     if (window.showErrorNotification) {
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .finally(() => {
-                // Включаем кнопки обратно
+                // Возвращаем кнопки в активное состояние
                 languageButtons.forEach(btn => {
                     btn.disabled = false;
                     btn.style.opacity = '1';
@@ -451,6 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
         
 <script>
 // Переменная для отслеживания состояния импорта
