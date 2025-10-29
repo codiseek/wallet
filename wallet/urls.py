@@ -91,6 +91,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('get_profile_info/', views.get_profile_info, name='get_profile_info'),
     path('update_profile/', views.update_profile, name='update_profile'),
+    path('delete_account/', views.delete_account, name='delete_account'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

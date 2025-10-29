@@ -3121,3 +3121,64 @@ def update_profile(request):
     except Exception as e:
         print(f"Ошибка при обновлении профиля: {str(e)}")
         return JsonResponse({"success": False, "error": f"Ошибка при обновлении профиля: {str(e)}"})
+    
+
+
+
+
+@login_required
+@require_POST
+def delete_account(request):
+    """Удаление аккаунта пользователя со всеми данными"""
+    try:
+        user = request.user
+        username = user.username
+        
+        # Логируем удаление для безопасности
+        print(f"🔄 Удаление аккаунта пользователя: {username}")
+        
+        # Удаляем все данные пользователя в правильном порядке
+        with transaction.atomic():
+            # 1. Удаляем долги и платежи
+            DebtPayment.objects.filter(debt__user=user).delete()
+            Debt.objects.filter(user=user).delete()
+            
+            # 2. Удаляем транзакции
+            Transaction.objects.filter(user=user).delete()
+            
+            # 3. Удаляем категории
+            Category.objects.filter(user=user).delete()
+            
+            # 4. Удаляем заметки
+            Note.objects.filter(user=user).delete()
+            
+            # 5. Удаляем задачи
+            Todo.objects.filter(user=user).delete()
+            
+            # 6. Удаляем уведомления и чаты
+            UserNotification.objects.filter(user=user).delete()
+            # Удаляем персональные уведомления, созданные пользователем
+            SystemNotification.objects.filter(created_by=user).delete()
+            
+            # 7. Удаляем профиль
+            UserProfile.objects.filter(user=user).delete()
+            
+            # 8. Удаляем самого пользователя
+            user.delete()
+        
+        # Выходим из системы
+        logout(request)
+        
+        print(f"✅ Аккаунт {username} успешно удален")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Ваш аккаунт и все данные успешно удалены'
+        })
+        
+    except Exception as e:
+        print(f"❌ Ошибка при удалении аккаунта: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка при удалении аккаунта: {str(e)}'
+        })

@@ -1517,3 +1517,11 @@ backdrop-filter: blur(20px) !important;
 }
 
 
+/* Добавьте в CSS если нужно */
+#profileModal, #deleteAccountModal {
+    z-index: 1000;
+}
+
+#deleteAccountModal {
+    z-index: 1001; /* Чуть выше чем профиль */
+}

@@ -8,64 +8,162 @@
 
 
 <!-- Модалка профиля -->
-    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+   <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content max-h-[90vh] overflow-y-auto">
+        <!-- Заголовок -->
+        <div class="flex justify-between items-center p-6 border-b border-gray-700 sticky top-0 bg-gray-800 rounded-t-2xl">
             <h2 class="text-xl font-bold text-white">Ваш профиль</h2>
-          
+            <button onclick="closeProfileModal()" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
         </div>
         
-        <!-- Прогресс заполнения -->
-        <div class="p-6 border-b border-gray-700">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-gray-300">Заполненность профиля</span>
-                <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
+        <!-- Основной контент -->
+        <div class="p-6 space-y-6">
+            <!-- Прогресс заполнения -->
+            <div class="bg-gray-700/30 rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-gray-300">Заполненность профиля</span>
+                    <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
+                </div>
+                <div class="w-full bg-gray-600 rounded-full h-2">
+                    <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
             </div>
-            <div class="w-full bg-gray-700 rounded-full h-2">
-                <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+
+            <!-- Форма профиля -->
+            <form id="profileForm" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Имя -->
+                <div>
+                    <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
+                    <input type="text" name="first_name" id="firstNameInput" 
+                           class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label class="block text-gray-300 text-sm mb-2">
+                        Электронная почта 
+                        <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
+                    </label>
+                    <input type="email" name="email" id="emailInput"
+                           class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                           placeholder="your@email.com">
+                </div>
+                
+                <!-- Телефон -->
+                <div>
+                    <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
+                    <input type="tel" name="phone" id="phoneInput"
+                           class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                           placeholder="+996 XXX XXX XXX">
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
+                        Отмена
+                    </button>
+                    <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+
+            <!-- Разделитель -->
+            <div class="border-t border-gray-700/50">
+             
+                
+            <!-- В модалке профиля - исправленные кнопки -->
+<div class="border-t border-gray-700/50 pt-6">
+ 
+
+
+    <!-- Кнопка удаления аккаунта -->
+<button class="delete-account-btn w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-1">
+    <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
+            <i class="fas fa-trash text-red-400 text-base group-hover:text-white"></i>
+        </div>
+        <div class="flex-1">
+            <span class="text-base font-semibold text-white block">Удалить аккаунт</span>
+            <span class="text-sm text-red-300/80 group-hover:text-red-200">Все данные будут безвозвратно удалены</span>
+        </div>
+        <i class="fas fa-chevron-right text-red-400/60 text-sm group-hover:text-red-300 transition-colors"></i>
+    </div>
+</button>
+</div>
+
+
+
+              
+                
             </div>
         </div>
+    </div>
+</div>
 
-        <form id="profileForm" class="p-6 space-y-4">
-            {% csrf_token %}
-            
-            <!-- Имя -->
-            <div>
-                <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
-                <input type="text" name="first_name" id="firstNameInput" 
-                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+<!-- Модалка подтверждения удаления -->
+<div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
+        <!-- Заголовок -->
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-white">Удаление аккаунта</h2>
+            <button onclick="closeDeleteAccountModal()" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Основное предупреждение -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Вы уверены?</h3>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                    Это действие нельзя отменить. Все ваши данные будут безвозвратно удалены: 
+                    транзакции, категории, заметки, задачи и долги.
+                </p>
             </div>
-            
-            <!-- Email -->
-            <div>
-                <label class="block text-gray-300 text-sm mb-2">
-                    Электронная почта 
-                    <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
+
+            <!-- Рекомендация -->
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-info-circle text-blue-400 text-lg mt-0.5"></i>
+                    <div>
+                        <p class="text-blue-300 text-sm">
+                            Рекомендуем предварительно <span class="font-semibold">экспортировать данные</span> 
+                            через панель управления
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Чекбокс подтверждения -->
+            <div class="flex items-start space-x-3 p-4 bg-gray-700/30 rounded-xl border border-gray-600/50">
+                <input type="checkbox" id="confirmDelete" class="mt-0.5 w-5 h-5 text-red-500 bg-gray-800 border-gray-600 rounded focus:ring-red-500 focus:ring-2">
+                <label for="confirmDelete" class="text-gray-200 text-sm leading-tight">
+                    Да, я понимаю последствия и хочу удалить аккаунт со всеми данными
                 </label>
-                <input type="email" name="email" id="emailInput"
-                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                       placeholder="your@email.com">
-                <p class="text-xs text-gray-400 mt-1">Мы отправим код подтверждения</p>
-            </div>
-            
-            <!-- Телефон -->
-            <div>
-                <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
-                <input type="tel" name="phone" id="phoneInput"
-                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                       placeholder="+996 XXX XXX XXX">
             </div>
 
-            <div class="flex space-x-3 pt-4">
-                 <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
+            <!-- Кнопки действий -->
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeDeleteAccountModal()" 
+                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105">
                     Отмена
                 </button>
-                <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
-                    Сохранить
+                <button onclick="deleteAccount()" 
+                        id="deleteAccountBtn"
+                        disabled
+                        class="flex-1 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-500/30 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
+                    Удалить!
                 </button>
             </div>
-        </form>
+        </div>
     </div>
-
+</div>
 
 
 {% endblock %}

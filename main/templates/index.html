@@ -77,6 +77,7 @@
 
 
 
+    {% include "includes/modals/profile.html" %}
     {% include "includes/modals/notification.html" %}
 
     
@@ -84,9 +85,8 @@
     {% if user.is_staff %}
     {% include "includes/modals/create_notification.html" %}
     {% endif %}
-    {% include "includes/modals/change_password_regular.html" %}
-        {% include "includes/modals/profile.html" %}
-    {% include "includes/modals/change_password_first.html" %}
+
+
     {% include "includes/modals/transaction_detail.html" %}
     {% include "includes/modals/transaction.html" %}
     {% include "includes/modals/category_selection.html" %}

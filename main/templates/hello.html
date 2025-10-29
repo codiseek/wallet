@@ -828,77 +828,89 @@
 <!-- Добавьте этот код в hello.html перед закрывающим тегом </body> -->
 
 <!-- Модальное окно политики конфиденциальности -->
-<div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Политика конфиденциальности</h2>
-            <button onclick="togglePrivacyModal()" class="text-gray-400 hover:text-white">
-                <i class="fas fa-times text-xl"></i>
-            </button>
+<div id="privacyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800/90 backdrop-blur-md rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col border border-gray-700/50 shadow-2xl">
+        <!-- Заголовок -->
+        <div class="flex justify-between items-center p-6 border-b border-gray-700/50 sticky top-0 bg-gray-800/90 backdrop-blur-md rounded-t-2xl z-10">
+            <h2 class="text-xl font-bold text-white">Политика конфиденциальности</h2>
+
         </div>
         
-        <div class="space-y-4 text-gray-300">
-            <div class="bg-gray-700/50 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-white mb-2">Сбор и использование данных</h3>
-                <p>Мы собираем только необходимую информацию для работы сервиса:</p>
-                <ul class="list-disc list-inside mt-2 space-y-1">
-                    <li>Логин пользователя</li>
-                    <li>Финансовые транзакции и категории</li>
-                    <li>Заметки и задачи</li>
-                    <li>Данные о долгах и платежах</li>
-                </ul>
-            </div>
+        <!-- Контент с прокруткой -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="space-y-4 text-gray-300">
+                <div class="bg-gray-700/50 rounded-lg p-4 backdrop-blur-sm">
+                    <h3 class="text-lg font-semibold text-white mb-2">Сбор и использование данных</h3>
+                    <p>Мы собираем только необходимую информацию для работы сервиса:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Логин пользователя</li>
+                        <li>Финансовые транзакции и категории</li>
+                        <li>Заметки и задачи</li>
+                        <li>Данные о долгах и платежах</li>
+                    </ul>
+                </div>
 
-            <div class="bg-gray-700/50 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-white mb-2">Хранение данных</h3>
-                <p>Все ваши данные хранятся на защищенных серверах и не передаются третьим лицам. 
-                Мы используем современные методы шифрования для обеспечения безопасности вашей информации.</p>
-            </div>
+                <div class="bg-gray-700/50 rounded-lg p-4 backdrop-blur-sm">
+                    <h3 class="text-lg font-semibold text-white mb-2">Хранение данных</h3>
+                    <p>Все ваши данные хранятся на защищенных серверах и не передаются третьим лицам. 
+                    Мы используем современные методы шифрования для обеспечения безопасности вашей информации.</p>
+                </div>
 
-            <div class="bg-gray-700/50 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-white mb-2">Конфиденциальность</h3>
-                <p>Мы гарантируем, что:</p>
-                <ul class="list-disc list-inside mt-2 space-y-1">
-                    <li>Ваши данные не будут проданы или переданы третьим лицам</li>
-                    <li>Доступ к данным имеют только вы</li>
-                    <li>Все данные хранятся в зашифрованном виде</li>
-                    <li>Мы не имеем доступа к вашим паролям</li>
-                </ul>
-            </div>
+                <div class="bg-gray-700/50 rounded-lg p-4 backdrop-blur-sm">
+                    <h3 class="text-lg font-semibold text-white mb-2">Конфиденциальность</h3>
+                    <p>Мы гарантируем, что:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Ваши данные не будут проданы или переданы третьим лицам</li>
+                        <li>Доступ к данным имеют только вы</li>
+                        <li>Все данные хранятся в зашифрованном виде</li>
+                        <li>Мы не имеем доступа к вашим паролям</li>
+                    </ul>
+                </div>
 
-            <div class="bg-gray-700/50 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-white mb-2">Ваши права</h3>
-                <p>Вы можете в любой момент:</p>
-                <ul class="list-disc list-inside mt-2 space-y-1">
-                    <li>Экспортировать все свои данные</li>
-                    <li>Удалить аккаунт и все связанные данные</li>
-                    <li>Запросить информацию о хранимых данных</li>
-                </ul>
-            </div>
+                <div class="bg-gray-700/50 rounded-lg p-4 backdrop-blur-sm">
+                    <h3 class="text-lg font-semibold text-white mb-2">Ваши права</h3>
+                    <p>Вы можете в любой момент:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Экспортировать все свои данные</li>
+                        <li>Удалить аккаунт и все связанные данные</li>
+                        <li>Запросить информацию о хранимых данных</li>
+                    </ul>
+                </div>
 
-            <div class="text-center text-sm text-gray-400 mt-6">
-                <p>Используя наш сервис, вы соглашаетесь с условиями данной политики конфиденциальности.</p>
-                <p class="mt-2">Последнее обновление: {% now "d.m.Y" %}</p>
+                <div class="text-center text-sm text-gray-400 mt-6">
+                    <p>Используя наш сервис, вы соглашаетесь с условиями данной политики конфиденциальности.</p>
+                    <p class="mt-2">Последнее обновление: {% now "d.m.Y" %}</p>
+                </div>
             </div>
         </div>
 
-        <div class="flex justify-center mt-6">
-            <button onclick="togglePrivacyModal()" class="btn-primary px-6 py-2 rounded-lg">
-                Понятно
-            </button>
+        <!-- Кнопка внизу -->
+        <div class="p-6 border-t border-gray-700/50 sticky bottom-0 bg-gray-800/90 backdrop-blur-md rounded-b-2xl">
+            <div class="flex justify-center">
+                <button onclick="togglePrivacyModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105">
+                    Понятно
+                </button>
+            </div>
         </div>
     </div>
 </div>
-
 
 <script>
 // Функции для модалки политики конфиденциальности
 function togglePrivacyModal() {
     const modal = document.getElementById('privacyModal');
-    modal.classList.toggle('hidden');
-    modal.classList.toggle('flex');
+    const body = document.body;
+    
+    if (modal.classList.contains('hidden')) {
+        // Открываем модалку
+        modal.classList.remove('hidden');
+        body.classList.add('overflow-hidden');
+    } else {
+        // Закрываем модалку
+        modal.classList.add('hidden');
+        body.classList.remove('overflow-hidden');
+    }
 }
-
 // Закрытие модалки по клику вне окна
 document.getElementById('privacyModal').addEventListener('click', function(e) {
     if (e.target === this) {
