@@ -84,8 +84,9 @@
     {% if user.is_staff %}
     {% include "includes/modals/create_notification.html" %}
     {% endif %}
-
-    {% include "includes/modals/change_password.html" %}
+    {% include "includes/modals/change_password_regular.html" %}
+        {% include "includes/modals/profile.html" %}
+    {% include "includes/modals/change_password_first.html" %}
     {% include "includes/modals/transaction_detail.html" %}
     {% include "includes/modals/transaction.html" %}
     {% include "includes/modals/category_selection.html" %}
@@ -146,194 +147,11 @@
 <script src="/static/main/savings.js"></script>
 <script src="/static/main/navigation.js"></script>
 <script src="/static/main/admin.js"></script> 
+<script src="/static/main/profile.js"></script> 
 <script src="/static/main/todo.js"></script> 
-
 <script src="/static/main/app.js"></script>
 
-    <script>
-        // Переменная для отслеживания первой смены пароля
-        let isFirstPasswordChange = {% if not user.userprofile.password_changed %}true{% else %}false{% endif %};
-
-        // Функции для управления модалкой смены пароля
-        function toggleChangePasswordModal() {
-            const modal = document.getElementById('changePasswordModal');
-            const closepassBtn = modal ? modal.querySelectorAll('.close-modal, [data-modal="passbtn"]') : [];
-            modal.classList.toggle('hidden');
-            
- // Кнопки закрытия
-    closepassBtns.forEach(btn => {
-        btn.addEventListener('click', () => animateModal(modal, false));
-    });
-            // Сбрасываем форму
-            document.getElementById('changePasswordForm').reset();
-            
-            // Сбрасываем состояние кнопки
-            setChangePasswordButtonLoading(false);
-            document.querySelector('.change-password-submit-btn').classList.add('btn-primary');
-            document.querySelector('.change-password-submit-btn').classList.remove('bg-red-600', 'cursor-not-allowed', 'bg-green-600');
-        }
-
-        
-
-        // Функции для управления состоянием кнопки смены пароля
-        function setChangePasswordButtonLoading(isLoading) {
-            const btn = document.querySelector('.change-password-submit-btn');
-            const btnText = btn.querySelector('.change-password-btn-text');
-            const spinner = btn.querySelector('.change-password-spinner');
-            
-            if (btn && btnText && spinner) {
-                if (isLoading) {
-                    btn.disabled = true;
-                    btnText.classList.add('opacity-0');
-                    spinner.classList.remove('hidden');
-                } else {
-                    btn.disabled = false;
-                    btnText.classList.remove('opacity-0');
-                    spinner.classList.add('hidden');
-                }
-            }
-        }
-
-        function showChangePasswordButtonError(errorMessage) {
-            const btn = document.querySelector('.change-password-submit-btn');
-            const btnText = btn.querySelector('.change-password-btn-text');
-            const spinner = btn.querySelector('.change-password-spinner');
-            
-            if (btn && btnText && spinner) {
-                // Сохраняем оригинальный текст
-                const originalText = btnText.textContent;
-                
-                // Показываем ошибку
-                btn.disabled = true;
-                spinner.classList.add('hidden');
-                btnText.classList.remove('opacity-0');
-                btnText.textContent = errorMessage;
-                btn.classList.remove('btn-primary');
-                btn.classList.add('bg-red-600', 'cursor-not-allowed');
-                
-                // Через 4 секунды возвращаем нормальное состояние
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btnText.textContent = originalText;
-                    btn.classList.add('btn-primary');
-                    btn.classList.remove('bg-red-600', 'cursor-not-allowed');
-                }, 2000);
-            }
-        }
-
-        function showChangePasswordButtonSuccess(successMessage) {
-            const btn = document.querySelector('.change-password-submit-btn');
-            const btnText = btn.querySelector('.change-password-btn-text');
-            const spinner = btn.querySelector('.change-password-spinner');
-            
-            if (btn && btnText && spinner) {
-                // Показываем успех
-                btn.disabled = true;
-                spinner.classList.add('hidden');
-                btnText.classList.remove('opacity-0');
-                btnText.textContent = successMessage;
-                btn.classList.remove('btn-primary');
-                btn.classList.add('bg-green-600', 'cursor-not-allowed');
-                
-                // Только при первой смене пароля закрываем модалки и перезагружаем страницу
-                if (isFirstPasswordChange) {
-                    setTimeout(() => {
-                        toggleChangePasswordModal();
-                        toggleMenuModal();
-                        location.reload();
-                    }, 2000);
-                } else {
-                    // При повторной смене просто сбрасываем форму через 2 секунды
-                    setTimeout(() => {
-                        document.getElementById('changePasswordForm').reset();
-                        setChangePasswordButtonLoading(false);
-                        btn.classList.add('btn-primary');
-                        btn.classList.remove('bg-green-600', 'cursor-not-allowed');
-                        btnText.textContent = "Сохранить пароль";
-                    }, 2000);
-                }
-            }
-        }
-
-        // Обработчик кнопки смены пароля
-        document.getElementById('changePasswordBtn').addEventListener('click', function() {
-            toggleChangePasswordModal();
-            
-            // Показываем поле для текущего пароля, если пользователь уже менял пароль
-            const currentPasswordField = document.getElementById('currentPasswordField');
-            if ({{ user.userprofile.password_changed|yesno:"true,false" }}) {
-                currentPasswordField.classList.remove('hidden');
-                currentPasswordField.querySelector('input').required = true;
-            } else {
-                currentPasswordField.classList.add('hidden');
-                currentPasswordField.querySelector('input').required = false;
-            }
-        });
-
-        // Закрытие модалки по клику вне окна
-        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                toggleChangePasswordModal();
-            }
-        });
-
-
-
-        // AJAX смена пароля
-        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const form = e.target;
-            
-            // Показываем загрузку на кнопке
-            setChangePasswordButtonLoading(true);
-
-            const formData = new FormData(form);
-            const newPassword = formData.get('new_password');
-            const confirmPassword = formData.get('confirm_password');
-            const currentPassword = formData.get('current_password');
-
-            // Валидация
-            if (newPassword !== confirmPassword) {
-                showChangePasswordButtonError("Пароли не совпадают");
-                return;
-            }
-
-            if (newPassword.length < 6) {
-                showChangePasswordButtonError("Пароль должен быть не менее 6 символов");
-                return;
-            }
-
-            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            try {
-                const response = await fetch("{% url 'change_password' %}", {
-                    method: "POST",
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Успешная смена пароля
-                    showChangePasswordButtonSuccess(data.message || "Пароль изменен!");
-                    
-                    // После первой успешной смены устанавливаем флаг в false
-                    if (isFirstPasswordChange) {
-                        isFirstPasswordChange = false;
-                    }
-                } else {
-                    showChangePasswordButtonError(data.error || "Ошибка при смене пароля");
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                showChangePasswordButtonError("Ошибка соединения");
-            }
-        });
-    </script>
+   
 
   <script>
 

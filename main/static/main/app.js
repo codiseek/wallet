@@ -186,24 +186,39 @@ document.addEventListener('DOMContentLoaded', function() {
         // Форматируем балансы при загрузке страницы
         updateBalanceDisplay();
         
+        // Инициализация debt manager
+        if (typeof DebtManager !== 'undefined' && document.getElementById('tab-debt')) {
+            window.debtManager = new DebtManager();
+        }
 
+        // Обработчик для кнопки смены пароля
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+        
+        if (changePasswordBtn) {
+            changePasswordBtn.addEventListener('click', function() {
+                const passwordChanged = this.getAttribute('data-password-changed') === 'true';
+                
+                if (passwordChanged) {
+                    // Пароль уже менялся - открываем модалку с полем текущего пароля
+                    openChangePasswordRegularModal();
+                } else {
+                    // Первая смена пароля - открываем простую модалку
+                    openChangePasswordFirstModal();
+                }
+            });
+        }
 
-         // Инициализация debt manager
-    if (typeof DebtManager !== 'undefined' && document.getElementById('tab-debt')) {
-        window.debtManager = new DebtManager();
-    }
-
-
-    
         // Форматируем все элементы резерва при загрузке страницы
         formatAllReserveElements();
-         initCurrencyHandlers();
-    initCurrencyOnLoad();
+        initCurrencyHandlers();
+        initCurrencyOnLoad();
+        
         // Обновляем отображение сбережений при загрузке
         updateSavingsDisplay();
         initCategorySelectionModal();
         updateWelcomeHint();
         initTransactionFilter();
+        
         // Инициализируем модалки категорий
         if (typeof initCategoryDetailModal === 'function') {
             initCategoryDetailModal();
@@ -214,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => { showSuccessNotification('Добро пожаловать!'); }, 800);
         }
 
-          // ДОБАВЬ ЭТОТ ВЫЗОВ
+        // ДОБАВЬ ЭТОТ ВЫЗОВ
         setTimeout(() => {
             if (typeof initNotesIcon === 'function') {
                 initNotesIcon();
@@ -223,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadNotes(); // Это обновит иконку
             }
         }, 500);
-
 
         // Инициализация валюты при загрузке
         setTimeout(() => {
@@ -243,7 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
         initTransactionDetailModal();
         initCategoryFilter();
         initReminderPicker();
-// Инициализируем кнопки валюты при загрузке
+        
+        // Инициализируем кнопки валюты при загрузке
         initCurrencyButtons();
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();
 
@@ -259,3 +274,18 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Initialization error', e);
     }
 });
+
+// Функции для открытия модалок
+function openChangePasswordFirstModal() {
+    const modal = document.getElementById('changePasswordFirstModal');
+    if (modal) {
+        animateModal(modal, true);
+    }
+}
+
+function openChangePasswordRegularModal() {
+    const modal = document.getElementById('changePasswordRegularModal');
+    if (modal) {
+        animateModal(modal, true);
+    }
+}

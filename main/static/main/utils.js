@@ -77,3 +77,12 @@ function showErrorNotification(message) {
     }, 2000);
 }
 
+
+
+
+// Оставьте только это если нужно
+if (typeof toggleMenuModal === 'undefined') {
+    window.toggleMenuModal = function(show) {
+        console.log('toggleMenuModal called - menu not available');
+    };
+}

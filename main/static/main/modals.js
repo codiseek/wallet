@@ -290,3 +290,90 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+
+
+// Обработчик для первой смены пароля
+document.addEventListener('DOMContentLoaded', function() {
+    const firstForm = document.getElementById('changePasswordFirstForm');
+    const regularForm = document.getElementById('changePasswordRegularForm');
+    
+    if (firstForm) {
+        firstForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handlePasswordChange(this, false);
+        });
+    }
+    
+    if (regularForm) {
+        regularForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handlePasswordChange(this, true);
+        });
+    }
+});
+
+function handlePasswordChange(form, requireCurrentPassword) {
+    const submitBtn = form.querySelector('.change-password-submit-btn');
+    const btnText = form.querySelector('.change-password-btn-text');
+    const spinner = form.querySelector('.change-password-spinner');
+    
+    // Показываем загрузку
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    spinner.classList.remove('hidden');
+    
+    const formData = new FormData(form);
+    
+    // Добавляем флаг необходимости текущего пароля
+    if (requireCurrentPassword) {
+        formData.append('require_current', 'true');
+    }
+    
+    fetch('/change-password/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessNotification(data.message);
+            
+            // Закрываем модалку
+            const modal = form.closest('.modal');
+            if (modal) {
+                animateModal(modal, false);
+            }
+            
+            // Обновляем статус на кнопке
+            const changePasswordBtn = document.getElementById('changePasswordBtn');
+            if (changePasswordBtn) {
+                changePasswordBtn.setAttribute('data-password-changed', 'true');
+                
+                // Убираем уведомление о необходимости смены пароля
+                const passwordWarning = document.querySelector('.text-red-400');
+                if (passwordWarning) {
+                    passwordWarning.remove();
+                }
+            }
+            
+            // Очищаем форму
+            form.reset();
+            
+        } else {
+            showErrorNotification(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorNotification('Ошибка сети');
+    })
+    .finally(() => {
+        // Возвращаем кнопку в нормальное состояние
+        submitBtn.disabled = false;
+        btnText.style.display = 'block';
+        spinner.classList.add('hidden');
+    });
+}

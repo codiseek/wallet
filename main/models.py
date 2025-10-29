@@ -78,18 +78,24 @@ class UserProfile(models.Model):
     reserve_percentage = models.PositiveSmallIntegerField(default=0) 
     target_reserve = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     default_categories_created = models.BooleanField(default=False)
+    
+    # Новые поля для профиля
+    email_verified = models.BooleanField(default=False)
+    user_email = models.EmailField(blank=True, null=True, verbose_name='Электронная почта')
+    first_name = models.CharField(max_length=100, blank=True, null=True, verbose_name='Имя')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Телефон')
 
     CURRENCY_CHOICES = [
-    ('c', 'Сом'),
-    ('r', 'Рубль'),
-    ('$', 'Доллар'),
-    ('€', 'Евро'),
-]
+        ('c', 'Сом'),
+        ('r', 'Рубль'),
+        ('$', 'Доллар'),
+        ('€', 'Евро'),
+    ]
     currency = models.CharField(
-    max_length=1, 
-    choices=CURRENCY_CHOICES, 
-    default='c'
-)
+        max_length=1, 
+        choices=CURRENCY_CHOICES, 
+        default='c'
+    )
     
     LANGUAGE_CHOICES = [
         ('ru', 'Русский'),
@@ -101,11 +107,22 @@ class UserProfile(models.Model):
         choices=LANGUAGE_CHOICES,
         default='ru'
     )
-        
 
     def __str__(self):
         return f"{self.user.username} Profile"
-
+    
+    @property
+    def has_email(self):
+        return bool(self.user_email)
+    
+    @property
+    def profile_completion_percentage(self):
+        """Процент заполненности профиля"""
+        fields = [self.user_email, self.first_name, self.phone]
+        filled = sum(1 for field in fields if field)
+        return int((filled / len(fields)) * 100)
+    
+    
 
 class SystemNotification(models.Model):
     title = models.CharField(max_length=200)

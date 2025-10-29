@@ -36,7 +36,6 @@ urlpatterns = [
     path('get_categories_with_stats/', views.get_categories_with_stats, name='get_categories_with_stats'),
     path('get_categories/', views.get_categories, name='get_categories'),
     path('delete_transaction/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'), 
-    path('change_password/', views.change_password, name='change_password'),
     path('get_transactions/', views.get_transactions, name='get_transactions'),
     path('get_notes/', views.get_notes, name='get_notes'),
     path('add_note/', views.add_note, name='add_note'),
@@ -90,6 +89,8 @@ urlpatterns = [
     path('import-data/', views.import_user_data, name='import_data'),
     path('update-language/', views.update_language, name='update_language'),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('get_profile_info/', views.get_profile_info, name='get_profile_info'),
+    path('update_profile/', views.update_profile, name='update_profile'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

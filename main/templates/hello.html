@@ -161,6 +161,54 @@
 .group:hover .peer:not(:checked) + div {
     border-color: #9ca3af;
 }
+
+
+
+
+/* Плавные переходы для кнопок */
+.btn-primary, .register-submit-btn, .login-submit-btn {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Анимация появления галочки */
+.fa-check {
+    animation: checkmark 0.5s ease-in-out;
+}
+
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Анимация пульсации для успешной кнопки */
+.bg-green-600 {
+    animation: pulseSuccess 2s infinite;
+}
+
+@keyframes pulseSuccess {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+
+
+
     </style>
 </head>
 <body class="gradient-bg text-gray-100 min-h-screen">
@@ -843,18 +891,7 @@
 </div>
 
 
-
-
-
-
-
-
-
 <script>
-
-
-// Добавьте этот код в секцию <script> в hello.html
-
 // Функции для модалки политики конфиденциальности
 function togglePrivacyModal() {
     const modal = document.getElementById('privacyModal');
@@ -874,7 +911,7 @@ function sanitizeUsername(input) {
     return input.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
 }
 
-// Улучшенная валидация логина при вводе (для обеих форм)
+// Улучшенная валидация логина при вводе (для обеих формах)
 document.addEventListener('DOMContentLoaded', function() {
     // Для формы авторизации
     const loginUsername = document.querySelector('#loginForm input[name="username"]');
@@ -893,23 +930,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Обновим обработчик формы регистрации для дополнительной проверки
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const form = e.target;
+// AJAX регистрация - с защитой от двойной отправки
+let isRegisterSubmitting = false;
+let registerFormSubmitted = false;
+
+function initRegisterForm() {
+    const registerForm = document.getElementById('registerForm');
+    if (!registerForm) return;
     
-    // Дополнительная проверка чекбокса
-    const privacyCheckbox = document.getElementById('privacyAgreement');
-    if (!privacyCheckbox.checked) {
-        showButtonError('.register-submit-btn', "Необходимо согласие с политикой конфиденциальности");
+    // УДАЛЯЕМ старые обработчики чтобы избежать дублирования
+    registerForm.removeEventListener('submit', handleRegisterSubmit);
+    
+    // ДОБАВЛЯЕМ новый обработчик
+    registerForm.addEventListener('submit', handleRegisterSubmit);
+}
+
+async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    
+    if (isRegisterSubmitting || registerFormSubmitted) {
+        console.log('Форма уже отправляется...');
         return;
     }
-
-    // Показываем загрузку на кнопке
+    
+    const form = e.target;
+    isRegisterSubmitting = true;
+    registerFormSubmitted = true;
     setButtonLoading('.register-submit-btn', true);
 
     const formData = new FormData(form);
     const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    let responseData;
 
     try {
         const response = await fetch("{% url 'register' %}", {
@@ -921,166 +973,66 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             body: formData
         });
 
-        const data = await response.json();
+        responseData = await response.json();
+        console.log("Response data:", responseData);
         
-        if (data.success) {
-            // Успешная регистрация и авторизация - перенаправляем на главную
-            window.location.href = "{% url 'index' %}";
+        if (responseData.success) {
+            // УСПЕШНАЯ РЕГИСТРАЦИЯ - показываем зеленую кнопку
+            showButtonSuccess('.register-submit-btn', 'Успешная регистрация!');
+            
+            // Через 1.5 секунды перекидываем на главную
+            setTimeout(() => {
+                window.location.href = "{% url 'index' %}";
+            }, 1500);
+            
         } else {
-            showButtonError('.register-submit-btn', data.error || "Ошибка при регистрации");
+            showButtonError('.register-submit-btn', responseData.error || "Ошибка при регистрации");
+            // Разблокируем форму при ошибке
+            registerFormSubmitted = false;
         }
     } catch (error) {
         console.error('Ошибка:', error);
         showButtonError('.register-submit-btn', "Ошибка соединения");
-    }
-});
-
-// Обновим обработчик формы авторизации для санации логина
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const form = e.target;
-    
-    // Санируем логин перед отправкой
-    const usernameInput = form.querySelector('input[name="username"]');
-    usernameInput.value = sanitizeUsername(usernameInput.value);
-
-    // Показываем загрузку на кнопке
-    setButtonLoading('.login-submit-btn', true);
-
-    const formData = new FormData(form);
-    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    try {
-        const response = await fetch("{% url 'login' %}", {
-            method: "POST",
-            headers: {
-                'X-CSRFToken': csrfToken
-            },
-            body: formData
-        });
-
-        if (response.redirected) {
-            window.location.href = response.url;
-        } else {
-            const data = await response.json().catch(() => ({}));
-            showButtonError('.login-submit-btn', data.error || "Неверный логин или пароль");
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        showButtonError('.login-submit-btn', "Ошибка соединения");
-    }
-});
-
-
-
-function toggleLoginModal() {
-  const modal = document.getElementById('loginModal');
-  modal.classList.toggle('hidden');
-  modal.classList.toggle('flex');
-  
-  // Сбрасываем форму при открытии/закрытии
-  resetAuthForms();
-}
-
-
-// Обновите функцию setButtonLoading в hello.html
-function setButtonLoading(buttonClass, isLoading) {
-    const btn = document.querySelector(buttonClass);
-    const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
-    const spinner = btn.querySelector('.login-spinner, .register-spinner');
-    
-    if (btn && btnText && spinner) {
-        if (isLoading) {
-            btn.disabled = true;
-            btnText.classList.add('opacity-0');
-            spinner.classList.remove('hidden');
-        } else {
-            btn.disabled = false;
-            btnText.classList.remove('opacity-0');
-            spinner.classList.add('hidden');
+        // Разблокируем форму при ошибке
+        registerFormSubmitted = false;
+    } finally {
+        isRegisterSubmitting = false;
+        // НЕ снимаем блокировку кнопки при успехе - она остается зеленой
+        if (!responseData || !responseData.success) {
+            setButtonLoading('.register-submit-btn', false);
         }
     }
 }
 
+// Инициализируем форму при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    initRegisterForm();
+});
 
-function showButtonError(buttonClass, errorMessage) {
-  const btn = document.querySelector(buttonClass);
-  const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
-  const spinner = btn.querySelector('.login-spinner, .register-spinner');
-  
-  if (btn && btnText && spinner) {
-    // Сохраняем оригинальный текст
-    const originalText = btnText.textContent;
-    
-    // Показываем ошибку
-    btn.disabled = true;
-    spinner.classList.add('hidden');
-    btnText.classList.remove('opacity-0');
-    btnText.textContent = errorMessage;
-    btn.classList.remove('btn-primary');
-    btn.classList.add('bg-red-600', 'cursor-not-allowed');
-    
-    // Через 4 секунды возвращаем нормальное состояние
-    setTimeout(() => {
-      btn.disabled = false;
-      btnText.textContent = originalText;
-      btn.classList.add('btn-primary');
-      btn.classList.remove('bg-red-600', 'cursor-not-allowed');
-    }, 2000);
-  }
-}
-
-// Переключение между авторизацией и регистрацией
+// Также обновляем обработчик переключения между формами
 document.getElementById('toggleAuthMode').addEventListener('click', function() {
-  const loginForm = document.getElementById('loginForm');
-  const registerForm = document.getElementById('registerForm');
-  const modalTitle = document.getElementById('modalTitle');
-  const toggleBtn = document.getElementById('toggleAuthMode');
-  
-  if (loginForm.classList.contains('hidden')) {
-    // Переключаем на авторизацию
-    loginForm.classList.remove('hidden');
-    registerForm.classList.add('hidden');
-    modalTitle.textContent = 'Войти в аккаунт';
-    toggleBtn.textContent = 'У Вас еще нет аккаунта? Зарегистрироваться';
-  } else {
-    // Переключаем на регистрацию
-    loginForm.classList.add('hidden');
-    registerForm.classList.remove('hidden');
-    modalTitle.textContent = 'Создать аккаунт';
-    toggleBtn.textContent = 'Уже есть аккаунт? Войти';
-  }
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const toggleBtn = document.getElementById('toggleAuthMode');
+    
+    if (loginForm.classList.contains('hidden')) {
+        // Переключаем на авторизацию
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        modalTitle.textContent = 'Войти в аккаунт';
+        toggleBtn.textContent = 'У Вас еще нет аккаунта? Зарегистрироваться';
+    } else {
+        // Переключаем на регистрацию
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        modalTitle.textContent = 'Создать аккаунт';
+        toggleBtn.textContent = 'Уже есть аккаунт? Войти';
+        
+        // Переинициализируем форму регистрации при показе
+        setTimeout(initRegisterForm, 100);
+    }
 });
-
-// Сброс форм
-function resetAuthForms() {
-  document.getElementById('loginForm').reset();
-  document.getElementById('registerForm').reset();
-  document.getElementById('loginForm').classList.remove('hidden');
-  document.getElementById('registerForm').classList.add('hidden');
-  document.getElementById('modalTitle').textContent = 'Войти в аккаунт';
-  document.getElementById('toggleAuthMode').textContent = 'У Вас еще нет аккаунта? Зарегистрироваться';
-  
-  // Сбрасываем состояния кнопок
-  const loginBtn = document.querySelector('.login-submit-btn');
-  const registerBtn = document.querySelector('.register-submit-btn');
-  
-  if (loginBtn) {
-    loginBtn.disabled = false;
-    loginBtn.querySelector('.login-btn-text').classList.remove('opacity-0');
-    loginBtn.querySelector('.login-spinner').classList.add('hidden');
-    loginBtn.classList.add('btn-primary');
-    loginBtn.classList.remove('bg-red-600', 'cursor-not-allowed');
-  }
-  
-  if (registerBtn) {
-    registerBtn.disabled = false;
-    registerBtn.querySelector('.register-btn-text').classList.remove('opacity-0');
-    registerBtn.querySelector('.register-spinner').classList.add('hidden');
-    registerBtn.classList.add('btn-primary');
-    registerBtn.classList.remove('bg-red-600', 'cursor-not-allowed');
-  }
-}
 
 // AJAX авторизация
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -1114,41 +1066,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   }
 });
 
-// AJAX регистрация
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const form = e.target;
-  
-  // Показываем загрузку на кнопке
-  setButtonLoading('.register-submit-btn', true);
-
-  const formData = new FormData(form);
-  const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  try {
-    const response = await fetch("{% url 'register' %}", {
-      method: "POST",
-      headers: {
-        'X-CSRFToken': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: formData
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      // Успешная регистрация и авторизация - перенаправляем на главную
-      window.location.href = "{% url 'index' %}";
-    } else {
-      showButtonError('.register-submit-btn', data.error || "Ошибка при регистрации");
-    }
-  } catch (error) {
-    console.error('Ошибка:', error);
-    showButtonError('.register-submit-btn', "Ошибка соединения");
-  }
-});
-
 // Добавляем CSS для анимации спиннера
 const style = document.createElement('style');
 style.textContent = `
@@ -1178,6 +1095,80 @@ document.querySelectorAll('a[href="/"]').forEach(btn => {
     toggleLoginModal();
   });
 });
+
+
+
+
+// Функции для управления состоянием кнопок
+function setButtonLoading(buttonClass, isLoading) {
+    const btn = document.querySelector(buttonClass);
+    if (!btn) return;
+    
+    const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
+    const spinner = btn.querySelector('.login-spinner, .register-spinner');
+    
+    if (btn && btnText && spinner) {
+        if (isLoading) {
+            btn.disabled = true;
+            btnText.classList.add('opacity-0');
+            spinner.classList.remove('hidden');
+            btn.classList.add('btn-primary');
+            btn.classList.remove('bg-red-600', 'bg-green-600', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btnText.classList.remove('opacity-0');
+            spinner.classList.add('hidden');
+        }
+    }
+}
+
+function showButtonSuccess(buttonClass, successMessage) {
+    const btn = document.querySelector(buttonClass);
+    if (!btn) return;
+    
+    const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
+    const spinner = btn.querySelector('.login-spinner, .register-spinner');
+    
+    if (btn && btnText && spinner) {
+        spinner.classList.add('hidden');
+        btnText.classList.remove('opacity-0');
+        btnText.textContent = successMessage;
+        btn.classList.remove('btn-primary', 'bg-red-600');
+        btn.classList.add('bg-green-600', 'cursor-not-allowed');
+        btnText.innerHTML = `<i class="fas fa-check mr-2"></i>${successMessage}`;
+        btn.disabled = true;
+    }
+}
+
+function showButtonError(buttonClass, errorMessage) {
+    const btn = document.querySelector(buttonClass);
+    if (!btn) return;
+    
+    const btnText = btn.querySelector('.login-btn-text, .register-btn-text');
+    const spinner = btn.querySelector('.login-spinner, .register-spinner');
+    
+    if (btn && btnText && spinner) {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.classList.remove('opacity-0');
+        btnText.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${errorMessage}`;
+        btn.classList.remove('btn-primary', 'bg-green-600');
+        btn.classList.add('bg-red-600', 'cursor-not-allowed');
+        
+        setTimeout(() => {
+            btn.disabled = false;
+            btnText.innerHTML = 'Зарегистрироваться';
+            btn.classList.add('btn-primary');
+            btn.classList.remove('bg-red-600', 'cursor-not-allowed', 'bg-green-600');
+            registerFormSubmitted = false;
+        }, 4000);
+    }
+}
+
+
+
+
+
 </script>
 
 

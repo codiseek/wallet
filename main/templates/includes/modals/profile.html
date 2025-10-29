@@ -1,0 +1,73 @@
+{% extends "includes/modals/_base_modal.html" %}
+{% load static %}
+
+{% block modal_id %}profileModal{% endblock %}
+
+{% block modal_content %}
+
+
+
+<!-- Модалка профиля -->
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-white">Ваш профиль</h2>
+          
+        </div>
+        
+        <!-- Прогресс заполнения -->
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-300">Заполненность профиля</span>
+                <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <form id="profileForm" class="p-6 space-y-4">
+            {% csrf_token %}
+            
+            <!-- Имя -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
+                <input type="text" name="first_name" id="firstNameInput" 
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            
+            <!-- Email -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">
+                    Электронная почта 
+                    <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
+                </label>
+                <input type="email" name="email" id="emailInput"
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                       placeholder="your@email.com">
+                <p class="text-xs text-gray-400 mt-1">Мы отправим код подтверждения</p>
+            </div>
+            
+            <!-- Телефон -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
+                <input type="tel" name="phone" id="phoneInput"
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                       placeholder="+996 XXX XXX XXX">
+            </div>
+
+            <div class="flex space-x-3 pt-4">
+                 <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
+                    Отмена
+                </button>
+                <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
+                    Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+
+{% endblock %}
+
+

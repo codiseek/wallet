@@ -1,5 +1,5 @@
 import json 
-
+import re
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -10,13 +10,14 @@ from .models import Category, Transaction, Debt, DebtPayment
 from decimal import Decimal, InvalidOperation
 from django.db.models import Sum
 from django.db import transaction
+from django.db import IntegrityError  
 import random
 import string
 from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from datetime import datetime, date, timedelta  # Добавьте date
+from datetime import datetime, date, timedelta
 from django.contrib.auth.models import User 
 from django.core.paginator import Paginator
 from django.conf import settings
@@ -1115,35 +1116,40 @@ def send_note_reminder(request):
 
 
 def create_default_categories(user):
-    """Создает категории по умолчанию для пользователя только один раз"""
-    # Проверяем, создавались ли уже дефолтные категории для этого пользователя
-    if hasattr(user, 'userprofile') and user.userprofile.default_categories_created:
-        return
-    
-    # Если профиля нет, проверяем есть ли вообще какие-либо категории у пользователя
-    if Category.objects.filter(user=user).exists():
-        return  # У пользователя уже есть категории, ничего не создаем
-    
-    default_categories = [
-        {'name': 'Еда', 'icon': 'fas fa-utensils', 'color': '#ef4444'},
-        {'name': 'Жилье', 'icon': 'fas fa-home', 'color': '#10b981'},
-        {'name': 'Работа', 'icon': 'fas fa-briefcase', 'color': '#3b82f6'},
-    ]
-    
-    for cat_data in default_categories:
-        Category.objects.create(
-            user=user,
-            name=cat_data['name'],
-            icon=cat_data['icon'],
-            color=cat_data['color']
-        )
-    
-    # Отмечаем, что дефолтные категории были созданы
-    if hasattr(user, 'userprofile'):
-        user.userprofile.default_categories_created = True
-        user.userprofile.save()
+    """Создает категории по умолчанию для пользователя атомарно"""
+    try:
+        with transaction.atomic():
+            # Проверяем, создавались ли уже дефолтные категории
+            if hasattr(user, 'userprofile') and user.userprofile.default_categories_created:
+                return
+            
+            # Если у пользователя уже есть категории - ничего не создаем
+            if Category.objects.filter(user=user).exists():
+                return
+            
+            default_categories = [
+                {'name': 'Еда', 'icon': 'fas fa-utensils', 'color': '#ef4444'},
+                {'name': 'Жилье', 'icon': 'fas fa-home', 'color': '#10b981'},
+                {'name': 'Работа', 'icon': 'fas fa-briefcase', 'color': '#3b82f6'},
+            ]
+            
+            for cat_data in default_categories:
+                Category.objects.create(
+                    user=user,
+                    name=cat_data['name'],
+                    icon=cat_data['icon'],
+                    color=cat_data['color']
+                )
+            
+            # Отмечаем, что дефолтные категории были созданы
+            if hasattr(user, 'userprofile'):
+                user.userprofile.default_categories_created = True
+                user.userprofile.save()
+                
+    except Exception as e:
+        print(f"Ошибка при создании категорий по умолчанию: {e}")
 
-from django_user_agents.utils import get_user_agent
+
 
 @login_required
 def index(request):
@@ -1579,18 +1585,20 @@ def register(request):
     if request.method == 'POST':
         try:
             username = request.POST.get('username', '').strip()
+            print(f"=== REGISTER ATTEMPT ===")
+            print(f"Username: {username}")
             
-            # Проверка ограничения по времени
+            # Проверка лимита регистраций
             client_ip = request.META.get('REMOTE_ADDR', 'unknown')
             cache_key = f'registration_limit_{client_ip}'
             
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=2):
+                if time_passed < timedelta(minutes=0):
                     return JsonResponse({
                         "success": False, 
-                        "error": "С одного устройства можно регистрироваться только 1 раз в 60 минут!"
+                        "error": "С одного устройства можно регистрироваться только 1 раз в 10 минут!"
                     })
             
             if not username:
@@ -1599,93 +1607,42 @@ def register(request):
             if len(username) < 3:
                 return JsonResponse({"success": False, "error": "Логин должен быть не менее 3 символов"})
             
+            # ПРОСТАЯ и надежная проверка
             if User.objects.filter(username=username).exists():
+                print(f"❌ Пользователь {username} уже существует в БД")
                 return JsonResponse({"success": False, "error": "Пользователь с таким логином уже существует"})
             
-            # Генерация случайного пароля
-            password = generate_random_password()
+            print(f"✅ Создаем пользователя: {username}")
             
             # Создаем пользователя
-            user = User.objects.create_user(
-                username=username,
-                password=password
-            )
+            password = generate_random_password()
+            user = User.objects.create_user(username=username, password=password)
             
-            # Профиль создается автоматически через сигнал
+            print(f"✅ Пользователь создан с ID: {user.id}")
             
-            # Сохраняем время регистрации в кэш
             cache.set(cache_key, timezone.now(), 60 * 10)
-            
-            # Создаем категории по умолчанию
-            create_default_categories(user)
-            
-            # Автоматически авторизуем пользователя
             login(request, user)
-            
-              # Устанавливаем флаг для показа приветствия
             request.session['is_new_user'] = True
 
+            print(f"✅ Успешная регистрация для пользователя: {username}")
+            
             return JsonResponse({
                 "success": True, 
-                "message": "Аккаунт успешно создан",
+                "message": "Аккаунт успешно создан", 
                 "username": username
             })
             
         except Exception as e:
-            print(f"Ошибка при регистрации: {str(e)}")
+            print(f"❌ Ошибка при регистрации: {str(e)}")
+            print(f"❌ Тип ошибки: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            
+            # Если ошибка уникальности - пользователь уже существует
+            if "UNIQUE constraint" in str(e) or "unique" in str(e).lower():
+                return JsonResponse({"success": False, "error": "Пользователь с таким логином уже существует"})
+            
             return JsonResponse({"success": False, "error": f"Ошибка при создании аккаунта: {str(e)}"})
-    
-    return JsonResponse({"success": False, "error": "Неверный метод запроса"})
-
-
-@login_required
-def change_password(request):
-    if request.method == 'POST':
-        try:
-            new_password = request.POST.get('new_password')
-            confirm_password = request.POST.get('confirm_password')
-            current_password = request.POST.get('current_password')  # Для повторной смены
-            
-            print(f"=== СМЕНА ПАРОЛЯ ===")
-            print(f"Пользователь: {request.user.username}")
-            print(f"Пароль уже менялся: {request.user.userprofile.password_changed}")
-            
-            # Если пользователь уже менял пароль, требуем текущий пароль
-            if request.user.userprofile.password_changed:
-                if not current_password:
-                    return JsonResponse({"success": False, "error": "Введите текущий пароль"})
-                
-                # Проверяем текущий пароль
-                if not request.user.check_password(current_password):
-                    return JsonResponse({"success": False, "error": "Неверный текущий пароль"})
-            
-            if not new_password or not confirm_password:
-                return JsonResponse({"success": False, "error": "Заполните все поля"})
-            
-            if new_password != confirm_password:
-                return JsonResponse({"success": False, "error": "Пароли не совпадают"})
-            
-            if len(new_password) < 6:
-                return JsonResponse({"success": False, "error": "Пароль должен быть не менее 6 символов"})
-            
-            user = request.user
-            user.set_password(new_password)
-            user.save()
-            
-            # Отмечаем, что пароль был изменен
-            user.userprofile.password_changed = True
-            user.userprofile.save()
-            
-            # Обновляем сессию чтобы пользователь не разлогинился
-            from django.contrib.auth import update_session_auth_hash
-            update_session_auth_hash(request, user)
-            
-            print("Пароль успешно изменен")
-            return JsonResponse({"success": True, "message": "Пароль успешно изменен"})
-            
-        except Exception as e:
-            print(f"Ошибка при смене пароля: {str(e)}")
-            return JsonResponse({"success": False, "error": f"Ошибка при смене пароля: {str(e)}"})
     
     return JsonResponse({"success": False, "error": "Неверный метод запроса"})
 
@@ -3088,3 +3045,79 @@ def update_language(request):
         'success': False,
         'error': 'Неверный метод запроса'
     })
+
+
+
+
+
+@login_required
+def get_profile_info(request):
+    """Получение информации о профиле"""
+    try:
+        profile = request.user.userprofile
+        return JsonResponse({
+            'success': True,
+            'profile': {
+                'has_email': profile.has_email,
+                'email': profile.user_email or '',
+                'first_name': profile.first_name or '',
+                'phone': profile.phone or '',
+                'completion_percentage': profile.profile_completion_percentage,
+                'email_verified': profile.email_verified
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+
+@login_required
+@require_POST
+def update_profile(request):
+    """Обновление профиля пользователя"""
+    try:
+        profile = request.user.userprofile
+        user_email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+
+        # Валидация email (если указан)
+        if user_email:
+            # Простая валидация email
+            if '@' not in user_email or '.' not in user_email:
+                return JsonResponse({"success": False, "error": "Неверный формат email"})
+            
+            # Проверяем, не используется ли email другим пользователем
+            if UserProfile.objects.filter(user_email=user_email).exclude(user=request.user).exists():
+                return JsonResponse({"success": False, "error": "Этот email уже используется другим пользователем"})
+
+        # Обновляем данные
+        if user_email:
+            profile.user_email = user_email
+            # Помечаем как неподтвержденный (можно добавить логику подтверждения позже)
+            profile.email_verified = False
+            
+        if first_name:
+            profile.first_name = first_name
+        if phone:
+            profile.phone = phone
+            
+        profile.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Профиль успешно обновлен",
+            "profile": {
+                'has_email': profile.has_email,
+                'email': profile.user_email or '',
+                'first_name': profile.first_name or '',
+                'phone': profile.phone or '',
+                'completion_percentage': profile.profile_completion_percentage,
+                'email_verified': profile.email_verified
+            }
+        })
+
+    except Exception as e:
+        print(f"Ошибка при обновлении профиля: {str(e)}")
+        return JsonResponse({"success": False, "error": f"Ошибка при обновлении профиля: {str(e)}"})
