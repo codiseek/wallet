@@ -17,7 +17,19 @@ let currentTransactionDetailData = null;
 window.categories = window.categories || [];
 window.initialBalances = window.initialBalances || { total: 0, income: 0, expense: 0 };
 
-
+function initLanguageHandlers() {
+    // Обработчик для кнопок смены языка
+    document.addEventListener('click', function(e) {
+        const langBtn = e.target.closest('.language-btn');
+        if (langBtn) {
+            // После смены языка переинициализируем баланс
+            setTimeout(() => {
+                updateBalanceDisplay();
+                updateCurrencySymbols(window.currentCurrency || 'c');
+            }, 500);
+        }
+    });
+}
 
 // -----------------------------
 // Добавление транзакции в DOM
@@ -257,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initTransactionDetailModal();
         initCategoryFilter();
         initReminderPicker();
-        
+        initLanguageHandlers();
         // Инициализируем кнопки валюты при загрузке
         initCurrencyButtons();
         if (typeof updateCategoryTabsHandlers === 'function') updateCategoryTabsHandlers();

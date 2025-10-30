@@ -117,7 +117,23 @@ function updateBalancesAfterDelete(type, amount, reserveAmount = 0) {
     updateBalanceDisplay();
 }
 
+// Добавьте в balance.js
+function reloadBalanceData() {
+    fetch('/get_balance_data/')  // Создайте этот endpoint в Django
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.initialBalances = data.balances;
+                updateBalanceDisplay();
+            }
+        })
+        .catch(error => {
+            console.error('Error reloading balance:', error);
+        });
+}
 
+// Сделайте функцию глобально доступной
+window.reloadBalanceData = reloadBalanceData;
 
 
 // -----------------------------
@@ -146,4 +162,3 @@ function updateBalancesAfterDelete(type, amount) {
     
     updateBalanceDisplay();
 }
-

@@ -313,8 +313,7 @@ def debt_list(request):
         print(f"Error in debt_list: {e}")
         import traceback
         traceback.print_exc()
-        return JsonResponse({'success': False, 'error': str(e)})
-    
+        return JsonResponse({'success': False, 'error': str(e)})    
 
 
 

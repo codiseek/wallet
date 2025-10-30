@@ -8,15 +8,9 @@ function formatAmount(amount) {
         return amount;
     }
     
-    // Преобразуем строку с запятой в число с точкой
-    let number;
-    if (typeof amount === 'string') {
-        // Заменяем запятые на точки и убираем пробелы
-        const cleaned = amount.replace(/,/g, '.').replace(/\s/g, '');
-        number = parseFloat(cleaned) || 0;
-    } else {
-        number = amount || 0;
-    }
+    const number = typeof amount === 'string' ? 
+        parseFloat(amount.replace(/\s/g, '').replace(',', '.')) : 
+        amount || 0;
     
     // Округляем до целого числа
     const rounded = Math.round(number);
