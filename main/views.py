@@ -39,6 +39,7 @@ from django.http import HttpResponseRedirect
 from django.utils import translation
 
 
+from main.models import Transaction, Category
 
 
 from .models import (
@@ -1328,8 +1329,6 @@ def add_transaction(request):
             category_id = request.POST.get("category")
             description = request.POST.get("description", "")
 
-            
-
             if not type_:
                 return JsonResponse({"success": False, "error": "Не указан тип операции"})
             if not amount:
@@ -1355,16 +1354,18 @@ def add_transaction(request):
                 reserve_amount = amount_decimal * (Decimal(reserve_percentage) / Decimal('100'))
                 print(f"Рассчитан резерв: {reserve_amount} с ({reserve_percentage}% от {amount_decimal})")
 
+            # СОЗДАЕМ ТРАНЗАКЦИЮ С transaction_date
             transaction = Transaction.objects.create(
                 user=request.user,
                 type=type_,
                 amount=amount_decimal,
                 category=category,
                 description=description,
-                reserve_amount=reserve_amount
+                reserve_amount=reserve_amount,
+                transaction_date=timezone.now()  # Добавляем текущую дату и время
             )
             
-            # ПЕРЕСЧИТЫВАЕМ БАЛАНСЫ С УЧЕТОМ РЕЗЕРВА
+            # ПЕРЕСЧИТЫВАЕМ БАЛАНСЫ С УЧЕТОМ РЕЗЕРВА (используем transaction_date для фильтрации)
             transactions = Transaction.objects.filter(user=request.user)
             income_result = transactions.filter(type='income').aggregate(total=Sum('amount'))
             expense_result = transactions.filter(type='expense').aggregate(total=Sum('amount'))
@@ -1375,13 +1376,13 @@ def add_transaction(request):
             total_reserve = reserve_result['total'] or Decimal('0')
             total = income - expense - total_reserve
             
-            # РАСЧЕТ РЕЗЕРВА ЗА ТЕКУЩИЙ МЕСЯЦ
+            # РАСЧЕТ РЕЗЕРВА ЗА ТЕКУЩИЙ МЕСЯЦ (используем transaction_date вместо created_at)
             now = timezone.now()
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_reserve_result = Transaction.objects.filter(
                 user=request.user,
                 type='income',
-                created_at__gte=month_start
+                transaction_date__gte=month_start  # Заменяем created_at на transaction_date
             ).aggregate(total=Sum('reserve_amount'))
             monthly_reserve = month_reserve_result['total'] or Decimal('0')
             
@@ -1392,7 +1393,7 @@ def add_transaction(request):
                 'amount': float(transaction.amount),
                 'reserve_amount': float(reserve_amount),
                 'description': transaction.description,
-                'created_at': transaction.created_at.isoformat(),
+                'transaction_date': transaction.transaction_date.isoformat(),  # Используем transaction_date
                 'category_id': transaction.category.id,
                 'category_name': transaction.category.name,
                 'category_icon': transaction.category.icon,
@@ -1407,7 +1408,7 @@ def add_transaction(request):
                     "income": float(income),
                     "expense": float(expense),
                     "total_reserve": float(total_reserve),
-                    "monthly_reserve": float(monthly_reserve)  # добавляем месячный резерв
+                    "monthly_reserve": float(monthly_reserve)
                 }
             })
             
@@ -1418,7 +1419,6 @@ def add_transaction(request):
             return JsonResponse({"success": False, "error": f"Внутренняя ошибка сервера: {str(e)}"})
 
     return JsonResponse({"success": False, "error": "Неверный метод запроса"})
-
 
 
 
@@ -1549,13 +1549,13 @@ def delete_transaction(request, transaction_id):
         total_reserve = reserve_result['total'] or Decimal('0')
         total = income - expense - total_reserve
         
-        # РАСЧЕТ РЕЗЕРВА ЗА ТЕКУЩИЙ МЕСЯЦ
+        # РАСЧЕТ РЕЗЕРВА ЗА ТЕКУЩИЙ МЕСЯЦ (используем transaction_date вместо created_at)
         now = timezone.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         month_reserve_result = Transaction.objects.filter(
             user=request.user,
             type='income',
-            created_at__gte=month_start
+            transaction_date__gte=month_start  # Заменяем created_at на transaction_date
         ).aggregate(total=Sum('reserve_amount'))
         monthly_reserve = month_reserve_result['total'] or Decimal('0')
         
@@ -1566,12 +1566,12 @@ def delete_transaction(request, transaction_id):
                 "income": float(income),
                 "expense": float(expense),
                 "total_reserve": float(total_reserve),
-                "monthly_reserve": float(monthly_reserve)  # добавляем месячный резерв
+                "monthly_reserve": float(monthly_reserve)
             }
         })
     except Transaction.DoesNotExist:
         return JsonResponse({"success": False, "error": "Транзакция не найдена"})
-
+    
 
 
 def generate_random_password(length=12):
@@ -1594,7 +1594,7 @@ def register(request):
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=10):
+                if time_passed < timedelta(minutes=0):
                     return JsonResponse({
                         "success": False, 
                         "error": "С одного устройства можно регистрироваться только 1 раз в 10 минут!"
@@ -1680,13 +1680,14 @@ def get_transactions(request):
     if category_id != 'all':
         transactions = transactions.filter(category_id=category_id)
     
-    # Фильтруем по дате если выбран период
+    # Фильтруем по дате если выбран период (ИСПОЛЬЗУЕМ transaction_date вместо created_at)
     if start_date and end_date:
-        transactions = transactions.filter(created_at__range=[start_date, end_date])
+        transactions = transactions.filter(transaction_date__range=[start_date, end_date])
     elif start_date:  # Для случая "все время" или других фильтров
-        transactions = transactions.filter(created_at__gte=start_date)
+        transactions = transactions.filter(transaction_date__gte=start_date)
     
-    transactions = transactions.order_by('-created_at')
+    # СОРТИРУЕМ ПО transaction_date вместо created_at
+    transactions = transactions.order_by('-transaction_date')
     
     # Пагинация с обработкой ошибок
     paginator = Paginator(transactions, limit)
@@ -1730,7 +1731,7 @@ def get_transactions(request):
             'reserve_amount': float(transaction.reserve_amount),
             'type': transaction.type,
             'description': transaction.description,
-            'created_at': transaction.created_at.isoformat(),
+            'transaction_date': transaction.transaction_date.isoformat(),  # ИСПОЛЬЗУЕМ transaction_date
             'category_id': category_info['id'],
             'category_name': category_info['name'],
             'category_icon': category_info['icon'],
@@ -1745,7 +1746,6 @@ def get_transactions(request):
         'total_count': paginator.count
     })
 
-
 @login_required
 def get_categories_with_stats(request):
     categories = Category.objects.filter(user=request.user)
@@ -1753,20 +1753,21 @@ def get_categories_with_stats(request):
     now = timezone.now()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
+    # ОБНОВЛЯЕМ: используем transaction_date вместо created_at
     total_income = Transaction.objects.filter(
         user=request.user,
         type='income',
-        created_at__gte=month_start
+        transaction_date__gte=month_start  # Заменяем created_at на transaction_date
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     categories_data = []
     for category in categories:
-        # Сумма расходов по категории за месяц
+        # Сумма расходов по категории за месяц (ОБНОВЛЯЕМ: используем transaction_date)
         category_expense = Transaction.objects.filter(
             user=request.user,
             category=category,
             type='expense',
-            created_at__gte=month_start
+            transaction_date__gte=month_start  # Заменяем created_at на transaction_date
         )
         total_expense = category_expense.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         transaction_count = category_expense.count()
@@ -1787,7 +1788,6 @@ def get_categories_with_stats(request):
         })
     
     return JsonResponse({"categories": categories_data})
-
 
 ################# ЗАМЕТКИ ##############
 
@@ -2021,12 +2021,12 @@ def get_category_stats(request, category_id):
         
         print(f"Period: {period_name}, Start date: {start_date}")
         
-        # Получаем расходы в этой категории за выбранный период
+        # Получаем расходы в этой категории за выбранный период (ОБНОВЛЯЕМ: используем transaction_date)
         period_expenses = Transaction.objects.filter(
             user=request.user,
             category=category,
             type='expense',
-            created_at__gte=start_date
+            transaction_date__gte=start_date  # Заменяем created_at на transaction_date
         )
         
         # Сумма расходов по категории за период
@@ -2038,19 +2038,19 @@ def get_category_stats(request, category_id):
         # Средний чек за период
         average_amount = total_expense / transactions_count if transactions_count > 0 else 0
         
-        # Общие доходы за период
+        # Общие доходы за период (ОБНОВЛЯЕМ: используем transaction_date)
         period_income = Transaction.objects.filter(
             user=request.user,
             type='income',
-            created_at__gte=start_date
+            transaction_date__gte=start_date  # Заменяем created_at на transaction_date
         ).aggregate(Sum('amount'))['amount__sum'] or 1
         
         # Процент от доходов за период
         income_percentage = (total_expense / period_income * 100) if period_income > 0 else 0
         
-        # Транзакции за сегодня (отдельно для списка)
+        # Транзакции за сегодня (отдельно для списка) (ОБНОВЛЯЕМ: используем transaction_date)
         today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-        daily_expenses = period_expenses.filter(created_at__gte=today_start).order_by('-created_at')
+        daily_expenses = period_expenses.filter(transaction_date__gte=today_start).order_by('-transaction_date')  # Заменяем created_at на transaction_date
         
         transactions_data = []
         for expense in daily_expenses:
@@ -2058,7 +2058,7 @@ def get_category_stats(request, category_id):
                 'id': expense.id,
                 'amount': float(expense.amount),
                 'description': expense.description or 'Без описания',
-                'created_at': expense.created_at.isoformat(),
+                'transaction_date': expense.transaction_date.isoformat(),  # Заменяем created_at на transaction_date
             })
         
         response_data = {
@@ -2086,7 +2086,6 @@ def get_category_stats(request, category_id):
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
-
 
 
 
@@ -2574,7 +2573,7 @@ def export_user_data(request):
         # Собираем все данные пользователя
         data = {
             'export_info': {
-                'version': '1.0',
+                'version': '1.1',  # Обновили версию, так как добавили transaction_date
                 'export_date': timezone.now().isoformat(),
                 'user_id': user.id,
                 'username': user.username
@@ -2596,12 +2595,16 @@ def export_user_data(request):
                     'currency': profile.currency,
                     'reserve_percentage': profile.reserve_percentage,
                     'target_reserve': float(profile.target_reserve) if profile.target_reserve else 0.0,
-                    'password_changed': profile.password_changed
+                    'password_changed': profile.password_changed,
+                    'language': profile.language,
+                    'first_name': profile.first_name,
+                    'user_email': profile.user_email,
+                    'phone': profile.phone
                 }
         except Exception as e:
             print(f"Error getting user profile: {e}")
         
-        # ИСПРАВЛЕННЫЙ ЭКСПОРТ КАТЕГОРИЙ - БЕЗ created_at
+        # Экспорт категорий
         try:
             categories = Category.objects.filter(user=user)
             categories_data = []
@@ -2611,14 +2614,13 @@ def export_user_data(request):
                     'name': category.name,
                     'icon': category.icon,
                     'color': category.color,
-                    # Убрали created_at, так как его нет в модели
                 })
             data['categories'] = categories_data
             print(f"Exported {len(categories_data)} categories")
         except Exception as e:
             print(f"Error getting categories: {e}")
         
-        # Получаем транзакции
+        # ОБНОВЛЕННЫЙ ЭКСПОРТ ТРАНЗАКЦИЙ - ДОБАВЛЕН transaction_date
         try:
             transactions = user.transaction_set.all()
             transactions_data = []
@@ -2630,7 +2632,9 @@ def export_user_data(request):
                     'description': transaction.description,
                     'category_id': transaction.category_id,
                     'created_at': transaction.created_at.isoformat() if transaction.created_at else None,
-                    'reserve_amount': float(transaction.reserve_amount)
+                    'transaction_date': transaction.transaction_date.isoformat() if transaction.transaction_date else None,  # ДОБАВЛЕНО НОВОЕ ПОЛЕ
+                    'reserve_amount': float(transaction.reserve_amount),
+                    'source': getattr(transaction, 'source', 'manual')  # Добавляем источник, если есть
                 })
             data['transactions'] = transactions_data
             print(f"Exported {len(transactions_data)} transactions")
@@ -2723,6 +2727,7 @@ def export_user_data(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
     
+        
     
 @csrf_exempt
 @transaction.atomic
@@ -3181,3 +3186,419 @@ def delete_account(request):
             'success': False,
             'error': f'Ошибка при удалении аккаунта: {str(e)}'
         })
+    
+
+
+
+import pandas as pd
+
+import os
+from django.views.decorators.csrf import csrf_protect
+
+
+@login_required
+@require_POST
+@csrf_protect
+def import_mbank_view(request):
+    """
+    Обработка импорта из Мбанка для всех пользователей
+    """
+    try:
+        if not request.FILES.get('mbank_file'):
+            return JsonResponse({
+                'success': False, 
+                'message': 'Файл не выбран'
+            })
+        
+        uploaded_file = request.FILES['mbank_file']
+        
+        print(f"=== НАЧАЛО ОБРАБОТКИ ЗАПРОСА ===")
+        print(f"Пользователь: {request.user.username}")
+        print(f"Файл: {uploaded_file.name}, размер: {uploaded_file.size}")
+        
+        # Проверяем расширение файла
+        file_name = uploaded_file.name.lower()
+        if not (file_name.endswith('.csv') or file_name.endswith('.xlsx') or file_name.endswith('.xls')):
+            return JsonResponse({
+                'success': False, 
+                'message': 'Поддерживаются только CSV и Excel файлы'
+            })
+        
+        # Сохраняем временный файл
+        temp_dir = 'temp_imports'
+        os.makedirs(temp_dir, exist_ok=True)
+        temp_path = os.path.join(temp_dir, f'mbank_import_{request.user.id}_{uploaded_file.name}')
+        
+        with open(temp_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+        
+        print(f"Файл сохранен: {temp_path}")
+        
+        try:
+            # Вызываем функцию импорта
+            result = import_mbank(temp_path, request.user)
+            
+            # Добавляем отладочную информацию
+            result['debug'] = {
+                'user': request.user.username,
+                'file': uploaded_file.name,
+                'file_size': uploaded_file.size
+            }
+            
+            return JsonResponse(result)
+            
+        finally:
+            # Удаляем временный файл
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                print(f"Временный файл удален: {temp_path}")
+                
+    except Exception as e:
+        print(f"❌ ОШИБКА В VIEW: {e}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False, 
+            'message': f'Ошибка при обработке файла: {str(e)}'
+        })
+    
+
+def import_mbank(file_path, user):
+    """
+    Умная функция импорта транзакций из Мбанка с автоматическим определением категорий
+    """
+    try:
+        print(f"=== НАЧАЛО ИМПОРТА МБАНК ДЛЯ {user.username} ===")
+        
+        # Читаем файл
+        if file_path.endswith('.csv'):
+            try:
+                df = pd.read_csv(file_path, delimiter=';', encoding='utf-8')
+            except:
+                try:
+                    df = pd.read_csv(file_path, delimiter=',', encoding='utf-8')
+                except:
+                    df = pd.read_csv(file_path, delimiter=';', encoding='cp1251')
+        elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
+            df = pd.read_excel(file_path)
+        else:
+            return {'success': False, 'message': 'Неверный формат файла'}
+        
+        print(f"Файл прочитан. Колонки: {list(df.columns)}")
+        print(f"Размер данных: {df.shape}")
+        
+        if df.empty:
+            return {'success': False, 'message': 'Файл пустой'}
+        
+        if len(df.columns) < 5:
+            return {'success': False, 'message': f'Недостаточно колонок. Найдено: {len(df.columns)}, нужно: 5'}
+        
+        # Создаем только категорию MBank заранее (она всегда нужна)
+        mbank_category, created = Category.objects.get_or_create(
+            user=user,
+            name='MBank',
+            defaults={
+                'color': '#6B46C1',
+                'icon': '/static/main/mico.svg'
+            }
+        )
+        print(f"Категория MBank: {'создана' if created else 'существовала'}")
+        
+        # СЛОВАРЬ КАТЕГОРИЙ И КЛЮЧЕВЫХ СЛОВ (но не создаем их заранее)
+        category_keywords = {
+            'Globus': {
+                'keywords': ['globus', 'глобус'],
+                'color': '#FF6B6B',
+                'icon': '/static/main/globus.svg'
+            },
+            'Аптека': {
+                'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация'],
+                'color': '#4ECDC4',
+                'icon': 'fas fa-pills'
+            },
+            'Кафе и рестораны': {
+                'keywords': ['кафе', 'cafe', 'ресторан', 'restaurant', 'столовая', 'кофейня', 'бар', 'bistro'],
+                'color': '#FFD166',
+                'icon': 'fas fa-utensils'
+            },
+            'Супермаркет': {
+                'keywords': ['spar', 'спар', 'пятерочка', 'перекресток', 'лента', 'ашан', 'auchan'],
+                'color': '#06D6A0',
+                'icon': 'fas fa-store'
+            },
+            'Транспорт': {
+                'keywords': ['заправка', 'азс', 'бензин', 'такси', 'metro', 'метро', 'автобус', 'транспорт'],
+                'color': '#118AB2',
+                'icon': 'fas fa-car'
+            },
+            'Развлечения': {
+                'keywords': ['кино', 'kino', 'кинотеатр', 'cinema', 'концерт', 'театр'],
+                'color': '#9D4EDD',
+                'icon': 'fas fa-film'
+            }
+        }
+        
+        # Кэш для категорий (создаем только при необходимости)
+        categories_cache = {'MBank': mbank_category}
+        
+        # Функция для определения категории по описанию
+        def detect_category(description):
+            desc_lower = description.lower()
+            
+            for category_name, category_data in category_keywords.items():
+                for keyword in category_data['keywords']:
+                    if keyword in desc_lower:
+                        return category_name
+            
+            # Если не нашли подходящую категорию - используем MBank
+            return 'MBank'
+        
+        transactions_created = 0
+        errors = []
+        skipped_rows = []
+        category_stats = {}  # Статистика по категориям
+        created_categories = []  # Список созданных категорий
+        
+        # Полный список служебных строк, которые нужно пропускать
+        service_phrases = [
+            # Заголовки и информация о счете
+            'выписка из лицевого счета за период',
+            'лицевой счет:',
+            'валюта:',
+            'состояние счета на:',
+            'текущий остаток средств:',
+            'ФИО/Наименование клиента:',
+            
+            # Периоды и балансы
+            'средства на начало периода',
+            'зачисления за период',
+            'списания за период',
+            'средства на конец периода'
+        ]
+        
+        # Обрабатываем КАЖДУЮ строку
+        for index, row in df.iterrows():
+            try:
+                # Используем iloc для доступа по позициям
+                date_val = row.iloc[0]  # Колонка 0 - Дата
+                operation_val = row.iloc[1] if len(row) > 1 else ''  # Колонка 1 - Операция
+                debit_val = row.iloc[2] if len(row) > 2 else 0  # Колонка 2 - Дебет
+                credit_val = row.iloc[3] if len(row) > 3 else 0  # Колонка 3 - Кредит
+                recipient_val = row.iloc[4] if len(row) > 4 else ''  # Колонка 4 - Получатель
+                
+                # Пропускаем полностью пустые строки
+                if (pd.isna(date_val) or str(date_val).strip() in ['', 'NaN', 'NaT', 'None']) and \
+                   (pd.isna(debit_val) or debit_val == 0) and \
+                   (pd.isna(credit_val) or credit_val == 0):
+                    skipped_rows.append(f"Строка {index+1}: полностью пустая")
+                    continue
+                
+                # Получаем текстовые значения для проверки
+                operation = str(operation_val) if pd.notna(operation_val) and str(operation_val).strip() not in ['', 'NaN', 'NaT', 'None'] else ''
+                recipient = str(recipient_val) if pd.notna(recipient_val) and str(recipient_val).strip() not in ['', 'NaN', 'NaT', 'None'] else ''
+                date_str = str(date_val) if pd.notna(date_val) else ''
+                
+                # Объединяем все текстовые поля для проверки
+                all_text = f"{date_str} {operation} {recipient}".lower()
+                
+                # Проверяем на служебные фразы
+                is_service_line = False
+                for phrase in service_phrases:
+                    if phrase in all_text:
+                        is_service_line = True
+                        skipped_rows.append(f"Строка {index+1}: служебная строка (содержит '{phrase}')")
+                        break
+                
+                if is_service_line:
+                    continue
+                
+                # Дополнительная проверка: если в операции или получателе есть только цифры или очень короткий текст - возможно это служебная строка
+                if len(operation.strip()) < 3 and len(recipient.strip()) < 3:
+                    skipped_rows.append(f"Строка {index+1}: слишком короткий текст операции/получателя")
+                    continue
+                
+                # Обработка числовых значений
+                debit_clean = 0
+                credit_clean = 0
+                
+                # Обрабатываем дебет
+                if pd.notna(debit_val):
+                    try:
+                        if isinstance(debit_val, (int, float)):
+                            debit_clean = float(debit_val)
+                        else:
+                            debit_str = str(debit_val).replace(',', '.').replace(' ', '')
+                            debit_clean = float(debit_str) if debit_str else 0
+                    except:
+                        debit_clean = 0
+                
+                # Обрабатываем кредит
+                if pd.notna(credit_val):
+                    try:
+                        if isinstance(credit_val, (int, float)):
+                            credit_clean = float(credit_val)
+                        else:
+                            credit_str = str(credit_val).replace(',', '.').replace(' ', '')
+                            credit_clean = float(credit_str) if credit_str else 0
+                    except:
+                        credit_clean = 0
+                
+                # Пропускаем нулевые операции
+                if debit_clean == 0 and credit_clean == 0:
+                    skipped_rows.append(f"Строка {index+1}: обе суммы нулевые")
+                    continue
+                
+                # Определяем тип и сумму
+                if debit_clean > 0:
+                    transaction_type = 'expense'
+                    amount = debit_clean
+                elif credit_clean > 0:
+                    transaction_type = 'income'
+                    amount = credit_clean
+                else:
+                    skipped_rows.append(f"Строка {index+1}: не удалось определить тип транзакции")
+                    continue
+                
+                # Формируем описание
+                description = f"{operation} {recipient}".strip()
+                
+                if not description:
+                    description = f"Транзакция Мбанк {index + 1}"
+                
+                # ОПРЕДЕЛЯЕМ КАТЕГОРИЮ ПО ОПИСАНИЮ
+                detected_category = detect_category(description)
+                
+                # Если категория еще не создана, создаем ее
+                if detected_category not in categories_cache:
+                    if detected_category in category_keywords:
+                        category_data = category_keywords[detected_category]
+                        category_obj, created = Category.objects.get_or_create(
+                            user=user,
+                            name=detected_category,
+                            defaults={
+                                'color': category_data['color'],
+                                'icon': category_data.get('icon', 'fas fa-circle')
+                            }
+                        )
+                        categories_cache[detected_category] = category_obj
+                        if created:
+                            created_categories.append(detected_category)
+                            print(f"Создана новая категория: {detected_category}")
+                    else:
+                        # Если категория не найдена в словаре (это MBank), используем MBank
+                        categories_cache[detected_category] = mbank_category
+                
+                category = categories_cache[detected_category]
+                
+                # Обновляем статистику по категориям
+                if detected_category not in category_stats:
+                    category_stats[detected_category] = 0
+                category_stats[detected_category] += 1
+                
+                print(f"Определена категория: {detected_category} для описания: {description}")
+                
+                # ПАРСИМ ДАТУ И ВРЕМЯ ИЗ ВЫПИСКИ
+                transaction_datetime = None
+                if pd.notna(date_val) and str(date_val).strip() not in ['', 'NaN', 'NaT', 'None']:
+                    date_time_str = str(date_val).strip()
+                    try:
+                        # Пробуем разные форматы даты и времени
+                        datetime_formats = [
+                            '%d.%m.%Y %H:%M',      # 22.10.2025 15:04
+                            '%d.%m.%Y %H:%M:%S',   # 22.10.2025 15:04:30
+                            '%d.%m.%Y',            # 22.10.2025
+                            '%Y-%m-%d %H:%M:%S',   # 2025-10-22 15:04:30
+                            '%Y-%m-%d %H:%M',      # 2025-10-22 15:04
+                            '%Y-%m-%d',            # 2025-10-22
+                        ]
+                        
+                        for fmt in datetime_formats:
+                            try:
+                                transaction_datetime = datetime.strptime(date_time_str, fmt)
+                                break
+                            except:
+                                continue
+                        
+                        if transaction_datetime is None:
+                            # Если не распарсилось, пробуем pandas
+                            transaction_datetime = pd.to_datetime(date_time_str)
+                            
+                    except Exception as e:
+                        print(f"Ошибка парсинга даты '{date_time_str}': {e}")
+                        # Используем текущее время, если не удалось распарсить
+                        transaction_datetime = timezone.now()
+                else:
+                    # Используем текущее время, если дата отсутствует
+                    transaction_datetime = timezone.now()
+                
+                print(f"Создаем транзакцию: {transaction_datetime} - {amount} - {transaction_type} - {description} - категория: {detected_category}")
+                
+                # Проверяем, нет ли уже такой транзакции (чтобы избежать дубликатов)
+                existing_transaction = Transaction.objects.filter(
+                    user=user,
+                    amount=amount,
+                    type=transaction_type,
+                    description=description,
+                    transaction_date=transaction_datetime
+                ).first()
+                
+                if existing_transaction:
+                    skipped_rows.append(f"Строка {index+1}: дубликат транзакции")
+                    continue
+                
+                # СОЗДАЕМ ТРАНЗАКЦИЮ с сохранением даты из банка и определенной категорией
+                Transaction.objects.create(
+                    user=user,
+                    amount=amount,
+                    type=transaction_type,
+                    description=description,
+                    category=category,
+                    transaction_date=transaction_datetime
+                )
+                
+                transactions_created += 1
+                print(f"✅ УСПЕШНО создана транзакция #{transactions_created} в категории {detected_category}")
+                
+            except Exception as e:
+                error_msg = f"Строка {index+1}: {str(e)}"
+                errors.append(error_msg)
+                print(f"❌ Ошибка в строке {index+1}: {e}")
+                continue
+        
+        print(f"=== ИТОГ ИМПОРТА ===")
+        print(f"Создано транзакций: {transactions_created}")
+        print(f"Ошибок: {len(errors)}")
+        print(f"Пропущено строк: {len(skipped_rows)}")
+        print("Распределение по категориям:")
+        for category_name, count in category_stats.items():
+            print(f"  - {category_name}: {count}")
+        
+        if created_categories:
+            print("Созданные категории:")
+            for category_name in created_categories:
+                print(f"  - {category_name}")
+        
+        if skipped_rows:
+            print("Причины пропуска (первые 10):")
+            for reason in skipped_rows[:10]:
+                print(f"  - {reason}")
+        
+        result = {
+            'success': transactions_created > 0,
+            'message': f'Успешно импортировано {transactions_created} транзакций из Мбанка' if transactions_created > 0 else 'Не удалось импортировать транзакции',
+            'count': transactions_created,
+            'category_stats': category_stats,
+            'created_categories': created_categories
+        }
+        
+        if errors:
+            result['warnings'] = errors[:5]
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        import traceback
+        print(traceback.format_exc())
+        return {'success': False, 'message': f'Критическая ошибка: {str(e)}'}

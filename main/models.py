@@ -66,11 +66,20 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    transaction_date = models.DateTimeField(null=True, blank=True)  # Новое поле для даты транзакции
     reserve_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.category} ({self.amount})"
 
+    def save(self, *args, **kwargs):
+        # Если transaction_date не указан, используем created_at
+        if not self.transaction_date:
+            self.transaction_date = timezone.now()
+        super().save(*args, **kwargs)
+
+
+        
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     password_changed = models.BooleanField(default=False)
@@ -105,7 +114,7 @@ class UserProfile(models.Model):
     language = models.CharField(
         max_length=2,
         choices=LANGUAGE_CHOICES,
-        default='ru'
+        default='en'
     )
 
     def __str__(self):

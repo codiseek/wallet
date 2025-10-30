@@ -195,6 +195,7 @@ function resetCategoryDeleteConfirmation() {
 
 
 // Функция открытия модалки категории
+// Функция открытия модалки категории
 async function openCategoryDetail(categoryElement) {
     const modal = document.getElementById("categoryDetailModal");
     if (!modal) {
@@ -215,6 +216,9 @@ async function openCategoryDetail(categoryElement) {
     
     // Устанавливаем новую категорию
     currentCategoryId = categoryId;
+
+    // СРАЗУ ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ КАТЕГОРИИ (название и иконку)
+    updateCategoryDisplay(categoryName, categoryIcon, categoryColor);
 
     try {
         // Показываем загрузку с правильными данными категории
@@ -247,8 +251,7 @@ async function openCategoryDetail(categoryElement) {
 
 
 
-
-
+// Показать состояние загрузки
 // Показать состояние загрузки
 function showCategoryLoadingState(name, icon, color) {
     // Используем новую функцию для установки отображения категории
@@ -265,6 +268,7 @@ function showCategoryLoadingState(name, icon, color) {
 }
 
 // Функция для обновления отображения категории
+// Функция для обновления отображения категории
 function updateCategoryDisplay(name, icon, color) {
     const categoryNameEl = document.getElementById('categoryDetailName');
     const categoryIconEl = document.getElementById('categoryDetailIcon');
@@ -278,14 +282,9 @@ function updateCategoryDisplay(name, icon, color) {
         categoryIconEl.innerHTML = '';
         categoryIconEl.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-2xl';
         
-        const iconElement = document.createElement('i');
-        if (icon && icon.startsWith('fa-')) {
-            iconElement.className = `fas ${icon}`;
-        } else {
-            iconElement.className = icon || 'fas fa-tag';
-        }
-        
-        categoryIconEl.appendChild(iconElement);
+        // ИСПОЛЬЗУЕМ getIconHTML для правильного отображения SVG
+        const iconHTML = getIconHTML(icon, color);
+        categoryIconEl.innerHTML = iconHTML;
         
         if (color) {
             categoryIconEl.style.backgroundColor = color + '20';
@@ -482,27 +481,33 @@ function updateCategoryModalCurrency() {
 
 
 // Функция для обновления отображения категории (оставляем как есть)
+// Функция для обновления отображения категории
 function updateCategoryDisplay(name, icon, color) {
     const categoryNameEl = document.getElementById('categoryDetailName');
     const categoryIconEl = document.getElementById('categoryDetailIcon');
 
     if (categoryNameEl && name) {
         categoryNameEl.textContent = name;
+        categoryNameEl.className = 'font-semibold text-lg text-gray-200';
     }
 
     if (categoryIconEl && icon) {
         categoryIconEl.innerHTML = '';
-        const iconElement = document.createElement('i');
-        iconElement.className = icon || 'fas fa-tag';
-        categoryIconEl.appendChild(iconElement);
+        categoryIconEl.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-2xl';
+        
+        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНУЮ ФУНКЦИЮ getIconHTML
+        const iconHTML = window.getIconHTML(icon, color);
+        categoryIconEl.innerHTML = iconHTML;
         
         if (color) {
             categoryIconEl.style.backgroundColor = color + '20';
             categoryIconEl.style.color = color;
+        } else {
+            categoryIconEl.style.backgroundColor = '#3b82f620';
+            categoryIconEl.style.color = '#3b82f6';
         }
     }
 }
-
 
 
 

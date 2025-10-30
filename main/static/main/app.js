@@ -39,7 +39,8 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     const transactionsContainer = document.getElementById('transactionsListContainer');
     if (!transactionsContainer) return;
 
-    const transactionDate = new Date(transaction.created_at || transaction.created || Date.now());
+    // Используем transaction_date для получения даты и времени
+    const transactionDate = new Date(transaction.transaction_date || transaction.created_at || Date.now());
     const formattedDate = transactionDate.toLocaleDateString('ru-RU');
     const formattedTime = transactionDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
@@ -104,12 +105,12 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
          data-transaction-amount="${transaction.amount}"
          data-reserve-amount="${reserveAmount}"
          data-description="${description.replace(/"/g, '&quot;')}"
-         data-created-date="${formattedDate}"
-         data-created-time="${formattedTime}">
+         data-transaction-date="${formattedDate}"
+         data-transaction-time="${formattedTime}">
         <div class="flex items-center">
             <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" 
                  style="background-color: ${categoryColor}22; color: ${categoryColor}">
-                <i class="${categoryIcon} text-sm"></i>
+                ${getIconHTML(categoryIcon, categoryColor)}
             </div>
             <div class="max-w-[140px]">
                 <p class="font-medium text-white text-sm truncate">${categoryName}</p>
@@ -131,6 +132,26 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
     hideEmptyStates();
     updateWelcomeHint();
 };
+
+
+
+// Функция для определения типа иконки и генерации HTML
+function getIconHTML(icon, color) {
+    // Проверяем, является ли иконка SVG (содержит .svg или начинается с /static)
+    if (icon && (icon.includes('.svg') || icon.startsWith('/static') || icon.startsWith('static/'))) {
+        return `<img src="${icon}" alt="Category icon" class="w-5 h-5">`;
+    } 
+    // Проверяем, является ли иконка Font Awesome (содержит fa-)
+    else if (icon && icon.includes('fa-')) {
+        return `<i class="${icon}"></i>`;
+    }
+    // Если иконка не определена, используем иконку по умолчанию
+    else {
+        return `<i class="fas fa-tag"></i>`;
+    }
+}
+
+
 
 
 // Добавьте в app.js

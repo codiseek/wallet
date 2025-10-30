@@ -709,40 +709,459 @@ if (typeof showLoadingNotification === 'undefined') {
     <span>Управление данными</span>
   </h3>
 
-  <div class="grid grid-cols-2 gap-4 mb-4">
+  <div class="grid grid-cols-2 gap-3 mb-4">
     <!-- Кнопка Экспорт -->
     <button 
       id="exportBtn" 
       onclick="exportData()" 
-      class="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-blue-900/20"
+      class="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] flex flex-col items-center justify-center shadow-md shadow-blue-900/20"
     >
-      <i class="fas fa-download text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-sm tracking-wide">Экспорт</span>
-      <span class="text-xs text-blue-200 opacity-80 mt-0.5">Сохранить данные</span>
+      <i class="fas fa-download text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+      <span class="font-semibold text-xs tracking-wide">Экспорт</span>
+      <span class="text-xs text-blue-200 opacity-80 mt-0.5">Сохранить</span>
     </button>
 
     <!-- Кнопка Импорт -->
     <button 
       id="importBtn" 
       onclick="importData()" 
-      class="group bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex flex-col items-center justify-center shadow-md shadow-green-900/20"
+      class="group bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] flex flex-col items-center justify-center shadow-md shadow-green-900/20"
     >
-      <i class="fas fa-upload text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-sm tracking-wide">Импорт</span>
-      <span class="text-xs text-green-200 opacity-80 mt-0.5">Загрузить данные</span>
+      <i class="fas fa-upload text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+      <span class="font-semibold text-xs tracking-wide">Импорт</span>
+      <span class="text-xs text-green-200 opacity-80 mt-0.5">Загрузить</span>
     </button>
-  </div>
+</div>
+  <!-- Новая кнопка импорта из Мбанка -->
+  <div class="mb-4">
+      <h3 class="font-semibold text-white mb-4 flex items-center">
+    <i class="fas fa-bank mr-2 text-purple-400"></i>
+    <span>Импорт из Мбанка</span>
+  </h3>
 
-  <!-- Скрытый input для импорта -->
-  <input type="file" id="importFileInput" accept=".json" class="hidden">
+  <!-- Кнопка импорта из Мбанка -->
+<button 
+    id="importMbankBtn"
+    onclick="openMbankInstructionModal()"
+    class="w-full group border-2 border-[#fabf00] text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex items-center justify-center space-x-3 hover:border-[#fabf00]/80">
+    <img src="{% static 'main/mbank.svg' %}" alt="Mbank" class="w-32 h-8 object-contain">
+</button>
 
-  <!-- Информация о формате -->
-  <div class="text-gray-400 text-xs border-t border-gray-700/50 pt-3">
-    <i class="fas fa-info-circle text-blue-400 mr-1"></i>
-    <span>Экспорт выполняется в формате</span> <span class="text-blue-300 font-medium">JSON</span>.  
-    <span>Импорт поддерживает только</span> <span class="text-green-300 font-medium">JSON-файлы</span>, <span>созданные через экспорт.</span>
+</div>
+
+  <!-- Скрытый input для импорта Мбанка -->
+  <input type="file" id="mbankFileInput" accept=".csv,.xlsx" class="hidden">
+
+ 
+
+<!-- Импорт из Мбанка -->
+
+
+
+
+<!-- Скрытый input для импорта Мбанка -->
+<input type="file" id="mbankFileInput" accept=".xlsx,.xls" class="hidden">
+
+<!-- Модальное окно с инструкцией по выписке Мбанка -->
+<div id="mbankInstructionModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
+  <div class="bg-gray-800 rounded-2xl w-11/12 max-w-md max-h-[80vh] overflow-hidden border border-gray-600/50 flex flex-col">
+    <!-- Заголовок модального окна -->
+    <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50 flex-shrink-0">
+      <div class="flex items-center space-x-2">
+        <h3 class="text-lg font-bold text-white">Инструкция по выписке</h3>
+      </div>
+      <button onclick="closeMbankInstructionModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+    
+    <!-- Контент с инструкцией -->
+    <div class="flex-1 overflow-y-auto p-4">
+      <div class="space-y-4">
+        <!-- Шаг 1 -->
+        <div class="bg-gray-700/30 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span class="text-white text-xs font-bold">1</span>
+            </div>
+            <div class="flex-1">
+              <p class="text-white font-medium mb-2">Запрос выписки по счету</p>
+              <p class="text-gray-300 text-sm leading-relaxed">
+                Чтобы запросить выписки по определенному счету, вам нужно выбрать счет, нажать на кнопку «Выписки». В открывшемся окне выбрать период за который вам нужна выписка и нажать на кнопку «Применить».
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Шаг 2 -->
+        <div class="bg-gray-700/30 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span class="text-white text-xs font-bold">2</span>
+            </div>
+            <div class="flex-1">
+              <p class="text-white font-medium mb-2">Формирование документа</p>
+              <p class="text-gray-300 text-sm leading-relaxed">
+                После необходимо выбрать нужный формат документа и нажать на кнопку «Сформировать». Вам для скачивания будут доступны форматы PDF и Excel. <span class="text-green-400 font-semibold">Вам нужно выбрать Excel (XLS, XLSX) формат.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Важное примечание -->
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+          <div class="flex items-start space-x-2">
+            <i class="fas fa-exclamation-triangle text-yellow-400 mt-0.5"></i>
+            <div>
+              <p class="text-yellow-400 text-sm font-medium mb-1">Важно!</p>
+              <p class="text-yellow-300/80 text-xs leading-relaxed">
+                Убедитесь, что вы выбираете именно <span class="font-semibold">Excel формат (XLS или XLSX)</span>, а не PDF. Только Excel файлы поддерживаются для импорта.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Футер с кнопками -->
+    <div class="p-4 border-t border-gray-700 bg-gray-900/30 flex-shrink-0">
+      <div class="flex space-x-3">
+        <button 
+          onclick="closeMbankInstructionModal()"
+          class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl transition-colors"
+        >
+          Отмена
+        </button>
+        <button 
+          onclick="startMbankImport()"
+          class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl transition-colors flex items-center justify-center space-x-2"
+        >
+          <i class="fas fa-upload"></i>
+          <span>Загрузить</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+// Функции для управления модальным окном
+function openMbankInstructionModal() {
+    const modal = document.getElementById('mbankInstructionModal');
+    modal.classList.remove('hidden');
+}
+
+function closeMbankInstructionModal() {
+    const modal = document.getElementById('mbankInstructionModal');
+    modal.classList.add('hidden');
+}
+
+// Функция для начала импорта (вызывается из модалки)
+function startMbankImport() {
+    closeMbankInstructionModal();
+    
+    // Даем небольшую задержку перед открытием выбора файла
+    setTimeout(() => {
+        const fileInput = document.getElementById('mbankFileInput');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }, 300);
+}
+
+// Обработчик выбора файла
+document.getElementById('mbankFileInput').addEventListener('change', function(event) {
+    handleMbankFileImport(event);
+});
+
+// Функция для получения CSRF токена
+function getCSRFToken() {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfInput ? csrfInput.value : '';
+}
+
+// Обработчик импорта файла Мбанка
+function handleMbankFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Проверяем расширение файла
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!['xlsx', 'xls'].includes(fileExtension)) {
+        if (window.showErrorNotification) {
+            showErrorNotification('Поддерживаются только Excel файлы (XLSX, XLS)');
+        }
+        return;
+    }
+
+    if (!confirm('Импортировать транзакции из выписки Мбанка?')) {
+        return;
+    }
+
+    const importMbankBtn = document.getElementById('importMbankBtn');
+    if (importMbankBtn) {
+        const originalHTML = importMbankBtn.innerHTML;
+        
+        // Обновляем кнопку
+        importMbankBtn.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+            <span class="font-semibold text-sm">Импорт...</span>
+        `;
+        importMbankBtn.disabled = true;
+
+        if (window.showLoadingNotification) {
+            showLoadingNotification('Импорт данных из Мбанка...');
+        }
+
+        const formData = new FormData();
+        formData.append('mbank_file', file);
+
+        fetch('/import/mbank/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (window.showSuccessNotification) {
+                    showSuccessNotification(data.message || `Успешно импортировано ${data.count} транзакций!`);
+                }
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                throw new Error(data.message || 'Ошибка импорта');
+            }
+        })
+        .catch(error => {
+            console.error('Mbank import error:', error);
+            if (window.showErrorNotification) {
+                showErrorNotification('Ошибка при импорте: ' + error.message);
+            }
+            // Восстанавливаем кнопку
+            importMbankBtn.innerHTML = originalHTML;
+            importMbankBtn.disabled = false;
+        });
+    }
+}
+
+// Закрытие модалки по клику вне области
+document.getElementById('mbankInstructionModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeMbankInstructionModal();
+    }
+});
+</script>
+
+
+
+</div>
+
+
+<script>
+// Импорт из Мбанка
+function importMbank() {
+    console.log('Mbank import started...');
+    
+    // Создаем файловый input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.xlsx,.xls'; // Добавил .xls
+    fileInput.style.display = 'none';
+    
+    // Добавляем обработчик события change
+    fileInput.addEventListener('change', function(event) {
+        handleMbankFileImport(event, fileInput);
+    });
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    // Удаляем input после использования
+    setTimeout(() => {
+        if (document.body.contains(fileInput)) {
+            document.body.removeChild(fileInput);
+        }
+    }, 1000);
+}
+
+// Функция для получения CSRF токена
+function getCSRFToken() {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    
+    // Альтернативный способ получения CSRF токена
+    const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    if (csrfCookie) {
+        return csrfCookie.split('=')[1];
+    }
+    
+    console.error('CSRF token not found');
+    return '';
+}
+
+// Обработчик выбора файла для импорта Мбанка
+function handleMbankFileImport(event, fileInput) {
+    console.log('Mbank file selected for import');
+    
+    const file = event.target.files[0];
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    
+    console.log('Selected Mbank file:', file.name, file.size, file.type);
+    
+    // Проверяем расширение файла
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) { // Добавил .xls
+        if (window.showErrorNotification) {
+            showErrorNotification('Поддерживаются только CSV и Excel файлы (CSV, XLSX, XLS)');
+        }
+        return;
+    }
+
+    // Подтверждение импорта
+    if (!confirm('Импортировать транзакции из выписки Мбанка? Транзакции будут добавлены в вашу базу данных.')) {
+        console.log('Mbank import cancelled by user');
+        return;
+    }
+
+    console.log('User confirmed Mbank import');
+    
+    // Находим кнопку импорта Мбанка
+    const importMbankBtn = document.getElementById('importMbankBtn');
+    console.log('Mbank import button found:', !!importMbankBtn);
+    
+    if (importMbankBtn) {
+        // Сохраняем оригинальное состояние
+        const originalHTML = importMbankBtn.innerHTML;
+        const originalClasses = importMbankBtn.className;
+        
+        // Обновляем кнопку
+        importMbankBtn.innerHTML = `
+            <i class="fas fa-spinner fa-spin text-xl"></i>
+            <span class="font-semibold text-sm">Импорт...</span>
+        `;
+        importMbankBtn.className = originalClasses + ' cursor-not-allowed opacity-75';
+        importMbankBtn.disabled = true;
+        
+        // Показываем уведомление
+        if (window.showLoadingNotification) {
+            showLoadingNotification('Импорт данных из Мбанка...');
+        }
+        
+        const formData = new FormData();
+        formData.append('mbank_file', file);
+        
+        console.log('Sending Mbank import request...');
+        console.log('CSRF Token:', getCSRFToken() ? 'Found' : 'Not found');
+        
+        fetch('/import/mbank/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(response => {
+            console.log('Mbank import response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Mbank import response data:', data);
+            
+            if (data.success) {
+                // Успех
+                importMbankBtn.innerHTML = `
+                    <i class="fas fa-check text-xl"></i>
+                    <span class="font-semibold text-sm">Успешно!</span>
+                `;
+                importMbankBtn.className = originalClasses.replace('bg-purple-600', 'bg-green-600') + ' cursor-not-allowed';
+                
+                if (window.showSuccessNotification) {
+                    showSuccessNotification(data.message || `Успешно импортировано ${data.count} транзакций из Мбанка!`);
+                }
+                
+                // Перезагрузка через 2 секунды
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                // Ошибка
+                throw new Error(data.message || 'Неизвестная ошибка');
+            }
+        })
+        .catch(error => {
+            console.error('Mbank import error:', error);
+            
+            // Восстанавливаем кнопку с ошибкой
+            importMbankBtn.innerHTML = `
+                <i class="fas fa-times text-xl"></i>
+                <span class="font-semibold text-sm">Ошибка</span>
+            `;
+            importMbankBtn.className = originalClasses.replace('bg-purple-600', 'bg-red-600');
+            
+            // Показываем ошибку
+            if (window.showErrorNotification) {
+                showErrorNotification('Ошибка при импорте из Мбанка: ' + error.message);
+            }
+            
+            // Восстанавливаем кнопку через 3 секунды
+            setTimeout(() => {
+                importMbankBtn.innerHTML = originalHTML;
+                importMbankBtn.className = originalClasses;
+                importMbankBtn.disabled = false;
+            }, 3000);
+        })
+        .finally(() => {
+            // Удаляем файловый input
+            if (fileInput && document.body.contains(fileInput)) {
+                document.body.removeChild(fileInput);
+            }
+        });
+    } else {
+        console.error('Mbank import button not found');
+        if (window.showErrorNotification) {
+            showErrorNotification('Ошибка: не найдена кнопка импорта Мбанка');
+        }
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Backup functions loaded');
+    
+    // Проверяем, что кнопки найдены
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importMbankBtn = document.getElementById('importMbankBtn');
+    
+    console.log('Export button found:', !!exportBtn);
+    console.log('Import button found:', !!importBtn);
+    console.log('Mbank import button found:', !!importMbankBtn);
+    
+    // Добавляем обработчики, если они не установлены через onclick
+    if (exportBtn && !exportBtn.onclick) {
+        exportBtn.addEventListener('click', exportData);
+    }
+    if (importBtn && !importBtn.onclick) {
+        importBtn.addEventListener('click', importData);
+    }
+    if (importMbankBtn && !importMbankBtn.onclick) {
+        importMbankBtn.addEventListener('click', importMbank);
+    }
+});
+</script>
+
 
 <!-- Кнопка поддержки -->
 <div class="text-center mt-6 mb-6">

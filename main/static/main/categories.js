@@ -216,6 +216,9 @@ async function saveCategory() {
 // -----------------------------
 // Загрузка категорий на главной
 // -----------------------------
+// -----------------------------
+// Загрузка категорий на главной
+// -----------------------------
 async function loadUserCategories() {
     const categoriesList = document.getElementById('categoriesList');
     if (!categoriesList) return;
@@ -247,10 +250,13 @@ async function loadUserCategories() {
                 categoryElement.dataset.categoryIcon = category.icon;
                 categoryElement.dataset.categoryColor = category.color;
                 
+                // ИСПОЛЬЗУЕМ getIconHTML для правильного отображения SVG
+                const iconHTML = window.getIconHTML(category.icon, category.color); 
+                
                 categoryElement.innerHTML = `
                     <div class="flex items-center space-x-3 flex-1">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: ${category.color}22; color: ${category.color}">
-                            <i class="${category.icon}"></i>
+                            ${iconHTML}
                         </div>
                         <div class="flex-1">
                             <p class="font-medium">${category.name}</p>
@@ -299,6 +305,11 @@ async function loadUserCategories() {
 }
 
 
+
+
+// -----------------------------
+// Загрузка категорий в модалку "Добавить запись"
+// -----------------------------
 // -----------------------------
 // Загрузка категорий в модалку "Добавить запись"
 // -----------------------------
@@ -318,10 +329,14 @@ async function loadCategoriesForModal() {
                 btn.type = 'button';
                 btn.className = 'category-carousel-btn flex flex-col items-center p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-all duration-200';
                 btn.dataset.categoryId = cat.id;
+                
+                // ИСПОЛЬЗУЕМ getIconHTML для правильного отображения SVG
+                const iconHTML = window.getIconHTML(cat.icon, cat.color);
+                
                 btn.innerHTML = `
                     <div class="w-10 h-10 flex items-center justify-center rounded-full mb-1"
                          style="background-color:${cat.color}22; color:${cat.color}">
-                        <i class="${cat.icon}"></i>
+                        ${iconHTML}
                     </div>
                     <span class="text-xs text-gray-300 truncate w-12 text-center">${cat.name}</span>
                 `;
@@ -340,6 +355,8 @@ async function loadCategoriesForModal() {
     } catch (e) {
     }
 }
+
+
 
 
 // Загрузка категорий для модалки выбора
@@ -364,10 +381,13 @@ async function loadCategoriesForSelection() {
                 categoryItem.className = 'category-selection-item w-full p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50 hover:border-blue-500/50 transition-all duration-200 flex items-center space-x-4 text-left';
                 categoryItem.dataset.categoryId = cat.id;
                 
+                // ИСПОЛЬЗУЕМ getIconHTML для правильного отображения SVG
+                const iconHTML = window.getIconHTML(cat.icon, cat.color);
+                
                 categoryItem.innerHTML = `
                     <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
                          style="background-color: ${cat.color}22; color: ${cat.color}">
-                        <i class="${cat.icon} text-lg"></i>
+                        ${iconHTML}
                     </div>
                     <div class="flex-1">
                         <p class="font-semibold text-white text-lg">${cat.name}</p>
@@ -398,19 +418,23 @@ async function loadCategoriesForSelection() {
 }
 
 
-
 // Выбор категории
+
 function selectCategory(category) {
     const selectedCategoryInput = document.getElementById('selectedCategory');
     const selectedCategoryDisplay = document.getElementById('selectedCategoryDisplay');
     
     if (selectedCategoryInput && selectedCategoryDisplay) {
         selectedCategoryInput.value = category.id;
+        
+        // ИСПОЛЬЗУЕМ getIconHTML для правильного отображения SVG
+        const iconHTML = window.getIconHTML(category.icon, category.color);
+        
         selectedCategoryDisplay.innerHTML = `
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center" 
                      style="background-color: ${category.color}22; color: ${category.color}">
-                    <i class="${category.icon} text-sm"></i>
+                    ${iconHTML}
                 </div>
                 <span class="text-white font-medium">${category.name}</span>
             </div>
@@ -424,7 +448,6 @@ function selectCategory(category) {
         openCategoryBtn.classList.add('border-blue-500', 'bg-blue-500/10');
     }
 }
-
 
 // Сброс выбора категории при открытии модалки транзакции
 function resetCategorySelection() {

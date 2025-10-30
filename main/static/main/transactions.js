@@ -270,8 +270,8 @@ function updateTransactionDetailModal() {
         amount,
         reserveAmount,
         description,
-        createdDate,
-        createdTime
+        transactionDate, 
+        transactionTime  
     } = currentTransactionDetailData;
     
     // Получаем текущий символ валюты
@@ -365,13 +365,12 @@ function updateTransactionDetailModal() {
         }
     }
     
-    // Дата и время
+    // Дата и время - УДАЛЕН ДУБЛИРУЮЩИЙСЯ КОД
     const detailTimestamp = document.getElementById('detailTimestamp');
     if (detailTimestamp) {
-        detailTimestamp.textContent = `${createdDate} ${createdTime}`;
+        detailTimestamp.textContent = `${transactionDate} ${transactionTime}`;
     }
 }
-
 // Функция для показа подтверждения удаления
 function showDeleteConfirmation() {
     
@@ -645,8 +644,6 @@ async function loadTransactions() {
         return;
     }
 
-  
-
     if (currentPage === 1) {
         transactionsContainer.innerHTML = `
             <div class="text-center py-4">
@@ -658,7 +655,6 @@ async function loadTransactions() {
 
     try {
         const url = `/get_transactions/?filter=${currentFilter}&page=${currentPage}&limit=${PAGE_SIZE}&category=${currentCategory}`;
-        
         
         const resp = await fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -675,15 +671,16 @@ async function loadTransactions() {
         }
 
         const data = await resp.json();
-       
         
         if (data.success) {
             if (currentPage === 1) transactionsContainer.innerHTML = '';
             
             if (data.transactions && data.transactions.length > 0) {
-               
-                
-                data.transactions.forEach(tx => window.addTransactionToList(tx, false, true));
+                // Просто передаем транзакции в функцию отображения
+                // Вся обработка даты и времени теперь происходит в window.addTransactionToList
+                data.transactions.forEach(tx => {
+                    window.addTransactionToList(tx, false, true);
+                });
                 
                 hasMoreTransactions = !!data.has_more;
                 if (loadMoreContainer) loadMoreContainer.classList.toggle('hidden', !hasMoreTransactions);
@@ -691,7 +688,6 @@ async function loadTransactions() {
                 updateWelcomeHint();
                 if (hasMoreTransactions) currentPage++;
             } else {
-                
                 if (currentPage === 1) {
                     transactionsContainer.innerHTML = '';
                     showEmptyState();
@@ -722,6 +718,39 @@ async function loadTransactions() {
     }
 }
 
+
+// Вспомогательные функции для форматирования даты и времени (если их еще нет)
+function formatDate(dateString) {
+    if (!dateString) return 'Неизвестно';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (e) {
+        console.error('Error formatting date:', e);
+        return 'Неизвестно';
+    }
+}
+
+function formatTime(dateString) {
+    if (!dateString) return 'Неизвестно';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        console.error('Error formatting time:', e);
+        return 'Неизвестно';
+    }
+}
+
+
+
 // Загрузить ещё
 async function loadMoreTransactions() {
     if (isLoading || !hasMoreTransactions) return;
@@ -739,8 +768,6 @@ async function loadMoreTransactions() {
 
 
 function initTransactionFilter() {
-   
-    
     // Ждем полной загрузки DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initTransactionFilter);
@@ -752,8 +779,6 @@ function initTransactionFilter() {
     const filterOptions = document.querySelectorAll('.filter-option');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-    
-
     if (filterToggle && filterDropdown) {
         // Удаляем существующие обработчики чтобы избежать дублирования
         filterToggle.replaceWith(filterToggle.cloneNode(true));
@@ -761,7 +786,6 @@ function initTransactionFilter() {
         
         newFilterToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            
             filterDropdown.classList.toggle('hidden');
         });
 
@@ -773,7 +797,7 @@ function initTransactionFilter() {
         });
     }
 
-    // Остальной код остается без изменений...
+    // Обработчики для опций фильтра
     filterOptions.forEach(option => {
         option.addEventListener('click', function() {
             const filter = this.dataset.filter;
@@ -795,7 +819,6 @@ function initTransactionFilter() {
         if (container && container.children.length === 0) loadTransactions();
     }, 300);
 }
-
 
 // -----------------------------
 // Проверки пустых состояний
@@ -848,22 +871,17 @@ function showEmptyState() {
 // -----------------------------
 function updateWelcomeHint() {
     const welcomeHint = document.getElementById('welcomeHint');
-    const transactionsContainer = document.getElementById('transactionsListContainer');
     
-    if (!welcomeHint || !transactionsContainer) return;
+    if (!welcomeHint) return;
     
-    // Проверяем, есть ли транзакции в контейнере
-    const transactionItems = transactionsContainer.querySelectorAll('.transaction-item');
-    const hasVisibleTransactions = Array.from(transactionItems).some(item => {
-        return !item.innerHTML.includes('Удалить?') && !item.innerHTML.includes('Удалено');
-    });
-    
-    // Показываем или скрываем подсказку
-    if (hasVisibleTransactions) {
+    // Просто скрываем через 4 секунды независимо от условий
+    setTimeout(() => {
+        console.log('Force hiding welcome hint after 4 seconds');
+        welcomeHint.style.display = 'none';
+        welcomeHint.style.opacity = '0';
+        welcomeHint.style.visibility = 'hidden';
         welcomeHint.classList.add('hidden');
-    } else {
-        welcomeHint.classList.remove('hidden');
-    }
+    }, 4000);
 }
 
 
@@ -880,8 +898,8 @@ function openTransactionDetail(transactionElement) {
     const amount = parseFloat(transactionElement.dataset.transactionAmount);
     const reserveAmount = parseFloat(transactionElement.dataset.reserveAmount);
     const description = transactionElement.dataset.description;
-    const createdDate = transactionElement.dataset.createdDate;
-    const createdTime = transactionElement.dataset.createdTime;
+    const transactionDate = transactionElement.dataset.transactionDate;
+    const transactionTime = transactionElement.dataset.transactionTime;
     
     // Получаем текущий символ валюты
     const currentCurrency = window.currentCurrency || 'c';
@@ -950,10 +968,12 @@ function openTransactionDetail(transactionElement) {
         }
     }
     
-    // Категория и тип
+    // Категория и тип - ИСПРАВЛЕНО: используем getIconHTML для SVG иконок
     const categoryIconEl = document.getElementById('detailCategoryIcon');
     if (categoryIconEl) {
-        categoryIconEl.innerHTML = `<i class="${categoryIcon} text-lg"></i>`;
+        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНУЮ ФУНКЦИЮ getIconHTML для правильного отображения SVG
+        const iconHTML = window.getIconHTML ? window.getIconHTML(categoryIcon, categoryColor) : `<i class="${categoryIcon} text-lg"></i>`;
+        categoryIconEl.innerHTML = iconHTML;
         categoryIconEl.style.backgroundColor = categoryColor + '22';
         categoryIconEl.style.color = categoryColor;
     }
@@ -984,7 +1004,7 @@ function openTransactionDetail(transactionElement) {
     // Дата и время
     const detailTimestamp = document.getElementById('detailTimestamp');
     if (detailTimestamp) {
-        detailTimestamp.textContent = `${createdDate} ${createdTime}`;
+        detailTimestamp.textContent = `${transactionDate} ${transactionTime}`;
     }
 
     // Показываем модалку с анимацией
