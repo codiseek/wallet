@@ -1766,31 +1766,52 @@ def get_transactions(request):
 
 @login_required
 def get_categories_with_stats(request):
-    categories = Category.objects.filter(user=request.user)
+    period = request.GET.get('period', 'month')  # Получаем период из запроса
     
-    now = timezone.now()
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    # Определяем временной диапазон на основе периода
+    today = timezone.now()
+    if period == 'day':
+        start_date = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == 'week':
+        start_date = today - timedelta(days=6)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == '3months':
+        start_date = today - timedelta(days=90)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == '6months':
+        start_date = today - timedelta(days=180)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == '9months':
+        start_date = today - timedelta(days=270)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == '12months':
+        start_date = today - timedelta(days=365)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:  # month (по умолчанию)
+        start_date = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    categories = Category.objects.filter(user=request.user)
     
     # ОБНОВЛЯЕМ: используем transaction_date вместо created_at
     total_income = Transaction.objects.filter(
         user=request.user,
         type='income',
-        transaction_date__gte=month_start  # Заменяем created_at на transaction_date
+        transaction_date__gte=start_date  # Заменяем created_at на transaction_date
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     categories_data = []
     for category in categories:
-        # Сумма расходов по категории за месяц (ОБНОВЛЯЕМ: используем transaction_date)
+        # Сумма расходов по категории за период (ОБНОВЛЯЕМ: используем transaction_date)
         category_expense = Transaction.objects.filter(
             user=request.user,
             category=category,
             type='expense',
-            transaction_date__gte=month_start  # Заменяем created_at на transaction_date
+            transaction_date__gte=start_date  # Заменяем created_at на transaction_date
         )
         total_expense = category_expense.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         transaction_count = category_expense.count()
 
-        # Расчет процента от общего дохода
+        # Расчет процента от общего дохода за период
         percentage = 0
         if total_income > 0 and total_expense > 0:
             percentage = (total_expense / total_income) * 100
@@ -1806,7 +1827,6 @@ def get_categories_with_stats(request):
         })
     
     return JsonResponse({"categories": categories_data})
-
 ################# ЗАМЕТКИ ##############
 
 @login_required
@@ -3330,37 +3350,92 @@ def import_mbank(file_path, user):
         
         # СЛОВАРЬ КАТЕГОРИЙ И КЛЮЧЕВЫХ СЛОВ (но не создаем их заранее)
         category_keywords = {
-            'Globus': {
-                'keywords': ['globus', 'глобус'],
-                'color': '#FF6B6B',
-                'icon': '/static/main/globus.svg'
-            },
-            'Аптека': {
-                'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация'],
-                'color': '#4ECDC4',
-                'icon': 'fas fa-pills'
-            },
-            'Кафе и рестораны': {
-                'keywords': ['кафе', 'cafe', 'ресторан', 'restaurant', 'столовая', 'кофейня', 'бар', 'bistro'],
-                'color': '#FFD166',
-                'icon': 'fas fa-utensils'
-            },
-            'Супермаркет': {
-                'keywords': ['spar', 'спар', 'пятерочка', 'перекресток', 'лента', 'ашан', 'auchan'],
-                'color': '#06D6A0',
-                'icon': 'fas fa-store'
-            },
-            'Транспорт': {
-                'keywords': ['заправка', 'азс', 'бензин', 'такси', 'metro', 'метро', 'автобус', 'транспорт'],
-                'color': '#118AB2',
-                'icon': 'fas fa-car'
-            },
-            'Развлечения': {
-                'keywords': ['кино', 'kino', 'кинотеатр', 'cinema', 'концерт', 'театр'],
-                'color': '#9D4EDD',
-                'icon': 'fas fa-film'
-            }
-        }
+    'Тулпар': {
+        'keywords': ['Тулпар', 'TULPAR'],
+        'color': "#8B80F9",
+        'icon': '/static/main/tulpar.svg'
+    },
+    'Куликовский': {
+        'keywords': ['Kulikovskiy', 'куликовский'],
+        'color': "#5D8BF4",
+        'icon': '/static/main/kulikov.svg'
+    },
+    'Globus': {
+        'keywords': ['globus', 'глобус'],
+        'color': '#FF7B7B',
+        'icon': '/static/main/globus.svg'
+    },
+    'Аптека': {
+        'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация', 'дарыкана'],
+        'color': '#4ECDC4',
+        'icon': 'fas fa-pills'
+    },
+    'Мой дом': {
+        'keywords': ['Мой дом'],
+        'color': '#10D452',
+        'icon': '/static/main/moi-dom.svg'
+    },
+    'Интернет': {
+        'keywords': ['Exnet', 'homeline', 'megaline', 'skynet', 'fastnet', 'aknet', 'neotelecom', 'акнет', 'фастнет', 'скайнет', 'мега-лайн'],
+        'color': "#A0AABC",
+        'icon': 'fa-solid fa-wifi'
+    },
+    'KFC': {
+        'keywords': ['KFC'],
+        'color': "#FFCC00",
+        'icon': '/static/main/kfc.svg'
+    },
+    'Lalafo': {
+        'keywords': ['Lalafo'],
+        'color': "#00FF88",
+        'icon': '/static/main/lalafo.svg'
+    },
+    'Finca Bank': {
+        'keywords': ['Finca', 'финка', 'FINCA_Bank'],
+        'color': "#FF3366",
+        'icon': '/static/main/finca.svg'
+    },
+    'Элкарт': {
+        'keywords': ['Элкарт'],
+        'color': "#3399FF",
+        'icon': '/static/main/elcard.svg'
+    },
+    'MEGA': {
+        'keywords': ['Mega', 'megacom'],
+        'color': "#00FF66",
+        'icon': '/static/main/mega.svg'
+    },
+    'O!Dengi': {
+        'keywords': ['O!Dengi', 'оденьги', 'O!'],
+        'color': "#FF27A6",
+        'icon': '/static/main/o.svg'
+    },
+    'Dodo Pizza': {
+        'keywords': ['Dodo', 'Dodo Pizza', 'Додо пицца'],
+        'color': "#FF4444",
+        'icon': '/static/main/dodo.svg'
+    },
+    'Optima Bank': {
+        'keywords': ['optima', 'оптима'],
+        'color': "#CCCCCC",
+        'icon': '/static/main/optima.svg'
+    },
+    'Оптовые цены': {
+        'keywords': ['Оптовые цены'],
+        'color': "#66B3FF",
+        'icon': 'fa-solid fa-cart-shopping'
+    },
+    'Spar': {
+        'keywords': ['Spar'],
+        'color': "#FF6B6B",
+        'icon': '/static/main/spar.svg'
+    },
+    'Перекресток': {
+        'keywords': ['Перекресток'],
+        'color': "#9D95FF",
+        'icon': '/static/main/per.svg'
+    }
+}
         
         # Кэш для категорий (создаем только при необходимости)
         categories_cache = {'MBank': mbank_category}
@@ -3371,7 +3446,7 @@ def import_mbank(file_path, user):
             
             for category_name, category_data in category_keywords.items():
                 for keyword in category_data['keywords']:
-                    if keyword in desc_lower:
+                    if keyword.lower() in desc_lower:
                         return category_name
             
             # Если не нашли подходящую категорию - используем MBank

@@ -216,12 +216,20 @@ async function saveCategory() {
 // -----------------------------
 // Загрузка категорий на главной
 // -----------------------------
-async function loadUserCategories() {
+// -----------------------------
+// Загрузка категорий на главной с поддержкой фильтра
+// -----------------------------
+let currentGlobalCategoryFilter = 'month'; // Глобальная переменная для фильтра
+
+async function loadUserCategories(filter = null) {
     const categoriesList = document.getElementById('categoriesList');
     if (!categoriesList) return;
 
+    // Используем переданный фильтр или текущий глобальный
+    const currentFilter = filter || currentGlobalCategoryFilter;
+
     try {
-        const response = await fetch('/get_categories_with_stats/');
+        const response = await fetch(`/get_categories_with_stats/?period=${currentFilter}`);
         const data = await response.json();
         
         categoriesList.innerHTML = '';
@@ -374,7 +382,54 @@ async function loadUserCategories() {
     }
 }
 
+// -----------------------------
+// Глобальный фильтр периодов для категорий
+// -----------------------------
+function initGlobalCategoryFilter() {
+    const filterToggle = document.getElementById('globalCategoryFilterBtn');
+    const filterDropdown = document.getElementById('globalCategoryFilterDropdown');
+    const filterOptions = document.querySelectorAll('.global-filter-option');
 
+    if (filterToggle && filterDropdown) {
+        // Удаляем старые обработчики и добавляем новые
+        filterToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            filterDropdown.classList.toggle('hidden');
+        });
+
+        // Закрываем при клике вне
+        document.addEventListener('click', function(e) {
+            if (!filterDropdown.contains(e.target) && !filterToggle.contains(e.target)) {
+                filterDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Обработчики для опций фильтра
+    filterOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            currentGlobalCategoryFilter = filter || 'month';
+            
+            // Обновляем текст кнопки
+            const currentText = document.getElementById('globalCurrentFilterText');
+            if (currentText) {
+                currentText.textContent = this.textContent.trim();
+            }
+            
+            // Закрываем dropdown
+            filterDropdown.classList.add('hidden');
+            
+            // Перезагружаем категории с новым фильтром
+            loadUserCategories(currentGlobalCategoryFilter);
+        });
+    });
+}
+
+// Инициализация глобального фильтра при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    initGlobalCategoryFilter();
+});
 
 // -----------------------------
 // Загрузка категорий в модалку "Добавить запись"
