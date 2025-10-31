@@ -1669,6 +1669,22 @@ def get_transactions(request):
         next_month = (start_date + timedelta(days=32)).replace(day=1)
         end_date = next_month - timedelta(microseconds=1)
         end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif filter_type == '3months':
+        start_date = now - timedelta(days=90)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif filter_type == '6months':
+        start_date = now - timedelta(days=180)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif filter_type == '9months':
+        start_date = now - timedelta(days=270)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif filter_type == '12months':
+        start_date = now - timedelta(days=365)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
     else:
         start_date = None
         end_date = None
@@ -1745,6 +1761,8 @@ def get_transactions(request):
         'filter_type': filter_type,
         'total_count': paginator.count
     })
+
+
 
 @login_required
 def get_categories_with_stats(request):
@@ -2012,9 +2030,15 @@ def get_category_stats(request, category_id):
         elif period == '3months':
             start_date = today - timedelta(days=90)
             period_name = '3 месяца'
-        elif period == 'year':
+        elif period == '6months':
+            start_date = today - timedelta(days=180)
+            period_name = '6 месяцев'
+        elif period == '9months':
+            start_date = today - timedelta(days=270)
+            period_name = '9 месяцев'
+        elif period == '12months':
             start_date = today - timedelta(days=365)
-            period_name = 'год'
+            period_name = '12 месяцев'
         else:  # month (по умолчанию)
             start_date = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             period_name = 'месяц'
@@ -2086,7 +2110,6 @@ def get_category_stats(request, category_id):
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
-
 
 
 @require_POST

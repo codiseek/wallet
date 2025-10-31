@@ -216,9 +216,6 @@ async function saveCategory() {
 // -----------------------------
 // Загрузка категорий на главной
 // -----------------------------
-// -----------------------------
-// Загрузка категорий на главной
-// -----------------------------
 async function loadUserCategories() {
     const categoriesList = document.getElementById('categoriesList');
     if (!categoriesList) return;
@@ -278,6 +275,79 @@ async function loadUserCategories() {
                 categoriesList.appendChild(categoryElement);
             });
             
+            // Добавляем блок с советами, если категорий меньше 3
+            if (data.categories.length < 4) {
+                const adviceBlock = document.createElement('div');
+                adviceBlock.className = 'mt-6';
+                adviceBlock.innerHTML = `
+                    <div class="text-center py-6 px-4">
+                        <div class="max-w-md mx-auto">
+                            <!-- Описание -->
+                            <div class="relative mt-4 mb-8">
+                                <!-- Стрелка-указатель -->
+                                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-arrow-down text-white text-xs"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Текст в стиле мысли/комментария -->
+                                <div class="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl p-6 border-2 border-dashed border-blue-400/30">
+                                    <p class="text-gray-200 text-sm leading-relaxed text-center">
+                                       Создавайте категории для каждой сферы расходов
+                                        и отслеживайте детальную статистику по ним!
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Советы в красивом оформлении -->
+                            <div class="space-y-4 mb-8">
+                                <!-- Совет 1 - Детальная статистика -->
+                                <div class="flex items-start space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:border-blue-500/30 transition-all duration-300">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-chart-pie text-blue-400 text-sm"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-white font-medium text-sm">Детальная статистика</p>
+                                        <p class="text-gray-400 text-xs mt-1">Каждая категория содержит аналитику расходов и средний чек</p>
+                                    </div>
+                                </div>
+
+                                <!-- Совет 2 - Любые категории -->
+                                <div class="flex items-start space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:border-green-500/30 transition-all duration-300">
+                                    <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-tags text-green-400 text-sm"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-white font-medium text-sm">Создавайте любые категории</p>
+                                        <p class="text-gray-400 text-xs mt-1">От "Продукты" до "Кофе навынос" — для точного учета мелочей</p>
+                                    </div>
+                                </div>
+
+                                <!-- Совет 3 - Визуализация -->
+                                <div class="flex items-start space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:border-purple-500/30 transition-all duration-300">
+                                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-chart-bar text-purple-400 text-sm"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-white font-medium text-sm">Наглядная визуализация</p>
+                                        <p class="text-gray-400 text-xs mt-1">Смотрите долю категории в общих расходах в процентах</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Декоративный элемент -->
+                            <div class="flex justify-center space-x-2 opacity-60">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                categoriesList.appendChild(adviceBlock);
+            }
+            
             // Добавляем обработчики для кнопок удаления
             document.querySelectorAll('.delete-category-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
@@ -303,7 +373,6 @@ async function loadUserCategories() {
         `;
     }
 }
-
 
 
 

@@ -704,49 +704,88 @@ if (typeof showLoadingNotification === 'undefined') {
 
 <!-- Управление данными -->
 <div class="bg-zinc-800/60 rounded-2xl p-5 mb-6 border border-gray-700/50 shadow-lg">
-  <h3 class="font-semibold text-white mb-4 flex items-center">
-    <i class="fas fa-database mr-2 text-blue-400"></i>
+  <h3 class="font-semibold text-white mb-6 flex items-center">
+    <i class="fas fa-database mr-3 text-blue-400"></i>
     <span>Управление данными</span>
   </h3>
 
-  <div class="grid grid-cols-2 gap-3 mb-4">
-    <!-- Кнопка Экспорт -->
-    <button 
-      id="exportBtn" 
-      onclick="exportData()" 
-      class="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] flex flex-col items-center justify-center shadow-md shadow-blue-900/20"
-    >
-      <i class="fas fa-download text-xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-xs tracking-wide">Экспорт</span>
-      <span class="text-xs text-blue-200 opacity-80 mt-0.5">Сохранить</span>
-    </button>
+  <!-- Основные операции -->
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <!-- Экспорт -->
+    <div class="group relative">
+      <button 
+        id="exportBtn" 
+        onclick="exportData()" 
+        class="w-full bg-gradient-to-br from-blue-600/90 to-blue-700/90 hover:from-blue-500 hover:to-blue-600 text-white p-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/20 border border-blue-500/30 flex flex-col items-center justify-center space-y-2"
+      >
+        <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+          <i class="fas fa-download text-lg text-blue-300"></i>
+        </div>
+        <span class="font-semibold text-sm">Экспорт</span>
+        <span class="text-xs text-blue-200/70">Backup данных</span>
+      </button>
+    </div>
 
-    <!-- Кнопка Импорт -->
-    <button 
-      id="importBtn" 
-      onclick="importData()" 
-      class="group bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] flex flex-col items-center justify-center shadow-md shadow-green-900/20"
-    >
-      <i class="fas fa-upload text-xl mb-1 group-hover:scale-110 transition-transform"></i>
-      <span class="font-semibold text-xs tracking-wide">Импорт</span>
-      <span class="text-xs text-green-200 opacity-80 mt-0.5">Загрузить</span>
-    </button>
-</div>
-  <!-- Новая кнопка импорта из Мбанка -->
-  <div class="mb-4">
-      <h3 class="font-semibold text-white mb-4 flex items-center">
-    <i class="fas fa-bank mr-2 text-purple-400"></i>
-    <span>Импорт из Мбанка</span>
-  </h3>
+    <!-- Импорт -->
+    <div class="group relative">
+      <button 
+        id="importBtn" 
+        onclick="importData()" 
+        class="w-full bg-gradient-to-br from-green-600/90 to-green-700/90 hover:from-green-500 hover:to-green-600 text-white p-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/20 border border-green-500/30 flex flex-col items-center justify-center space-y-2"
+      >
+        <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+          <i class="fas fa-upload text-lg text-green-300"></i>
+        </div>
+        <span class="font-semibold text-sm">Импорт</span>
+        <span class="text-xs text-green-200/70">Восстановить</span>
+      </button>
+    </div>
+  </div>
 
-  <!-- Кнопка импорта из Мбанка -->
-<button 
-    id="importMbankBtn"
-    onclick="openMbankInstructionModal()"
-    class="w-full group border-2 border-[#fabf00] text-white py-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] flex items-center justify-center space-x-3 hover:border-[#fabf00]/80">
-    <img src="{% static 'main/mbank.svg' %}" alt="Mbank" class="w-32 h-8 object-contain">
-</button>
+  <!-- Банковские импорты -->
+  <div class="space-y-4">
+    <!-- Заголовок банковских импортов -->
+    <div class="flex items-center justify-between">
+      <h4 class="font-medium text-white/90 text-sm flex items-center">
+        <i class="fas fa-building-columns mr-2 text-purple-400"></i>
+        Импорт из банков
+      </h4>
+      <span class="text-xs text-gray-400 bg-gray-700/50 px-2 py-1 rounded-lg">авто</span>
+    </div>
 
+    <!-- Мбанк -->
+    <div class="group">
+      <button 
+        id="importMbankBtn"
+        onclick="openMbankInstructionModal()"
+        class="w-full bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] hover:from-[#2a2a2a] hover:to-[#3a3a3a] text-white p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.01] border border-[#fabf00]/40 hover:border-[#fabf00]/60 hover:shadow-lg hover:shadow-[#fabf00]/10 flex items-center justify-between"
+      >
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-[#fabf00]/10 flex items-center justify-center group-hover:bg-[#fabf00]/20 transition-colors">
+            <img src="{% static 'main/mico.svg' %}" alt="Mbank" class="w-6 h-6 object-contain">
+          </div>
+          <div class="text-left">
+            <div class="font-semibold text-white text-sm">Мбанк</div>
+            <div class="text-xs text-gray-400">Excel выписка</div>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right text-gray-500 text-sm group-hover:text-[#fabf00] transition-colors"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Информационный блок -->
+  <div class="mt-6 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50">
+    <div class="flex items-start space-x-2">
+      <i class="fas fa-info-circle text-blue-400 mt-0.5 text-sm"></i>
+      <div class="flex-1">
+        <p class="text-white text-xs font-medium mb-1">Автоматическая обработка</p>
+        <p class="text-gray-400 text-xs leading-relaxed">
+          Импорт из банков автоматически определяет категории и добавляет транзакции
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 
   <!-- Скрытый input для импорта Мбанка -->
@@ -857,6 +896,7 @@ function closeMbankInstructionModal() {
 }
 
 // Функция для начала импорта (вызывается из модалки)
+// Функция для начала импорта (вызывается из модалки)
 function startMbankImport() {
     closeMbankInstructionModal();
     
@@ -870,6 +910,9 @@ function startMbankImport() {
 }
 
 // Обработчик выбора файла
+// Найти этот код в panel_page.html и заменить его:
+
+// Обработчик выбора файла
 document.getElementById('mbankFileInput').addEventListener('change', function(event) {
     handleMbankFileImport(event);
 });
@@ -880,6 +923,7 @@ function getCSRFToken() {
     return csrfInput ? csrfInput.value : '';
 }
 
+// Обработчик импорта файла Мбанка
 // Обработчик импорта файла Мбанка
 function handleMbankFileImport(event) {
     const file = event.target.files[0];
@@ -894,15 +938,13 @@ function handleMbankFileImport(event) {
         return;
     }
 
-    if (!confirm('Импортировать транзакции из выписки Мбанка?')) {
-        return;
-    }
+    // УДАЛЕНО ВСЕ ПОДТВЕРЖДЕНИЯ - сразу начинаем импорт
 
     const importMbankBtn = document.getElementById('importMbankBtn');
     if (importMbankBtn) {
         const originalHTML = importMbankBtn.innerHTML;
         
-        // Обновляем кнопку
+        // Обновляем кнопку - показываем анимацию загрузки
         importMbankBtn.innerHTML = `
             <i class="fas fa-spinner fa-spin"></i>
             <span class="font-semibold text-sm">Импорт...</span>
@@ -927,10 +969,18 @@ function handleMbankFileImport(event) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Успех - показываем "Успешно импортировано!" на кнопке
+                importMbankBtn.innerHTML = `
+                    <i class="fas fa-check"></i>
+                    <span class="font-semibold text-sm">Успешно импортировано!</span>
+                `;
+                
                 if (window.showSuccessNotification) {
                     showSuccessNotification(data.message || `Успешно импортировано ${data.count} транзакций!`);
                 }
-                setTimeout(() => window.location.reload(), 2000);
+                
+                // Перезагрузка через 2 секунды
+                setTimeout(() => window.location.href = '/', 2000);
             } else {
                 throw new Error(data.message || 'Ошибка импорта');
             }
@@ -946,6 +996,7 @@ function handleMbankFileImport(event) {
         });
     }
 }
+
 
 // Закрытие модалки по клику вне области
 document.getElementById('mbankInstructionModal').addEventListener('click', function(e) {
@@ -1025,13 +1076,8 @@ function handleMbankFileImport(event, fileInput) {
         return;
     }
 
-    // Подтверждение импорта
-    if (!confirm('Импортировать транзакции из выписки Мбанка? Транзакции будут добавлены в вашу базу данных.')) {
-        console.log('Mbank import cancelled by user');
-        return;
-    }
 
-    console.log('User confirmed Mbank import');
+
     
     // Находим кнопку импорта Мбанка
     const importMbankBtn = document.getElementById('importMbankBtn');
@@ -1163,13 +1209,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-<!-- Кнопка поддержки -->
-<div class="text-center mt-6 mb-6">
-    <button class="text-blue-400 hover:text-blue-300 text-sm flex items-center justify-center space-x-1 mx-auto">
-        <i class="fas fa-headset"></i>
-        <span>Служба поддержки</span>
-    </button>
-</div>
         </div>
     </div>
 </div>

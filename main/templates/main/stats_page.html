@@ -7,25 +7,31 @@
 
      <!-- Обновленный блок "Резерв и сбережения" с новым дизайном -->
 <div class="card-gradient rounded-2xl -mt-3 mb-4">
-    <h2 class="text-lg font-bold mb-4 flex items-center">
+    <h2 class="text-lg font-bold mb-6 flex items-center">
         <i class="fas fa-piggy-bank text-blue-400 mr-2"></i>
         Мои сбережения
     </h2>
     
     <!-- Уведомление о выключенном резерве -->
-    <div id="reserveNotification" class="mb-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-xl p-4 border border-red-500/30 animate-fadeIn {% if reserve_percentage != 0 %}hidden{% endif %}">
-        <div class="flex items-start space-x-3">
-            <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <i class="fas fa-exclamation-triangle text-red-400 text-lg"></i>
-            </div>
-            <div class="flex-1">
-                <h3 class="font-semibold text-red-400 text-sm mb-1">Резерв отключен</h3>
-                <p class="text-xs text-gray-300">
-                    Функция автоматического резерва отключена. Включите ее в панели управления, 
-                    чтобы откладывать процент от доходов автоматически.
-                </p>
-            </div>
+    <div id="reserveNotification" class="mb-2 {% if reserve_percentage != 0 %}hidden{% endif %}">
+    <div class="relative mt-4 mb-4">
+    <!-- Стрелка-указатель -->
+    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-skull text-white text-xs"></i>
         </div>
+    </div>
+    
+    <!-- Текст в стиле мысли/комментария -->
+    <div class="bg-gradient-to-r from-red-500/10 to-red-500/10 rounded-2xl p-6 border-2 border-dashed border-red-400/30">
+        <p class="text-gray-200 text-sm leading-relaxed text-center">
+            Функция автоматического резерва отключена. Включите ее в панели управления, 
+                    чтобы откладывать процент от доходов автоматически.
+
+        </p>
+    </div>
+</div>
+
     </div>
     
     <div class="space-y-4">
