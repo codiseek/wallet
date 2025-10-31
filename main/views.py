@@ -1594,7 +1594,7 @@ def register(request):
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=0):
+                if time_passed < timedelta(minutes=10):
                     return JsonResponse({
                         "success": False, 
                         "error": "С одного устройства можно регистрироваться только 1 раз в 10 минут!"
