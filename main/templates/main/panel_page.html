@@ -224,7 +224,7 @@
         <span id="currentLanguage" class="text-sm text-purple-400 font-medium">
             {% if LANGUAGE_CODE == 'ru' %}Русский
             {% elif LANGUAGE_CODE == 'en' %}{% trans "English" %}
-            {% elif LANGUAGE_CODE == 'kg' %}{% trans "Кыргызча" %}
+            {% elif LANGUAGE_CODE == 'ky' %}{% trans "Кыргызча" %}
             {% else %}Русский{% endif %}
         </span>
     </div>
@@ -251,8 +251,8 @@
             <span class="text-white text-sm">{% trans "English" %}</span>
         </button>
 
-        <button type="button" onclick="changeLanguage('kg')"
-            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'kg' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <button type="button" onclick="changeLanguage('ky')"
+            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ky' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
             <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
         </button>
     </div>
@@ -285,6 +285,9 @@
         </button>
         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
             <i class="fas fa-euro-sign text-white text-lg"></i>
+        </button>
+         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '₸' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="₸" title="Тенге">
+            <i class="fa-solid fa-tenge-sign text-white text-lg"></i>
         </button>
     </div>
 </div>
@@ -585,7 +588,7 @@ function changeLanguage(langCode) {
             const languageNames = {
                 'ru': 'Русский',
                 'en': 'English',
-                'kg': 'Кыргызча'
+                'ky': 'Кыргызча'
             };
             
             // Обновляем отображение текущего языка

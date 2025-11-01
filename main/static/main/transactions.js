@@ -155,7 +155,6 @@ function resetTransactionForm() {
 }
 
 
-
 function openTransactionDetail(transactionElement) {
     const modal = document.getElementById("transactionDetailModal");
     if (!modal) return;
@@ -169,10 +168,12 @@ function openTransactionDetail(transactionElement) {
     const amount = parseFloat(transactionElement.dataset.transactionAmount);
     const reserveAmount = parseFloat(transactionElement.dataset.reserveAmount);
     const description = transactionElement.dataset.description;
-    const createdDate = transactionElement.dataset.createdDate;
-    const createdTime = transactionElement.dataset.createdTime;
     
-    // Сохраняем данные транзакции для возможного обновления
+    // Используем transactionDate и transactionTime из второй версии
+    const transactionDate = transactionElement.dataset.transactionDate;
+    const transactionTime = transactionElement.dataset.transactionTime;
+    
+    // Сохраняем данные транзакции для возможного обновления (из первой версии)
     currentTransactionDetailData = {
         transactionId,
         categoryName,
@@ -182,18 +183,119 @@ function openTransactionDetail(transactionElement) {
         amount,
         reserveAmount,
         description,
-        createdDate,
-        createdTime
+        transactionDate, // используем transactionDate вместо createdDate
+        transactionTime  // используем transactionTime вместо createdTime
     };
     
-    // Обновляем модалку с текущими данными
+    // Обновляем модалку с текущими данными (из первой версии)
     updateTransactionDetailModal();
     
-    // УБЕДИТЕСЬ, ЧТО ПЕРЕД ОТКРЫТИЕМ ПОЛНОСТЬЮ СБРАСЫВАЕМ ВСЕ СОСТОЯНИЯ
+    // УБЕДИТЕСЬ, ЧТО ПЕРЕД ОТКРЫТИЕМ ПОЛНОСТЬЮ СБРАСЫВАЕМ ВСЕ СОСТОЯНИЯ (из первой версии)
     resetDeleteConfirmation();
     
-    // Сохраняем transactionId в модалке для использования при удалении
+    // Сохраняем transactionId в модалке для использования при удалении (из первой версии)
     modal.dataset.currentTransactionId = transactionId;
+
+    // Получаем текущий символ валюты - ПОЛНАЯ ВЕРСИЯ С ТЕНГЕ (из второй версии)
+    const currentCurrency = window.currentCurrency || 'c';
+    let currencySymbol = 'с';
+    switch(currentCurrency) {
+        case 'c': currencySymbol = 'с'; break;
+        case 'r': currencySymbol = '₽'; break;
+        case '$': currencySymbol = '$'; break;
+        case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
+    }
+    
+    const isIncome = transactionType === 'income';
+
+    // ОБНОВЛЯЕМ СУММУ - ПРАВИЛЬНЫЙ ПОДХОД (из второй версии)
+    const amountDisplay = document.getElementById('detailAmount');
+    if (amountDisplay) {
+        // Очищаем и пересоздаем содержимое
+        amountDisplay.innerHTML = '';
+        
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'amount-value';
+        amountSpan.textContent = (isIncome ? '+' : '-') + formatAmount(amount);
+        amountSpan.style.color = isIncome ? '#10B981' : '#EF4444';
+        amountSpan.style.fontSize = '2.25rem'; // text-4xl
+        amountSpan.style.fontWeight = 'bold';
+        
+        const currencySpan = document.createElement('span');
+        currencySpan.className = 'currency-symbol';
+        currencySpan.textContent = ' ' + currencySymbol;
+        currencySpan.style.color = isIncome ? '#10B981' : '#EF4444';
+        currencySpan.style.fontSize = '2.25rem'; // text-4xl
+        currencySpan.style.fontWeight = 'bold';
+        
+        amountDisplay.appendChild(amountSpan);
+        amountDisplay.appendChild(currencySpan);
+    }
+    
+    // ID транзакции под суммой (из второй версии)
+    const detailTransactionId = document.getElementById('detailTransactionId');
+    if (detailTransactionId) {
+        detailTransactionId.textContent = `ID ${transactionId || '-'}`;
+    }
+    
+    // Резерв под основной суммой (только для доходов) (из второй версии)
+    const reserveInfo = document.getElementById('detailReserveInfo');
+    const reserveAmountElement = document.getElementById('detailReserveAmount');
+    
+    if (reserveInfo && reserveAmountElement) {
+        if (isIncome && reserveAmount > 0) {
+            reserveInfo.classList.remove('hidden');
+            reserveAmountElement.textContent = formatAmount(reserveAmount);
+            
+            // Обновляем символ валюты в резерве
+            const reserveCurrencySymbols = reserveInfo.querySelectorAll('.currency-symbol');
+            reserveCurrencySymbols.forEach(symbol => {
+                symbol.textContent = ' ' + currencySymbol;
+            });
+        } else {
+            reserveInfo.classList.add('hidden');
+        }
+    }
+    
+    // Категория и тип - ИСПРАВЛЕНО: используем getIconHTML для SVG иконок (из второй версии)
+    const categoryIconEl = document.getElementById('detailCategoryIcon');
+    if (categoryIconEl) {
+        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНУЮ ФУНКЦИЮ getIconHTML для правильного отображения SVG
+        const iconHTML = window.getIconHTML ? window.getIconHTML(categoryIcon, categoryColor) : `<i class="${categoryIcon} text-lg"></i>`;
+        categoryIconEl.innerHTML = iconHTML;
+        categoryIconEl.style.backgroundColor = categoryColor + '22';
+        categoryIconEl.style.color = categoryColor;
+    }
+    
+    const detailCategoryName = document.getElementById('detailCategoryName');
+    if (detailCategoryName) {
+        detailCategoryName.textContent = categoryName;
+    }
+    
+    const typeElement = document.getElementById('detailType');
+    if (typeElement) {
+        typeElement.textContent = isIncome ? 'Доход' : 'Расход';
+        typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
+    }
+    
+    // Описание (из второй версии)
+    const descriptionSection = document.getElementById('detailDescriptionSection');
+    const descriptionElement = document.getElementById('detailDescription');
+    if (descriptionSection && descriptionElement) {
+        if (description && description.trim() !== '') {
+            descriptionSection.style.display = 'block';
+            descriptionElement.textContent = description;
+        } else {
+            descriptionSection.style.display = 'none';
+        }
+    }
+    
+    // Дата и время (из второй версии)
+    const detailTimestamp = document.getElementById('detailTimestamp');
+    if (detailTimestamp) {
+        detailTimestamp.textContent = `${transactionDate} ${transactionTime}`;
+    }
 
     // Показываем модалку с анимацией
     animateModal(modal, true);
@@ -282,6 +384,7 @@ function updateTransactionDetailModal() {
         case 'r': currencySymbol = '₽'; break;
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
     }
     
     const isIncome = transactionType === 'income';
@@ -885,129 +988,3 @@ function updateWelcomeHint() {
     }, 4000);
 }
 
-
-function openTransactionDetail(transactionElement) {
-    const modal = document.getElementById("transactionDetailModal");
-    if (!modal) return;
-
-    // Получаем данные из data-атрибутов
-    const transactionId = transactionElement.dataset.transactionId;
-    const categoryName = transactionElement.dataset.categoryName;
-    const categoryIcon = transactionElement.dataset.categoryIcon;
-    const categoryColor = transactionElement.dataset.categoryColor;
-    const transactionType = transactionElement.dataset.transactionType;
-    const amount = parseFloat(transactionElement.dataset.transactionAmount);
-    const reserveAmount = parseFloat(transactionElement.dataset.reserveAmount);
-    const description = transactionElement.dataset.description;
-    const transactionDate = transactionElement.dataset.transactionDate;
-    const transactionTime = transactionElement.dataset.transactionTime;
-    
-    // Получаем текущий символ валюты
-    const currentCurrency = window.currentCurrency || 'c';
-    let currencySymbol = 'с';
-    switch(currentCurrency) {
-        case 'c': currencySymbol = 'с'; break;
-        case 'r': currencySymbol = '₽'; break;
-        case '$': currencySymbol = '$'; break;
-        case '€': currencySymbol = '€'; break;
-    }
-    
-    // СБРАСЫВАЕМ СОСТОЯНИЕ ПЕРЕД ОТКРЫТИЕМ
-    resetDeleteConfirmation();
-    
-    // Сохраняем transactionId в модалке для использования при удалении
-    modal.dataset.currentTransactionId = transactionId;
-    
-    const isIncome = transactionType === 'income';
-
-    // ОБНОВЛЯЕМ СУММУ - ПРАВИЛЬНЫЙ ПОДХОД
-    const amountDisplay = document.getElementById('detailAmount');
-    if (amountDisplay) {
-        // Очищаем и пересоздаем содержимое
-        amountDisplay.innerHTML = '';
-        
-        const amountSpan = document.createElement('span');
-        amountSpan.className = 'amount-value';
-        amountSpan.textContent = (isIncome ? '+' : '-') + formatAmount(amount);
-        amountSpan.style.color = isIncome ? '#10B981' : '#EF4444';
-        amountSpan.style.fontSize = '2.25rem'; // text-4xl
-        amountSpan.style.fontWeight = 'bold';
-        
-        const currencySpan = document.createElement('span');
-        currencySpan.className = 'currency-symbol';
-        currencySpan.textContent = ' ' + currencySymbol;
-        currencySpan.style.color = isIncome ? '#10B981' : '#EF4444';
-        currencySpan.style.fontSize = '2.25rem'; // text-4xl
-        currencySpan.style.fontWeight = 'bold';
-        
-        amountDisplay.appendChild(amountSpan);
-        amountDisplay.appendChild(currencySpan);
-    }
-    
-    // ID транзакции под суммой
-    const detailTransactionId = document.getElementById('detailTransactionId');
-    if (detailTransactionId) {
-        detailTransactionId.textContent = `ID ${transactionId || '-'}`;
-    }
-    
-    // Резерв под основной суммой (только для доходов)
-    const reserveInfo = document.getElementById('detailReserveInfo');
-    const reserveAmountElement = document.getElementById('detailReserveAmount');
-    
-    if (reserveInfo && reserveAmountElement) {
-        if (isIncome && reserveAmount > 0) {
-            reserveInfo.classList.remove('hidden');
-            reserveAmountElement.textContent = formatAmount(reserveAmount);
-            
-            // Обновляем символ валюты в резерве
-            const reserveCurrencySymbols = reserveInfo.querySelectorAll('.currency-symbol');
-            reserveCurrencySymbols.forEach(symbol => {
-                symbol.textContent = ' ' + currencySymbol;
-            });
-        } else {
-            reserveInfo.classList.add('hidden');
-        }
-    }
-    
-    // Категория и тип - ИСПРАВЛЕНО: используем getIconHTML для SVG иконок
-    const categoryIconEl = document.getElementById('detailCategoryIcon');
-    if (categoryIconEl) {
-        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНУЮ ФУНКЦИЮ getIconHTML для правильного отображения SVG
-        const iconHTML = window.getIconHTML ? window.getIconHTML(categoryIcon, categoryColor) : `<i class="${categoryIcon} text-lg"></i>`;
-        categoryIconEl.innerHTML = iconHTML;
-        categoryIconEl.style.backgroundColor = categoryColor + '22';
-        categoryIconEl.style.color = categoryColor;
-    }
-    
-    const detailCategoryName = document.getElementById('detailCategoryName');
-    if (detailCategoryName) {
-        detailCategoryName.textContent = categoryName;
-    }
-    
-    const typeElement = document.getElementById('detailType');
-    if (typeElement) {
-        typeElement.textContent = isIncome ? 'Доход' : 'Расход';
-        typeElement.style.color = isIncome ? '#10B981' : '#EF4444';
-    }
-    
-    // Описание
-    const descriptionSection = document.getElementById('detailDescriptionSection');
-    const descriptionElement = document.getElementById('detailDescription');
-    if (descriptionSection && descriptionElement) {
-        if (description && description.trim() !== '') {
-            descriptionSection.style.display = 'block';
-            descriptionElement.textContent = description;
-        } else {
-            descriptionSection.style.display = 'none';
-        }
-    }
-    
-    // Дата и время
-    const detailTimestamp = document.getElementById('detailTimestamp');
-    if (detailTimestamp) {
-        detailTimestamp.textContent = `${transactionDate} ${transactionTime}`;
-    }
-
-    // Показываем модалку с анимацией
-    animateModal(modal, true);
-}

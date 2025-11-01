@@ -325,6 +325,7 @@ function showCategoryData(data) {
         case 'r': currencySymbol = '₽'; break;
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
     }
     
     // Используем функцию formatAmount из app.js
@@ -367,6 +368,7 @@ function updateCategoryElementsDirectly(data, formatAmount) {
         case 'r': currencySymbol = '₽'; break;
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
     }
     
     // Обновляем символы валюты в модалке
@@ -445,6 +447,7 @@ function updateCategoryModalCurrency() {
         case 'r': currencySymbol = '₽'; break;
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
     }
     
     // Обновляем все символы валюты в модалке категорий

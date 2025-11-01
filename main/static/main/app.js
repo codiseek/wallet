@@ -68,6 +68,7 @@ window.addTransactionToList = function(transaction, animate = true, append = fal
         case 'r': currencySymbol = '₽'; break;
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
+        case '₸': currencySymbol = '₸'; break;
     }
 
     let amountDisplay = '';

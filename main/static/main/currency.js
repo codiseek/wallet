@@ -95,8 +95,9 @@ function updateAllCurrencyButtons(selectedCurrency) {
             case 'r': iconClass = 'fas fa-ruble-sign'; break;
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
+            case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
         }
-        
+ 
         // Если кнопка содержит текст вместо иконки, заменяем на иконку
         if (!btn.innerHTML.includes('fa-') || btn.querySelector('span')) {
             btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
@@ -120,6 +121,7 @@ function restoreCurrencyButtons() {
             case 'r': iconClass = 'fas fa-ruble-sign'; break;
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
+            case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
         }
         
         btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
@@ -178,6 +180,7 @@ function initCurrencyButtons() {
             case 'r': iconClass = 'fas fa-ruble-sign'; break;
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
+            case '₸': iconClass = 'fa-solid fa-tenge-sig'; break;
         }
         
         // Если кнопка не содержит иконку, устанавливаем её
@@ -215,6 +218,9 @@ function updateBalanceCurrencyIcon(currency) {
         case '€':
             balanceIcon.classList.add('fa-euro-sign');
             break;
+        case '₸':
+            balanceIcon.classList.add('fa-tenge-sig');
+            break;
         default:
             balanceIcon.classList.add('fa-c');
     }
@@ -233,6 +239,7 @@ function updateCurrencySymbols(currency) {
         case 'r': symbol = '₽'; break;
         case '$': symbol = '$'; break;
         case '€': symbol = '€'; break;
+        case '₸': symbol = '₸'; break;
     }
     
     // Обновляем все элементы с классом currency-symbol
@@ -290,6 +297,7 @@ function updateCurrentCurrencyDisplay(currency) {
         case 'r': currencyName = 'Рубль'; break;
         case '$': currencyName = 'Доллар'; break;
         case '€': currencyName = 'Евро'; break;
+        case '₸': currencyName = 'Тенге'; break;
     }
     
     currentCurrencyEl.textContent = currencyName;

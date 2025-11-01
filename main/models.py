@@ -99,6 +99,7 @@ class UserProfile(models.Model):
         ('r', 'Рубль'),
         ('$', 'Доллар'),
         ('€', 'Евро'),
+        ('₸', 'Тенге'),
     ]
     currency = models.CharField(
         max_length=1, 
@@ -109,7 +110,7 @@ class UserProfile(models.Model):
     LANGUAGE_CHOICES = [
         ('ru', 'Русский'),
         ('en', 'English'),
-        ('kg', 'Кыргызча'),
+        ('ky', 'Кыргызча'),
     ]
     language = models.CharField(
         max_length=2,
