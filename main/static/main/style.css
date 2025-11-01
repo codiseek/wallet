@@ -125,26 +125,43 @@ body.modal-open {
 }
 
 .mobile-nav-item-center {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-    color: white;
+    background: rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: #3b82f6;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 22px rgba(2,6,23,0.6);
-    transition: all 0.2s ease;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
     cursor: pointer;
-    transform: translateY(-18px);
+    transform: translateY(-12px);
     z-index: 60;
+    box-shadow: none;
+    /* Внутренняя подсветка */
+    box-shadow: 
+        inset 0 0 20px rgba(59, 130, 246, 0.3),
+        inset 0 0 10px rgba(59, 130, 246, 0.2),
+        0 0 0 1px rgba(59, 130, 246, 0.1);
 }
 
 .mobile-nav-item-center:hover {
-    transform: translateY(-18px) scale(1.05);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+    transform: translateY(-12px) scale(1.05);
+    background: rgba(59, 130, 246, 0.25);
+    box-shadow: 
+        inset 0 0 25px rgba(59, 130, 246, 0.4),
+        inset 0 0 15px rgba(59, 130, 246, 0.3),
+        0 0 0 1px rgba(59, 130, 246, 0.2);
 }
 
+.mobile-nav-item-center i {
+    font-size: 1.4rem;
+    margin-bottom: 0;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
 .mobile-nav-item-center i {
     font-size: 1.5rem;
     margin-bottom: 0;
@@ -563,7 +580,7 @@ padding: 0.5rem 0.75rem 1rem;
 }
 
 .mobile-nav-item.active {
-    color: #3b82f6;
+    color: #235fbe;
     background-color: rgba(59, 130, 246, 0.1);
 }
 
@@ -577,36 +594,54 @@ padding: 0.5rem 0.75rem 1rem;
 }
 
 .mobile-nav-center {
-    flex: 0 0 auto;
-    margin: 0 0.5rem;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
+    margin: 0 0.25rem;
 }
 
 .mobile-nav-item-center {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-    color: white;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: #2161c9; /* Сплошной синий цвет */
+    color: white; /* Белый цвет иконки */
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    transition: all 0.2s ease;
+    border: none;
+    transition: all 0.3s ease;
     cursor: pointer;
+    transform: none;
+    z-index: 60;
+    /* Убираем все тени и блюр */
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .mobile-nav-item-center:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+    background: #2563eb; /* Более темный синий при наведении */
+    transform: none;
 }
 
 .mobile-nav-item-center i {
-    font-size: 1.5rem;
-    margin-bottom: 0;
+    font-size: 1.4rem;
+    /* Убираем текстовую тень */
+    text-shadow: none;
+}
+.mobile-nav-item-center:hover {
+    background: rgba(234, 179, 8, 0.25);
+    box-shadow: 
+        inset 0 0 25px rgba(234, 179, 8, 0.4),
+        inset 0 0 15px rgba(234, 179, 8, 0.3);
+}
+
+.mobile-nav-item-center i {
+    font-size: 1.4rem;
+    text-shadow: 0 0 10px rgba(234, 179, 8, 0.5); /* Желтое свечение */
 }
 
 /* Убираем верхний отступ у блока с вкладками категорий */

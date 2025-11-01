@@ -74,17 +74,17 @@ function updateBalanceProgressBar() {
         // Если есть и доходы и расходы - показываем обе части с разделителем
         progressHTML = `
             <div class="flex h-3">
-                <div class="bg-green-500 h-3 transition-all duration-500 ease-out rounded-l-full" style="width: ${incomePercent}%"></div>
-                <div class="w-[2px] bg-gray-600"></div>
-                <div class="bg-red-500 h-3 transition-all duration-500 ease-out rounded-r-full" style="width: ${expensePercent}%"></div>
+                <div class="bg-green-500 h-2 transition-all duration-500 ease-out rounded-l-full" style="width: ${incomePercent}%"></div>
+                <div class="w-[1px] bg-gray-900"></div>
+                <div class="bg-red-500 h-2 transition-all duration-500 ease-out rounded-r-full" style="width: ${expensePercent}%"></div>
             </div>
         `;
     } else if (incomePercent > 0) {
         // Если только доходы - зеленая полная шкала
-        progressHTML = `<div class="bg-green-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: ${incomePercent}%"></div>`;
+        progressHTML = `<div class="bg-green-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: ${incomePercent}%"></div>`;
     } else if (expensePercent > 0) {
         // Если только расходы - красная полная шкала
-        progressHTML = `<div class="bg-red-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: ${expensePercent}%"></div>`;
+        progressHTML = `<div class="bg-red-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: ${expensePercent}%"></div>`;
     }
     
     progressBar.innerHTML = progressHTML;
