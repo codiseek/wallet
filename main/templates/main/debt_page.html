@@ -1,3 +1,6 @@
+
+{% load static %}  
+{% load i18n %}
 <!-- Debt list вкладка - БЕЗ app-container -->
 <div class="mobile-tab" id="tab-debt">
     <div class="mobile-section">
@@ -7,10 +10,10 @@
                 <div class="flex justify-between items-center -mt-3 mb-6">
                     <h2 class="text-lg -mt-2 font-bold flex items-center">
                         <i class="fa-solid fa-solid fa-arrows-spin mr-2"></i>
-                        Платежи и долги
+                        {% trans "Платежи и долги" %}
                     </h2>
                     <button id="addDebtBtn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3">
-                        <i class="fas fa-plus mr-1"></i> Добавить
+                        <i class="fas fa-plus mr-1"></i> {% trans "Добавить" %}
                     </button>
                 </div>
 
@@ -21,7 +24,7 @@
             <div class="w-9 h-9 rounded-full bg-blue-500/15 flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-wallet text-blue-400 text-sm"></i>
             </div>
-            <p class="text-gray-400 text-xs mb-0.5">Общая</p>
+            <p class="text-gray-400 text-xs mb-0.5">{% trans "Общая" %}</p>
             <p class="text-white font-semibold text-lg">0 <span class="currency-symbol">₽</span></p>
         </div>
 
@@ -30,7 +33,7 @@
             <div class="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-exclamation-triangle text-red-400 text-sm"></i>
             </div>
-            <p class="text-gray-400 text-xs mb-0.5">Просрочено</p>
+            <p class="text-gray-400 text-xs mb-0.5">{% trans "Просрочено" %}</p>
             <p class="text-white font-semibold text-lg">0 <span class="currency-symbol">₽</span></p>
         </div>
 
@@ -39,7 +42,7 @@
             <div class="w-9 h-9 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-check-circle text-green-400 text-sm"></i>
             </div>
-            <p class="text-gray-400 text-xs mb-0.5">Выполнено</p>
+            <p class="text-gray-400 text-xs mb-0.5">{% trans "Выполнено" %}</p>
             <p class="text-white font-semibold text-lg">0 <span class="currency-symbol">₽</span></p>
         </div>
     </div>
@@ -48,13 +51,13 @@
                 <!-- Вкладки фильтров -->
                 <div class="flex bg-gray-800 rounded-lg p-1 mb-6">
                     <button class="debt-filter-tab active flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="active">
-                        Активные
+                        {% trans "Активные" %}
                     </button>
                     <button class="debt-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="overdue">
-                        Просроченные
+                        {% trans "Просроченные" %}
                     </button>
                     <button class="debt-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all" data-filter="paid">
-                        Оплаченные
+                        {% trans "Оплаченные" %}
                     </button>
                 </div>
 
@@ -66,13 +69,13 @@
                 <!-- Пустое состояние -->
                 <div id="emptyDebtsState" class="text-center py-8">
                     <i class="fa-solid fa-calendar-check text-8xl text-gray-500 mb-3"></i>
-                    <p class="text-gray-400">Список платежей пуст</p>
+                    <p class="text-gray-400">{% trans "Список платежей пуст" %}</p>
                 </div>
 
                 <!-- Индикатор загрузки -->
                 <div id="debtsLoading" class="text-center py-8 hidden">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p class="text-gray-400 mt-2">Загрузка...</p>
+                    <p class="text-gray-400 mt-2">{% trans "Загрузка..." %}</p>
                 </div>
             </div>
         </div>

@@ -18,15 +18,24 @@ window.categories = window.categories || [];
 window.initialBalances = window.initialBalances || { total: 0, income: 0, expense: 0 };
 
 function initLanguageHandlers() {
-    // Обработчик для кнопок смены языка
     document.addEventListener('click', function(e) {
         const langBtn = e.target.closest('.language-btn');
         if (langBtn) {
-            // После смены языка переинициализируем баланс
-            setTimeout(() => {
-                updateBalanceDisplay();
-                updateCurrencySymbols(window.currentCurrency || 'c');
-            }, 500);
+            // Временно отключено - баланс обновится при перезагрузке страницы
+            // setTimeout(() => {
+            //     fetch('/get_balance_data/')
+            //         .then(response => response.json())
+            //         .then(data => {
+            //             if (data.success) {
+            //                 window.initialBalances = data.balances;
+            //                 updateBalanceDisplay();
+            //                 updateCurrencySymbols(window.currentCurrency || 'c');
+            //             }
+            //         })
+            //         .catch(error => {
+            //             console.error('Error reloading balance:', error);
+            //         });
+            // }, 500);
         }
     });
 }
@@ -196,6 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+
 
 // -----------------------------
 // Экспортируем необходимые функции в global

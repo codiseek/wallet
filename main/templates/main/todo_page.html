@@ -1,3 +1,6 @@
+
+{% load static %}
+{% load i18n %}
 <!-- Todo list вкладка - БЕЗ app-container -->
 <div class="mobile-tab" id="tab-todo">
     <div class="mobile-section">
@@ -6,11 +9,11 @@
                 <div class="flex justify-between items-center -mt-3 mb-4">
                     <h2 class="text-lg font-bold mb-4  flex items-center">
                 <i class="fa-solid fa-check-double mr-2"></i>
-                        Список задач
+                        {% trans "Список задач" %}
                     </h2>
 <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3" 
         onclick="animateModal(document.getElementById('todoModal'), true)">
-    <i class="fas fa-plus mr-1"></i> Добавить
+    <i class="fas fa-plus mr-1"></i> {% trans "Добавить" %}
 </button>
                    
             </div>
@@ -19,11 +22,11 @@
 <div class="flex bg-gray-800 rounded-lg p-1 mb-4">
     <button class="todo-filter-tab active flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all bg-gray-700 text-white" 
             data-filter="active">
-       Активные
+       {% trans "Активные" %}
     </button>
     <button class="todo-filter-tab flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all text-gray-400" 
             data-filter="completed">
-        Выполненные
+        {% trans "Выполненные" %}
     </button>
 </div>
             

@@ -1,4 +1,5 @@
-{% load static %}
+{% load static %} 
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -188,13 +189,13 @@
                
             </div>
             <div class="hidden md:flex space-x-8">
-                <a href="#features" class="text-gray-300 hover:text-white transition-colors duration-300">Возможности</a>
-                <a href="#interface" class="text-gray-300 hover:text-white transition-colors duration-300">Интерфейс</a>
-                <a href="#stats" class="text-gray-300 hover:text-white transition-colors duration-300">Статистика</a>
-                <a href="#download" class="text-gray-300 hover:text-white transition-colors duration-300">Скачать</a>
+                <a href="#features" class="text-gray-300 hover:text-white transition-colors duration-300">{% trans "Возможности" %}</a>
+                <a href="#interface" class="text-gray-300 hover:text-white transition-colors duration-300">{% trans "Интерфейс" %}</a>
+                <a href="#stats" class="text-gray-300 hover:text-white transition-colors duration-300">{% trans "Статистика" %}</a>
+                <a href="#download" class="text-gray-300 hover:text-white transition-colors duration-300">{% trans "Скачать" %}</a>
             </div>
             <a href="#download" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm">
-                Попробовать бесплатно
+                {% trans "Попробовать бесплатно" %}
             </a>
         </div>
     </div>
@@ -216,35 +217,35 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div class="fade-in text-content">
                 <h1 class="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                    Финансовая ясность — 
-                    <span class="gradient-text">теперь это просто!</span>
+                    {% trans "Финансовая ясность —" %} 
+                    <span class="gradient-text">{% trans "теперь это просто!" %}</span>
                 </h1>
                 <p class="text-xl text-gray-300 mb-8 leading-relaxed">
-                    Coinza - это современное веб приложение для учета личных финансов. 
-                    Бесплатно, удобно и полностью адаптировано для вашего смартфона.
+                    {% trans "Coinza - это современное веб приложение для учета личных финансов. 
+                    Бесплатно, удобно и полностью адаптировано для вашего смартфона." %}
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 mb-8">
                     <a href="#download" class="btn-primary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
                         <i class="fas fa-rocket mr-3"></i>
-                        Начать использовать
+                        {% trans "Начать использовать" %}
                     </a>
                     <a href="#features" class="btn-secondary text-white px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center justify-center">
                         <i class="fas fa-play-circle mr-3"></i>
-                        Узнать больше
+                        {% trans "Узнать больше" %}
                     </a>
                 </div>
                 <div class="grid grid-cols-3 gap-6 text-center max-w-md">
                     <div>
-                        <div class="text-2xl font-bold text-white">100%</div>
-                        <div class="text-gray-400 text-sm">Бесплатно</div>
+                        <div class="text-2xl font-bold text-white">{% trans "100%" %}</div>
+                        <div class="text-gray-400 text-sm">{% trans "Бесплатно" %}</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-white">PWA</div>
-                        <div class="text-gray-400 text-sm">Работает везде</div>
+                        <div class="text-2xl font-bold text-white">{% trans "PWA" %}</div>
+                        <div class="text-gray-400 text-sm">{% trans "Работает везде" %}</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-white">OPS</div>
-                        <div class="text-gray-400 text-sm">Открытый код</div>
+                        <div class="text-2xl font-bold text-white">{% trans "OPS" %}</div>
+                        <div class="text-gray-400 text-sm">{% trans "Открытый код" %}</div>
                     </div>
                 </div>
             </div>
@@ -269,23 +270,23 @@
                         <div class="relative z-10">
                             <div class="flex justify-between items-start mb-3">
                                 <div>
-                                    <p class="text-gray-300 text-sm mb-1">Текущий баланс</p>
-                                    <p class="text-2xl font-bold text-white">15,430 с</p>
+                                    <p class="text-gray-300 text-sm mb-1">{% trans "Текущий баланс" %}</p>
+                                    <p class="text-2xl font-bold text-white">{% trans "15,430 с" %}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-gray-300 text-sm mb-1">Резерв</p>
-                                    <p class="text-blue-400 font-semibold">5,000 с</p>
+                                    <p class="text-gray-300 text-sm mb-1">{% trans "Резерв" %}</p>
+                                    <p class="text-blue-400 font-semibold">{% trans "5,000 с" %}</p>
                                 </div>
                             </div>
                             
                             <div class="flex justify-between text-xs">
                                 <div>
-                                    <p class="text-gray-400">Доходы</p>
-                                    <p class="text-green-400 font-semibold">+25,000 с</p>
+                                    <p class="text-gray-400">{% trans "Доходы" %}</p>
+                                    <p class="text-green-400 font-semibold">{% trans "+25,000 с" %}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-gray-400">Расходы</p>
-                                    <p class="text-red-400 font-semibold">-9,570 с</p>
+                                    <p class="text-gray-400">{% trans "Расходы" %}</p>
+                                    <p class="text-red-400 font-semibold">{% trans "-9,570 с" %}</p>
                                 </div>
                             </div>
                             
@@ -302,16 +303,16 @@
                     <!-- Вкладки категорий -->
                     <div class="flex gap-2 mb-6 justify-center">
                         <div class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
-                            Все
+                            {% trans "Все" %}
                         </div>
                         <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
-                            Еда
+                            {% trans "Еда" %}
                         </div>
                         <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
-                            Жильё
+                            {% trans "Жильё" %}
                         </div>
                         <div class="bg-gray-700/60 text-gray-300 px-4 py-2 rounded-xl text-sm font-medium">
-                            Работа
+                            {% trans "Работа" %}
                         </div>
                     </div>
 
@@ -323,13 +324,13 @@
                                     <i class="fas fa-utensils text-red-400"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-white text-sm">Продукты</p>
-                                    <p class="text-gray-400 text-xs">Супермаркет</p>
+                                    <p class="font-medium text-white text-sm">{% trans "Продукты" %}</p>
+                                    <p class="text-gray-400 text-xs">{% trans "Супермаркет" %}</p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-red-400 font-bold text-sm">-1,250 с</p>
-                                <p class="text-gray-400 text-xs">Сегодня</p>
+                                <p class="text-red-400 font-bold text-sm">{% trans "-1,250 с" %}</p>
+                                <p class="text-gray-400 text-xs">{% trans "Сегодня" %}</p>
                             </div>
                         </div>
 
@@ -339,13 +340,13 @@
                                     <i class="fas fa-money-bill-wave text-green-400"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-white text-sm">Зарплата</p>
-                                    <p class="text-gray-400 text-xs">Работа</p>
+                                    <p class="font-medium text-white text-sm">{% trans "Зарплата" %}</p>
+                                    <p class="text-gray-400 text-xs">{% trans "Работа" %}</p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-green-400 font-bold text-sm">+25,000 с</p>
-                                <p class="text-gray-400 text-xs">2 дня назад</p>
+                                <p class="text-green-400 font-bold text-sm">{% trans "+25,000 с" %}</p>
+                                <p class="text-gray-400 text-xs">{% trans "2 дня назад" %}</p>
                             </div>
                         </div>
 
@@ -355,13 +356,13 @@
                                     <i class="fas fa-gas-pump text-blue-400"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-white text-sm">Топливо</p>
-                                    <p class="text-gray-400 text-xs">АЗС</p>
+                                    <p class="font-medium text-white text-sm">{% trans "Топливо" %}</p>
+                                    <p class="text-gray-400 text-xs">{% trans "АЗС" %}</p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-red-400 font-bold text-sm">-2,800 с</p>
-                                <p class="text-gray-400 text-xs">3 дня назад</p>
+                                <p class="text-red-400 font-bold text-sm">{% trans "-2,800 с" %}</p>
+                                <p class="text-gray-400 text-xs">{% trans "3 дня назад" %}</p>
                             </div>
                         </div>
                     </div>
@@ -370,11 +371,11 @@
                     <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-700/50">
                         <div class="text-center">
                             <i class="fas fa-home text-blue-400 text-lg"></i>
-                            <p class="text-blue-400 text-xs mt-1">Главная</p>
+                            <p class="text-blue-400 text-xs mt-1">{% trans "Главная" %}</p>
                         </div>
                         <div class="text-center">
                             <i class="fas fa-tags text-gray-400 text-lg"></i>
-                            <p class="text-gray-400 text-xs mt-1">Категории</p>
+                            <p class="text-gray-400 text-xs mt-1">{% trans "Категории" %}</p>
                         </div>
                         <div class="text-center transform -translate-y-2">
                             <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
@@ -383,11 +384,11 @@
                         </div>
                         <div class="text-center">
                             <i class="fas fa-chart-pie text-gray-400 text-lg"></i>
-                            <p class="text-gray-400 text-xs mt-1">Статистика</p>
+                            <p class="text-gray-400 text-xs mt-1">{% trans "Статистика" %}</p>
                         </div>
                         <div class="text-center">
                             <i class="fas fa-sticky-note text-gray-400 text-lg"></i>
-                            <p class="text-gray-400 text-xs mt-1">Заметки</p>
+                            <p class="text-gray-400 text-xs mt-1">{% trans "Заметки" %}</p>
                         </div>
                     </div>
                 </div>
@@ -400,9 +401,9 @@
 <section id="features" class="section-spacing interface-showcase">
     <div class="content-container px-6">
         <div class="text-center mb-16 fade-in text-content mx-auto">
-            <h2 class="text-4xl font-bold mb-4">Мощные возможности в вашем кармане</h2>
+            <h2 class="text-4xl font-bold mb-4">{% trans "Мощные возможности в вашем кармане" %}</h2>
             <p class="text-xl text-gray-400">
-                Coinza объединяет все необходимое для полного контроля над вашими финансами в одном элегантном приложении
+                {% trans "Coinza объединяет все необходимое для полного контроля над вашими финансами в одном элегантном приложении" %}
             </p>
         </div>
 
@@ -412,23 +413,23 @@
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6">
                     <i class="fas fa-chart-pie text-white text-2xl"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-4">Детальная статистика</h3>
+                <h3 class="text-2xl font-bold mb-4">{% trans "Детальная статистика" %}</h3>
                 <p class="text-gray-300 mb-6">
-                    Наглядные графики и диаграммы показывают ваши финансовые привычки. 
-                    Анализируйте расходы по категориям, отслеживайте тенденции и планируйте бюджет.
+                    {% trans "Наглядные графики и диаграммы показывают ваши финансовые привычки. 
+                    Анализируйте расходы по категориям, отслеживайте тенденции и планируйте бюджет." %}
                 </p>
                 <ul class="space-y-3 text-gray-400">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Круговые диаграммы расходов
+                        {% trans "Круговые диаграммы расходов" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Сравнение периодов
+                        {% trans "Сравнение периодов" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Прогресс финансовых целей
+                        {% trans "Прогресс финансовых целей" %}
                     </li>
                 </ul>
             </div>
@@ -438,23 +439,23 @@
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mb-6">
                     <i class="fas fa-sticky-note text-white text-2xl"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-4">Умные заметки</h3>
+                <h3 class="text-2xl font-bold mb-4">{% trans "Умные заметки" %}</h3>
                 <p class="text-gray-300 mb-6">
-                    Создавайте заметки с напоминаниями о важных платежах и финансовых целях. 
-                    Никогда не забывайте о счетах и обязательствах.
+                    {% trans "Создавайте заметки с напоминаниями о важных платежах и финансовых целях. 
+                    Никогда не забывайте о счетах и обязательствах." %}
                 </p>
                 <ul class="space-y-3 text-gray-400">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Напоминания о платежах
+                        {% trans "Напоминания о платежах" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Финансовые цели
+                        {% trans "Финансовые цели" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Быстрый доступ к заметкам
+                        {% trans "Быстрый доступ к заметкам" %}
                     </li>
                 </ul>
             </div>
@@ -464,23 +465,23 @@
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-6">
                     <i class="fas fa-money-bill-wave text-white text-2xl"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-4">Мультивалютность</h3>
+                <h3 class="text-2xl font-bold mb-4">{% trans "Мультивалютность" %}</h3>
                 <p class="text-gray-300 mb-6">
-                    Работайте с разными валютами: сомы, рубли, доллары, евро. 
-                    Приложение автоматически учитывает все операции в выбранной валюте.
+                    {% trans "Работайте с разными валютами: сомы, рубли, доллары, евро. 
+                    Приложение автоматически учитывает все операции в выбранной валюте." %}
                 </p>
                 <ul class="space-y-3 text-gray-400">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        4 основные валюты
+                        {% trans "4 основные валюты" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Быстрое переключение
+                       {% trans " Быстрое переключение" %}
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-400 mr-3"></i>
-                        Автоматический учет
+                        {% trans "Автоматический учет" %}
                     </li>
                 </ul>
             </div>
@@ -492,32 +493,32 @@
                 <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-piggy-bank text-blue-400 text-xl"></i>
                 </div>
-                <h4 class="font-bold text-white mb-2">Авторезерв</h4>
-                <p class="text-gray-400 text-sm">Автоматическое накопление процента от доходов</p>
+                <h4 class="font-bold text-white mb-2">{% trans "Авторезерв" %}</h4>
+                <p class="text-gray-400 text-sm">{% trans "Автоматическое накопление процента от доходов" %}</p>
             </div>
 
             <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-green-500/30 transition-all duration-300">
                 <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-tags text-green-400 text-xl"></i>
                 </div>
-                <h4 class="font-bold text-white mb-2">Категории</h4>
-                <p class="text-gray-400 text-sm">Гибкая система категорий с иконками</p>
+                <h4 class="font-bold text-white mb-2">{% trans "Категории" %}</h4>
+                <p class="text-gray-400 text-sm">{% trans "Гибкая система категорий с иконками" %}</p>
             </div>
 
             <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
                 <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-bell text-purple-400 text-xl"></i>
                 </div>
-                <h4 class="font-bold text-white mb-2">Уведомления</h4>
-                <p class="text-gray-400 text-sm">Система умных уведомлений и напоминаний</p>
+                <h4 class="font-bold text-white mb-2">{% trans "Уведомления" %}</h4>
+                <p class="text-gray-400 text-sm">{% trans "Система умных уведомлений и напоминаний" %}</p>
             </div>
 
             <div class="bg-gray-800/40 rounded-xl p-6 text-center border border-gray-700/30 hover:border-yellow-500/30 transition-all duration-300">
                 <div class="w-12 h-12 rounded-lg bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-mobile-alt text-yellow-400 text-xl"></i>
                 </div>
-                <h4 class="font-bold text-white mb-2">PWA</h4>
-                <p class="text-gray-400 text-sm">Установите как нативное приложение</p>
+                <h4 class="font-bold text-white mb-2">{% trans "PWA" %}</h4>
+                <p class="text-gray-400 text-sm">{% trans "Установите как нативное приложение" %}</p>
             </div>
         </div>
     </div>
@@ -527,18 +528,18 @@
 <section id="interface" class="section-spacing bg-gradient-to-b from-gray-900/50 to-transparent">
     <div class="content-container px-6">
         <div class="text-center mb-16 fade-in text-content mx-auto">
-            <h2 class="text-4xl font-bold mb-4">Элегантный и интуитивный интерфейс</h2>
+            <h2 class="text-4xl font-bold mb-4">{% trans "Элегантный и интуитивный интерфейс" %}</h2>
             <p class="text-xl text-gray-400">
-                Каждый экран тщательно продуман для максимального удобства использования на мобильных устройствах
+                {% trans "Каждый экран тщательно продуман для максимального удобства использования на мобильных устройствах" %}
             </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16 max-w-6xl mx-auto">
             <div class="fade-in">
-                <h3 class="text-2xl font-bold mb-4">Главный экран</h3>
+                <h3 class="text-2xl font-bold mb-4">{% trans "Главный экран" %}</h3>
                 <p class="text-gray-400 mb-6">
-                    Все ключевые финансовые показатели собраны в одном месте. Быстрый доступ к балансу, 
-                    доходам, расходам и резервам с интуитивно понятной визуализацией.
+                    {% trans "Все ключевые финансовые показатели собраны в одном месте. Быстрый доступ к балансу, 
+                    доходам, расходам и резервам с интуитивно понятной визуализацией." %}
                 </p>
                 <div class="space-y-4">
                     <div class="flex items-start space-x-4">
@@ -546,8 +547,8 @@
                             <i class="fas fa-chart-line text-blue-400 text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-white">Визуальная статистика</h4>
-                            <p class="text-gray-400 text-sm">Прогресс-бары и цветовые индикаторы</p>
+                            <h4 class="font-semibold text-white">{% trans "Визуальная статистика" %}</h4>
+                            <p class="text-gray-400 text-sm">{% trans "Прогресс-бары и цветовые индикаторы" %}</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-4">
@@ -555,8 +556,8 @@
                             <i class="fas fa-history text-green-400 text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-white">История операций</h4>
-                            <p class="text-gray-400 text-sm">Последние транзакции с детализацией</p>
+                            <h4 class="font-semibold text-white">{% trans "История операций" %}</h4>
+                            <p class="text-gray-400 text-sm">{% trans "Последние транзакции с детализацией" %}</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-4">
@@ -564,8 +565,8 @@
                             <i class="fas fa-filter text-purple-400 text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-white">Быстрая фильтрация</h4>
-                            <p class="text-gray-400 text-sm">Сортировка по категориям и периодам</p>
+                            <h4 class="font-semibold text-white">{% trans "Быстрая фильтрация" %}</h4>
+                            <p class="text-gray-400 text-sm">{% trans "Сортировка по категориям и периодам" %}</p>
                         </div>
                     </div>
                 </div>
@@ -575,18 +576,18 @@
                     <!-- Главный экран интерфейса -->
                     <div class="flex justify-between items-center mb-6">
                         <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-8 w-8">
-                        <div class="text-xs text-gray-400">Главная</div>
+                        <div class="text-xs text-gray-400">{% trans "Главная" %}</div>
                     </div>
                     
                     <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-2xl p-4 mb-6">
-                        <p class="text-gray-300 text-sm mb-1">Текущий баланс</p>
-                        <p class="text-2xl font-bold text-white">24,850 с</p>
+                        <p class="text-gray-300 text-sm mb-1">{% trans "Текущий баланс" %}</p>
+                        <p class="text-2xl font-bold text-white">{% trans "24,850 с" %}</p>
                     </div>
                     
                     <div class="flex gap-2 mb-6 overflow-x-auto">
-                        <div class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Все</div>
-                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Еда</div>
-                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Транспорт</div>
+                        <div class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">{% trans "Все" %}</div>
+                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">{% trans "Еда" %}</div>
+                        <div class="bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap">{% trans "Транспорт" %}</div>
                     </div>
                     
                     <div class="space-y-3">
@@ -596,11 +597,11 @@
                                     <i class="fas fa-money-bill-wave text-green-400"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-white text-sm">Зарплата</p>
-                                    <p class="text-gray-400 text-xs">Работа</p>
+                                    <p class="font-medium text-white text-sm">{% trans "Зарплата" %}</p>
+                                    <p class="text-gray-400 text-xs">{% trans "Работа" %}</p>
                                 </div>
                             </div>
-                            <p class="text-green-400 font-bold text-sm">+30,000 с</p>
+                            <p class="text-green-400 font-bold text-sm">{% trans "+30,000 с" %}</p>
                         </div>
                     </div>
                 </div>
@@ -615,16 +616,16 @@
                     <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3">
                         <i class="fas fa-chart-pie text-blue-400"></i>
                     </div>
-                    <h4 class="text-xl font-bold">Детальная статистика</h4>
+                    <h4 class="text-xl font-bold">{% trans "Детальная статистика" %}</h4>
                 </div>
                 <p class="text-gray-400 mb-4">
-                    Анализируйте свои финансовые привычки с помощью интерактивных графиков и диаграмм. 
-                    Отслеживайте тенденции и оптимизируйте расходы.
+                    {% trans "Анализируйте свои финансовые привычки с помощью интерактивных графиков и диаграмм. 
+                    Отслеживайте тенденции и оптимизируйте расходы." %}
                 </p>
                 <div class="bg-gray-800/40 rounded-xl p-4 border border-gray-700/30">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-gray-400 text-sm">Еда</span>
-                        <span class="text-red-400 font-bold">12,450 с (35%)</span>
+                        <span class="text-gray-400 text-sm">{% trans "Еда" %}</span>
+                        <span class="text-red-400 font-bold">{% trans "12,450 с (35%)" %}</span>
                     </div>
                     <div class="w-full bg-gray-700 rounded-full h-2">
                         <div class="bg-red-500 h-2 rounded-full" style="width: 35%"></div>
@@ -638,18 +639,18 @@
                     <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mr-3">
                         <i class="fas fa-sticky-note text-green-400"></i>
                     </div>
-                    <h4 class="text-xl font-bold">Умные заметки</h4>
+                    <h4 class="text-xl font-bold">{% trans "Умные заметки" %}</h4>
                 </div>
                 <p class="text-gray-400 mb-4">
-                    Создавайте заметки с напоминаниями о важных финансовых событиях. 
-                    Планируйте платежи и никогда не забывайте о финансовых обязательствах.
+                    {% trans "Создавайте заметки с напоминаниями о важных финансовых событиях. 
+                    Планируйте платежи и никогда не забывайте о финансовых обязательствах." %}
                 </p>
                 <div class="bg-gradient-to-r from-green-500/10 to-green-600/10 rounded-xl p-4 border border-green-500/20">
                     <div class="flex justify-between items-start mb-2">
-                        <h5 class="font-semibold text-white text-sm">Оплата интернета</h5>
-                        <span class="text-green-400 text-xs">до 15 числа</span>
+                        <h5 class="font-semibold text-white text-sm">{% trans "Оплата интернета" %}</h5>
+                        <span class="text-green-400 text-xs">{% trans "до 15 числа" %}</span>
                     </div>
-                    <p class="text-gray-400 text-xs">Не забыть оплатить интернет до 15 числа каждого месяца</p>
+                    <p class="text-gray-400 text-xs">{% trans "Не забыть оплатить интернет до 15 числа каждого месяца" %}</p>
                 </div>
             </div>
         </div>
@@ -660,29 +661,29 @@
 <section id="stats" class="section-spacing">
     <div class="content-container px-6">
         <div class="text-center mb-16 fade-in text-content mx-auto">
-            <h2 class="text-4xl font-bold mb-4">Постоянное развитие</h2>
+            <h2 class="text-4xl font-bold mb-4">{% trans "Постоянное развитие" %}</h2>
             <p class="text-xl text-gray-400">
-                Приложение регулярно обновляется с учетом пожеланий пользователей. 
-                Мы постоянно добавляем новые функции и улучшаем существующие.
+                {% trans "Приложение регулярно обновляется с учетом пожеланий пользователей. 
+                Мы постоянно добавляем новые функции и улучшаем существующие." %}
             </p>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16 max-w-4xl mx-auto">
             <div class="text-center">
                 <div class="text-3xl font-bold text-blue-400 mb-2">10K+</div>
-                <div class="text-gray-400">Пользователей</div>
+                <div class="text-gray-400">{% trans "Пользователей" %}</div>
             </div>
             <div class="text-center">
                 <div class="text-3xl font-bold text-green-400 mb-2">50+</div>
-                <div class="text-gray-400">Обновлений</div>
+                <div class="text-gray-400">{% trans "Обновлений" %}</div>
             </div>
             <div class="text-center">
                 <div class="text-3xl font-bold text-purple-400 mb-2">4.8★</div>
-                <div class="text-gray-400">Рейтинг</div>
+                <div class="text-gray-400">{% trans "Рейтинг" %}</div>
             </div>
             <div class="text-center">
                 <div class="text-3xl font-bold text-yellow-400 mb-2">24/7</div>
-                <div class="text-gray-400">Поддержка</div>
+                <div class="text-gray-400">{% trans "Поддержка" %}</div>
             </div>
         </div>
 
@@ -694,9 +695,9 @@
 <section id="download" class="section-spacing bg-gradient-to-b from-gray-900/50 to-transparent">
     <div class="content-container px-6 text-center">
         <div class="max-w-2xl mx-auto fade-in">
-            <h2 class="text-4xl font-bold mb-6">Начните управлять финансами сегодня</h2>
+            <h2 class="text-4xl font-bold mb-6">{% trans "Начните управлять финансами сегодня" %}</h2>
             <p class="text-xl text-gray-400 mb-8">
-                Сканируйте QR-код чтобы открыть приложение на вашем смартфоне
+                {% trans "Сканируйте QR-код чтобы открыть приложение на вашем смартфоне" %}
             </p>
             
            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 inline-block border border-gray-700/50 qr-code mb-8">
@@ -706,7 +707,7 @@
             <img src="{% static 'main/icons/qr.png' %}" alt="QR Code для Coinza" class="w-full h-full object-contain">
         </div>
     </div>
-    <p class="text-gray-400 mt-4 text-sm">Наведите камеру смартфона</p>
+    <p class="text-gray-400 mt-4 text-sm">{% trans "Наведите камеру смартфона" %}</p>
 </div>
         
         </div>
@@ -723,33 +724,33 @@
                    
                 </div>
                 <p class="text-gray-400 text-sm">
-                    Простое и удобное приложение для управления личными финансами
+                    {% trans "Простое и удобное приложение для управления личными финансами" %}
                 </p>
             </div>
             
             <div>
-                <h4 class="font-bold text-white mb-4">Приложение</h4>
+                <h4 class="font-bold text-white mb-4">{% trans "Приложение" %}</h4>
                 <ul class="space-y-2 text-sm text-gray-400">
-                    <li><a href="#features" class="hover:text-white transition-colors">Возможности</a></li>
-                    <li><a href="#interface" class="hover:text-white transition-colors">Интерфейс</a></li>
-                    <li><a href="#stats" class="hover:text-white transition-colors">Статистика</a></li>
-                    <li><a href="#download" class="hover:text-white transition-colors">Скачать</a></li>
+                    <li><a href="#features" class="hover:text-white transition-colors">{% trans "Возможности" %}</a></li>
+                    <li><a href="#interface" class="hover:text-white transition-colors">{% trans "Интерфейс" %}</a></li>
+                    <li><a href="#stats" class="hover:text-white transition-colors">{% trans "Статистика" %}</a></li>
+                    <li><a href="#download" class="hover:text-white transition-colors">{% trans "Скачать" %}</a></li>
                 </ul>
             </div>
             
             <div>
-                <h4 class="font-bold text-white mb-4">Поддержка</h4>
+                <h4 class="font-bold text-white mb-4">{% trans "Поддержка" %}</h4>
                 <ul class="space-y-2 text-sm text-gray-400">
                     <li><a href="https://t.me/codifuse" class="hover:text-white transition-colors">Telegram</a></li>
                     <li><a href="https://github.com/codifuse/wallet" class="hover:text-white transition-colors">GitHub</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Помощь</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">{% trans "Помощь" %}</a></li>
                 </ul>
             </div>
             
             <div>
-                <h4 class="font-bold text-white mb-4">О проекте</h4>
+                <h4 class="font-bold text-white mb-4">{% trans "О проекте" %}</h4>
                 <p class="text-gray-400 text-sm mb-4">
-                    Открытый исходный код. Разрабатывается с любовью к сообществу.
+                    {% trans "Открытый исходный код. Разрабатывается с любовью к сообществу." %}
                 </p>
                 <div class="flex space-x-4">
                     <a href="https://t.me/codifuse" class="social-icon w-10 h-10 rounded-xl flex items-center justify-center">

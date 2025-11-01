@@ -1,5 +1,5 @@
 {% load static %}
-
+{% load i18n %}
 <!-- Категории вкладка -->
 <div class="mobile-tab mt-2" id="tab-categories">
     <div class="mobile-section">
@@ -8,22 +8,22 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold flex items-center">
                     <i class="fa-solid fa-icons text-blue-400 mr-2"></i>
-                    Мои категории
+                    {% trans "Мои категории" %}
                 </h2>
                 <div class="relative">
                     <button id="globalCategoryFilterBtn" class="bg-gray-800 hover:bg-gray-600 text-white font-semibold text-sm py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors">
-                        <span id="globalCurrentFilterText">За 1 месяц</span>
+                        <span id="globalCurrentFilterText">{% trans "За 1 месяц" %}</span>
                     
                     </button>
                     <div id="globalCategoryFilterDropdown" class="hidden absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl min-w-40 z-[100]">
                         <div class="space-y-0">
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">За день</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">За неделю</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="month">За 1 месяц</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="3months">За 3 месяца</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="6months">За 6 месяцев</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="9months">За 9 месяцев</button>
-                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="12months">За 12 месяцев</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">{% trans "За день" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">{% trans "За неделю" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="month">{% trans "За 1 месяц" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="3months">{% trans "За 3 месяца" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="6months">{% trans "За 6 месяцев" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="9months">{% trans "За 9 месяцев" %}</button>
+                            <button class="global-filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="12months">{% trans "За 12 месяцев" %}</button>
                         </div>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
 
             <!-- Кнопка Добавить растянутая по всей ширине -->
             <button class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-3 rounded-lg font-medium transition-colors duration-200 mb-4 flex items-center justify-center" id="addCategoryBtn">
-                <i class="fas fa-plus mr-2"></i> Добавить категорию
+                <i class="fas fa-plus mr-2"></i> {% trans "Добавить категорию" %}
             </button>
             
             <!-- Список категорий -->
@@ -39,7 +39,7 @@
                 <!-- Категории будут добавляться динамически -->
                 <div class="text-center py-8 text-gray-500" id="emptyCategoriesState">
                     <i class="fas fa-tags text-3xl mb-3"></i>
-                    <p>Категорий пока нет</p>
+                    <p>{% trans "Категорий пока нет" %}</p>
                 </div>
             </div>
 

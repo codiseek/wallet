@@ -1594,10 +1594,10 @@ def register(request):
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=10):
+                if time_passed < timedelta(minutes=30):
                     return JsonResponse({
                         "success": False, 
-                        "error": "С одного устройства можно регистрироваться только 1 раз в 10 минут!"
+                        "error": "С одного устройства можно регистрироваться только 1 раз в 30 минут!"
                     })
             
             if not username:
@@ -3044,59 +3044,51 @@ def import_user_data(request):
 
 @csrf_exempt
 @login_required
+@require_POST
 def update_language(request):
-    """
-    Переключение языка интерфейса с сохранением в cookie
-    """
-    if request.method == "POST":
+    """Упрощенная функция смены языка без использования translation"""
+    try:
         lang_code = request.POST.get("language")
-
-        # Получаем список доступных кодов языков
-        available_languages = [lang[0] for lang in settings.LANGUAGES]
-
-        # Проверка корректности кода языка
-        if lang_code in available_languages:
-            translation.activate(lang_code)
-            request.session['django_language'] = lang_code
-
-            # Сохраняем язык в профиль пользователя, если есть поле
-            if hasattr(request.user, 'userprofile'):
-                try:
-                    request.user.userprofile.language = lang_code
-                    request.user.userprofile.save()
-                except Exception as e:
-                    print(f"Language field not available: {e}")
-
-            response = JsonResponse({
-                'success': True,
-                'message': 'Язык изменен',
-                'language': lang_code,
-                'language_name': dict(settings.LANGUAGES).get(lang_code, lang_code)
-            })
-
-            response.set_cookie(
-                settings.LANGUAGE_COOKIE_NAME,
-                lang_code,
-                max_age=settings.LANGUAGE_COOKIE_AGE,
-                secure=settings.LANGUAGE_COOKIE_SECURE,
-                samesite=settings.LANGUAGE_COOKIE_SAMESITE,
-            )
-            return response
-        else:
+        
+        # Простая проверка допустимых языков
+        if lang_code not in ['ru', 'en', 'kg']:
             return JsonResponse({
                 'success': False,
-                'error': f'Неверный код языка: {lang_code}. Доступные: {", ".join(available_languages)}'
+                'error': 'Неверный код языка'
             })
 
-    return JsonResponse({
-        'success': False,
-        'error': 'Неверный метод запроса'
-    })
+        # Сохраняем только в профиль и сессию
+        request.session['django_language'] = lang_code
+        
+        if hasattr(request.user, 'userprofile'):
+            request.user.userprofile.language = lang_code
+            request.user.userprofile.save()
+
+        response = JsonResponse({
+            'success': True,
+            'message': 'Язык успешно изменен',
+            'language': lang_code,
+            'language_name': {
+                'ru': 'Русский',
+                'en': 'English', 
+                'kg': 'Кыргызча'
+            }.get(lang_code, lang_code)
+        })
+        
+        # Устанавливаем простой cookie
+        response.set_cookie('django_language', lang_code, max_age=365*24*60*60)
+        
+        return response
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка: {str(e)}'
+        })
+    
 
 
-
-
-
+    
 @login_required
 def get_profile_info(request):
     """Получение информации о профиле"""
@@ -3343,7 +3335,7 @@ def import_mbank(file_path, user):
             name='MBank',
             defaults={
                 'color': '#6B46C1',
-                'icon': '/static/main/mico.svg'
+                'icon': '/static/main/icons/mico.svg'
             }
         )
         print(f"Категория MBank: {'создана' if created else 'существовала'}")
@@ -3353,17 +3345,17 @@ def import_mbank(file_path, user):
     'Тулпар': {
         'keywords': ['Тулпар', 'TULPAR'],
         'color': "#8B80F9",
-        'icon': '/static/main/tulpar.svg'
+        'icon': '/static/main/icons/tulpar.svg'
     },
     'Куликовский': {
         'keywords': ['Kulikovskiy', 'куликовский'],
         'color': "#5D8BF4",
-        'icon': '/static/main/kulikov.svg'
+        'icon': '/static/main/icons/kulikov.svg'
     },
     'Globus': {
         'keywords': ['globus', 'глобус'],
         'color': '#FF7B7B',
-        'icon': '/static/main/globus.svg'
+        'icon': '/static/main/icons/globus.svg'
     },
     'Аптека': {
         'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация', 'дарыкана'],
@@ -3373,7 +3365,7 @@ def import_mbank(file_path, user):
     'Мой дом': {
         'keywords': ['Мой дом'],
         'color': '#10D452',
-        'icon': '/static/main/moi-dom.svg'
+        'icon': '/static/main/icons/moi-dom.svg'
     },
     'Интернет': {
         'keywords': ['Exnet', 'homeline', 'megaline', 'skynet', 'fastnet', 'aknet', 'neotelecom', 'акнет', 'фастнет', 'скайнет', 'мега-лайн'],
@@ -3383,42 +3375,42 @@ def import_mbank(file_path, user):
     'KFC': {
         'keywords': ['KFC'],
         'color': "#FFCC00",
-        'icon': '/static/main/kfc.svg'
+        'icon': '/static/main/icons/kfc.svg'
     },
     'Lalafo': {
         'keywords': ['Lalafo'],
         'color': "#00FF88",
-        'icon': '/static/main/lalafo.svg'
+        'icon': '/static/main/icons/lalafo.svg'
     },
     'Finca Bank': {
         'keywords': ['Finca', 'финка', 'FINCA_Bank'],
         'color': "#FF3366",
-        'icon': '/static/main/finca.svg'
+        'icon': '/static/main/icons/finca.svg'
     },
     'Элкарт': {
         'keywords': ['Элкарт'],
         'color': "#3399FF",
-        'icon': '/static/main/elcard.svg'
+        'icon': '/static/main/icons/elcard.svg'
     },
     'MEGA': {
         'keywords': ['Mega', 'megacom'],
         'color': "#00FF66",
-        'icon': '/static/main/mega.svg'
+        'icon': '/static/main/icons/mega.svg'
     },
     'O!Dengi': {
         'keywords': ['O!Dengi', 'оденьги', 'O!'],
         'color': "#FF27A6",
-        'icon': '/static/main/o.svg'
+        'icon': '/static/main/icons/o.svg'
     },
     'Dodo Pizza': {
         'keywords': ['Dodo', 'Dodo Pizza', 'Додо пицца'],
         'color': "#FF4444",
-        'icon': '/static/main/dodo.svg'
+        'icon': '/static/main/icons/dodo.svg'
     },
     'Optima Bank': {
         'keywords': ['optima', 'оптима'],
         'color': "#CCCCCC",
-        'icon': '/static/main/optima.svg'
+        'icon': '/static/main/icons/optima.svg'
     },
     'Оптовые цены': {
         'keywords': ['Оптовые цены'],
@@ -3428,12 +3420,12 @@ def import_mbank(file_path, user):
     'Spar': {
         'keywords': ['Spar'],
         'color': "#FF6B6B",
-        'icon': '/static/main/spar.svg'
+        'icon': '/static/main/icons/spar.svg'
     },
     'Перекресток': {
         'keywords': ['Перекресток'],
         'color': "#9D95FF",
-        'icon': '/static/main/per.svg'
+        'icon': '/static/main/icons/per.svg'
     }
 }
         

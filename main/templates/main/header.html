@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!-- Верхний бар с логотипом, уведомлением и меню -->
 <div class="mobile-header px-4 h-14 flex items-center justify-between">
   <div class="flex items-center h-full space-x-2">
     <!-- Логотип как кнопка для открытия уведомлений -->
     <button id="logoBtn" class="flex items-center justify-center h-10 w-10 hover:opacity-80 transition-opacity focus:outline-none">
-        <img src="{% static 'main/ico.svg' %}" alt="coinza" class="h-7 mt-2">
+        <img src="{% static 'main/icons/ico.svg' %}" alt="coinza" class="h-7 mt-2">
     </button>
 
     <!-- Иконка уведомлений вместо индикатора -->
@@ -51,7 +52,7 @@
             <div class="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:bg-amber-500 transition-colors flex-shrink-0">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Новость</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Новость" %}</span>
         </button>
         {% endif %}
 
@@ -60,7 +61,7 @@
             <div class="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-colors flex-shrink-0">
                 <i class="fa-solid fa-feather-pointed text-blue-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Заметка</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Заметка" %}</span>
         </button>
 
         <!-- To Do List -->
@@ -68,7 +69,7 @@
             <div class="w-9 h-9 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:bg-emerald-500 transition-colors flex-shrink-0">
                 <i class="fa-solid fa-check-double text-emerald-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Задача</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Задача" %}</span>
         </button>
           
         <!-- Долг -->
@@ -77,7 +78,7 @@
 
                 <i class="fa-solid fa-arrows-spin text-rose-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Платеж</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Платеж" %}</span>
         </button>
 
 

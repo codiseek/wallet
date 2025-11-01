@@ -1,5 +1,5 @@
 {% load static %}
-
+{% load i18n %}
 <div class="mobile-tab" id="tab-panel">
     <div class="mobile-section">
         <div class="mobile-content">
@@ -9,7 +9,7 @@
 
     <h2 class="text-lg font-bold mb-4 flex items-center">
         <i class="fa-solid fa-sliders text-blue-400 mr-2"></i>
- <span >Панель управления</span>
+ <span>{% trans "Панель управления" %}</span>
     </h2>
     
 
@@ -49,10 +49,10 @@
             <div class="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-colors flex-shrink-0">
                 <i class="fas fa-user-edit text-blue-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Профиль</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Профиль" %}</span>
         </button>
         
-        <div class="border-t border-gray-700/50 my-1 mx-2"></div>
+       
         
         <!-- Кнопка выхода -->
         <a href="{% url 'logout' %}" 
@@ -60,7 +60,7 @@
             <div class="w-9 h-9 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
                 <i class="fas fa-sign-out-alt text-red-400 text-sm group-hover:text-white"></i>
             </div>
-            <span class="text-lg font-medium whitespace-nowrap">Выйти</span>
+            <span class="text-lg font-medium whitespace-nowrap">{% trans "Выйти" %}</span>
         </a>
     </div>
 </div>
@@ -78,28 +78,28 @@
 <div class="bg-red-900/20 rounded-xl p-4 mb-6 border border-red-500/30 admin-panel">
     <h3 class="font-semibold text-white mb-4 flex items-center">
         <i class="fas fa-shield-alt mr-2 text-yellow-400"></i>
-        <span>Администрирование</span>
+        <span>{% trans "Администрирование" %}</span>
     </h3>
     
     <!-- Основная кнопка -->
     <button onclick="toggleAdminUsersModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-3 mb-4">
         <i class="fas fa-users text-lg"></i>
-        <span class="text-base font-medium">Управление пользователями</span>
+        <span class="text-base font-medium">{% trans "Управление пользователями" %}</span>
     </button>
 
     <!-- Статистика пользователей -->
     <div class="grid grid-cols-3 gap-3 mb-4">
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="totalUsersCount" class="text-2xl font-bold text-green-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Всего пользователей</div>
+            <div class="text-gray-300 text-xs mt-1">{% trans "Всего пользователей" %}</div>
         </div>
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="newUsersWeekCount" class="text-2xl font-bold text-blue-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Новых за неделю</div>
+            <div class="text-gray-300 text-xs mt-1">{% trans "Новых за неделю" %}</div>
         </div>
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="activeTodayCount" class="text-2xl font-bold text-purple-400">0</div>
-            <div class="text-gray-300 text-xs mt-1">Активных сегодня</div>
+            <div class="text-gray-300 text-xs mt-1">{% trans "Активных сегодня" %}</div>
         </div>
     </div>
 
@@ -107,14 +107,14 @@
     <div class="bg-black/30 rounded-lg p-3 border border-white/10">
         <h4 class="text-white font-medium mb-2 flex items-center text-sm">
             <i class="fas fa-clock mr-2 text-gray-400"></i>
-            <span>Последние регистрации</span>
+            <span>{% trans "Последние регистрации" %}</span>
         </h4>
         
         <div id="recentUsersList">
             <!-- Динамический список будет здесь -->
             <div class="text-center py-4 text-gray-400">
                 <i class="fas fa-spinner animate-spin mr-2"></i>
-                <span>Загрузка...</span>
+                <span>{% trans "Загрузка..." %}</span>
             </div>
         </div>
     </div>
@@ -130,7 +130,7 @@
             <div>
                 <h3 class="text-lg font-bold text-white flex items-center">
                     <i class="fas fa-users mr-2 text-purple-400"></i>
-                    <span>Список пользователей</span>
+                    <span>{% trans "Список пользователей" %}</span>
                 </h3>
             </div>
             <button onclick="toggleAdminUsersModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
@@ -154,7 +154,7 @@
                 </div>
                 <button class="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-xl transition-colors flex items-center space-x-2">
                     <i class="fas fa-filter"></i>
-                    <span>Фильтры</span>
+                    <span>{% trans "Фильтры" %}</span>
                 </button>
             </div>
         </div>
@@ -164,7 +164,7 @@
             <!-- Лоадер -->
             <div id="usersListLoader" class="p-8 text-center">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
-                <p class="text-gray-400 mt-2">Загрузка пользователей...</p>
+                <p class="text-gray-400 mt-2">{% trans "Загрузка пользователей..." %}</p>
             </div>
             
             <!-- Контент -->
@@ -181,7 +181,7 @@
                         class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl transition-colors hidden"
                     >
                         <i class="fas fa-plus mr-2"></i>
-                        <span>Загрузить еще</span>
+                        <span>{% trans "Загрузить еще" %}</span>
                     </button>
                 </div>
             </div>
@@ -192,11 +192,11 @@
             <div class="flex justify-between items-center text-sm">
                 <div class="text-gray-400">
                     <i class="fas fa-info-circle mr-1"></i>
-                    <span>Всего пользователей:</span> <span id="modalTotalUsers" class="text-white font-semibold">0</span>
+                    <span>{% trans "Всего пользователей" %}:</span> <span id="modalTotalUsers" class="text-white font-semibold">0</span>
                 </div>
                 <button class="text-purple-400 hover:text-purple-300 text-sm flex items-center space-x-1">
                     <i class="fas fa-download"></i>
-                    <span>Экспорт</span>
+                    <span>{% trans "Экспорт" %}</span>
                 </button>
             </div>
         </div>
@@ -205,99 +205,85 @@
 
 
 
-{% load i18n %}
 
 <!-- Блок выбора языка -->
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-  <div class="flex items-center justify-between mb-3">
-    <div class="flex items-center space-x-2">
-      <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-        <i class="fas fa-globe text-purple-400 text-sm"></i>
-      </div>
-      <h3 class="text-base font-semibold text-gray-200">{% trans "Язык" %}</h3>
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <i class="fas fa-globe text-purple-400 text-sm"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-200">
+                {% if LANGUAGE_CODE == 'ru' %}Язык
+                {% else %}{% trans "Язык" %}
+                {% endif %}
+            </h3>
+        </div>
+        
+        {% get_current_language as LANGUAGE_CODE %}
+        <span id="currentLanguage" class="text-sm text-purple-400 font-medium">
+            {% if LANGUAGE_CODE == 'ru' %}Русский
+            {% elif LANGUAGE_CODE == 'en' %}{% trans "English" %}
+            {% elif LANGUAGE_CODE == 'kg' %}{% trans "Кыргызча" %}
+            {% else %}Русский{% endif %}
+        </span>
     </div>
-    
-    {% get_current_language as LANGUAGE_CODE %}
-    <span id="currentLanguage" class="text-sm text-purple-400 font-medium">
-      {% if LANGUAGE_CODE == 'ru' %}{% trans "Русский" %}
-      {% elif LANGUAGE_CODE == 'en' %}{% trans "English" %}
-      {% elif LANGUAGE_CODE == 'kg' %}{% trans "Кыргызча" %}
-      {% else %}{% trans "Русский" %}{% endif %}
-    </span>
-  </div>
 
-  <p class="text-sm text-gray-400 mb-3">{% trans "Выберите язык интерфейса." %}</p>
-
-  <!-- Форма смены языка -->
-  <form action="{% url 'update_language' %}" method="post" class="grid grid-cols-3 gap-2">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.path }}">
-
-    <button type="submit" name="language" value="ru"
-      class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">{% trans "Русский" %}</span>
-    </button>
-    
-    <button type="submit" name="language" value="en"
-      class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">{% trans "English" %}</span>
-    </button>
-    
-    <button type="submit" name="language" value="kg"
-      class="flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'kg' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-      <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
-    </button>
-  </form>
-
-  <!-- Уведомление о процессе перевода -->
-  <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-    <div class="flex items-start space-x-3">
-      <div class="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <i class="fas fa-info text-yellow-400 text-xs"></i>
-      </div>
-      <div class="flex-1">
-        <p class="text-yellow-400 text-xs font-medium mb-1">{% trans "Перевод в процессе" %}</p>
-        <p class="text-yellow-300/80 text-xs leading-relaxed">
-          {% trans "Мы активно работаем над переводом приложения. Некоторые элементы интерфейса могут временно отображаться на русском языке. Перевод будет полностью завершен в ближайших обновлениях." %}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
-            <!-- Блок выбора валюты -->
-            <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <i class="fas fa-money-bill-wave text-green-400 text-sm"></i>
-                        </div>
-                         <h3 class="text-base font-semibold text-gray-200">Валюта</h3>
-                    </div>
-                    <span id="currentCurrency" class="text-sm text-green-400 font-medium">
-                        {% if user_currency == 'c' %}<span>сом</span>
-            {% elif user_currency == 'r' %}<span>рубль</span>
-            {% elif user_currency == '$' %}<span>доллар</span>
-            {% elif user_currency == '€' %}<span>евро</span>
-            {% else %}<span>сом</span>{% endif %}
-                    </span>
-                </div>
-
-                <p class="text-sm text-gray-400 mb-3">
-        Выберите валюту для отображения сумм.
+    <p class="text-sm text-gray-400 mb-3">
+        {% if LANGUAGE_CODE == 'ru' %}Выберите язык интерфейса.
+        {% else %}{% trans "Выберите язык интерфейса." %}
+        {% endif %}
     </p>
 
-                <div class="grid grid-cols-2 gap-2">
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="c" data-translate-title="currencies.som" title="Сом">
+    <!-- Упрощенная форма смены языка -->
+    <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="changeLanguage('ru')"
+            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+            <span class="text-white text-sm">
+                {% if LANGUAGE_CODE == 'ru' %}Русский
+                {% else %}{% trans "Русский" %}
+                {% endif %}
+            </span>
+        </button>
+        
+        <button type="button" onclick="changeLanguage('en')"
+            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+            <span class="text-white text-sm">{% trans "English" %}</span>
+        </button>
+
+        <button type="button" onclick="changeLanguage('kg')"
+            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'kg' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+            <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
+        </button>
+    </div>
+</div>
+            <!-- Блок выбора валюты -->
+        <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                <i class="fas fa-money-bill-wave text-green-400 text-sm"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-200">{% trans "Валюта" %}</h3>
+        </div>
+        <span id="currentCurrency" class="text-sm text-green-400 font-medium">{{ user_currency }}</span>
+    </div>
+
+    <p class="text-sm text-gray-400 mb-3">
+        {% trans "Выберите валюту для отображения сумм." %}
+    </p>
+
+    <div class="flex gap-2">
+        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="c" title="Сом">
             <i class="fa-solid fa-c text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="r" data-translate-title="currencies.ruble" title="Рубль">
+        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
             <i class="fas fa-ruble-sign text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="$" data-translate-title="currencies.dollar" title="Доллар">
+        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="$" title="Доллар">
             <i class="fas fa-dollar-sign text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex items-center justify-center py-3 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500 bg-green-500/10{% else %}border-gray-600{% endif %}" data-currency="€" data-translate-title="currencies.euro" title="Евро">
+        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
             <i class="fas fa-euro-sign text-white text-lg"></i>
         </button>
     </div>
@@ -310,13 +296,13 @@
             <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
                 <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
             </div>
-            <h3 class="text-base font-semibold text-gray-200">Резерв</h3>
+            <h3 class="text-base font-semibold text-gray-200">{% trans "Резерв" %}</h3>
         </div>
         <span id="currentReservePercent" class="text-sm text-blue-400 font-medium">{{ reserve_percentage }}%</span>
     </div>
 
     <p class="text-sm text-gray-400 mb-3">
-        Укажите, сколько процентов от доходов автоматически откладывать в резерв.
+        {% trans "Укажите, сколько процентов от доходов автоматически откладывать в резерв." %}
     </p>
 
     <div class="flex items-center space-x-3 mb-4">
@@ -333,7 +319,7 @@
             class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
         >
             <i class="fas fa-save mr-2"></i>
-            <span>Сохранить</span>
+            <span>{% trans "Сохранить" %}</span>
         </button>
     </div>
 
@@ -344,13 +330,13 @@
                 <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
                     <i class="fas fa-bullseye text-purple-400 text-sm"></i>
                 </div>
-                <h3 class="text-base font-semibold text-gray-200">Целевой резерв</h3>
+                <h3 class="text-base font-semibold text-gray-200">{% trans "Целевой резерв" %}</h3>
             </div>
             <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} <span>сом</span></span>
         </div>
 
         <p class="text-sm text-gray-400 mb-3">
-            Укажите сумму, которую хотите накопить.
+            {% trans "Укажите сумму, которую хотите накопить." %}
         </p>
 
         <div class="flex items-center space-x-3">
@@ -367,346 +353,18 @@
                 class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
             >
                 <i class="fas fa-save mr-2"></i>
-                <span>Сохранить</span>
+                <span>{% trans "Сохранить" %}</span>
             </button>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Обработка переключения языка
-    const languageButtons = document.querySelectorAll('button[name="language"]');
-    
-    languageButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const form = this.closest('form');
-            const formData = new FormData(form);
-            const selectedLanguage = this.value;
-
-            // 👇 Важно: добавляем язык вручную, иначе он не передается
-            formData.append('language', selectedLanguage);
-
-            console.log('Changing language to:', selectedLanguage);
-
-            // Показываем индикатор загрузки
-            const currentLanguage = document.getElementById('currentLanguage');
-            const originalText = currentLanguage.textContent;
-            currentLanguage.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            // Отключаем кнопки на время запроса
-            languageButtons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-            });
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Server response:', data);
-
-                if (data.success) {
-                    const languageNames = {
-                        'ru': 'Русский',
-                        'en': 'English',
-                        'kg': 'Кыргызча'
-                    };
-                    currentLanguage.textContent = data.language_name || languageNames[selectedLanguage] || selectedLanguage;
-
-                    if (window.showSuccessNotification) {
-                        showSuccessNotification(data.message || 'Язык успешно изменен!');
-                    }
-
-                    // Перезагрузка страницы после смены языка
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                } else {
-                    currentLanguage.textContent = originalText;
-                    if (window.showErrorNotification) {
-                        showErrorNotification(data.error || 'Ошибка при смене языка');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                currentLanguage.textContent = originalText;
-                if (window.showErrorNotification) {
-                    showErrorNotification('Ошибка сети при смене языка');
-                }
-            })
-            .finally(() => {
-                // Возвращаем кнопки в активное состояние
-                languageButtons.forEach(btn => {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                });
-            });
-        });
-    });
-});
-</script>
-
-        
-<script>
-// Переменная для отслеживания состояния импорта
-let isImporting = false;
-
-// Функция для экспорта данных
-function exportData() {
-    if (isImporting) return;
-    
-    console.log('Export started...');
-    
-    if (window.showLoadingNotification) {
-        showLoadingNotification('Подготовка данных для экспорта...');
-    }
-    
-    fetch('/export-data/', {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка экспорта: ' + response.status);
-        }
-        return response.blob();
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        if (window.showSuccessNotification) {
-            showSuccessNotification('Данные успешно экспортированы!');
-        }
-    })
-    .catch(error => {
-        console.error('Export error:', error);
-        if (window.showErrorNotification) {
-            showErrorNotification('Ошибка при экспорте данных: ' + error.message);
-        }
-    });
-}
-
-// Функция для импорта данных
-function importData() {
-    if (isImporting) {
-        console.log('Import already in progress');
-        return;
-    }
-    
-    console.log('Import started...');
-    
-    // Создаем файловый input
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.json';
-    fileInput.style.display = 'none';
-    
-    // Добавляем обработчик события change
-    fileInput.addEventListener('change', function(event) {
-        handleFileImport(event, fileInput);
-    });
-    
-    document.body.appendChild(fileInput);
-    fileInput.click();
-    
-    // Удаляем input после использования
-    setTimeout(() => {
-        if (document.body.contains(fileInput)) {
-            document.body.removeChild(fileInput);
-        }
-    }, 1000);
-}
-
-// Обработчик выбора файла для импорта
-function handleFileImport(event, fileInput) {
-    console.log('File selected for import');
-    
-    const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-    
-    console.log('Selected file:', file.name, file.size, file.type);
-    
-    // Подтверждение импорта
-    if (!confirm('ВНИМАНИЕ: При импорте будут перезаписаны все текущие данные. Продолжить?')) {
-        console.log('Import cancelled by user');
-        return;
-    }
-
-    console.log('User confirmed import');
-    
-    // Находим кнопку импорта
-    const importBtn = document.getElementById('importBtn');
-    console.log('Import button found:', !!importBtn);
-    
-    if (importBtn) {
-        // Сохраняем оригинальное состояние
-        const originalHTML = importBtn.innerHTML;
-        const originalClasses = importBtn.className;
-        
-        // Обновляем кнопку
-        importBtn.innerHTML = `
-            <i class="fas fa-spinner fa-spin text-2xl"></i>
-            <span class="font-medium text-sm">Импорт...</span>
-            <span class="text-xs text-blue-200 opacity-80">Идет загрузка</span>
-        `;
-        importBtn.className = originalClasses.replace('bg-green-600', 'bg-blue-600') + ' cursor-not-allowed';
-        importBtn.disabled = true;
-        
-        // Устанавливаем флаг импорта
-        isImporting = true;
-        
-        // Показываем уведомление
-        if (window.showLoadingNotification) {
-            showLoadingNotification('Импорт данных... Это может занять несколько секунд');
-        }
-        
-        const formData = new FormData();
-        formData.append('backup_file', file);
-        
-        console.log('Sending import request...');
-        
-        fetch('/import-data/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            }
-        })
-        .then(response => {
-            console.log('Import response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Import response data:', data);
-            
-            if (data.success) {
-                // Успех
-                importBtn.innerHTML = `
-                    <i class="fas fa-check text-2xl"></i>
-                    <span class="font-medium text-sm">Успешно!</span>
-                    <span class="text-xs text-green-200 opacity-80">Перезагрузка...</span>
-                `;
-                importBtn.className = originalClasses.replace('bg-green-600', 'bg-green-700') + ' cursor-not-allowed';
-                
-                if (window.showSuccessNotification) {
-                    showSuccessNotification(data.message || 'Данные успешно импортированы!');
-                }
-                
-                // Перезагрузка через 2 секунды
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                // Ошибка
-                throw new Error(data.error || 'Неизвестная ошибка');
-            }
-        })
-        .catch(error => {
-            console.error('Import error:', error);
-            
-            // Восстанавливаем кнопку с ошибкой
-            importBtn.innerHTML = `
-                <i class="fas fa-times text-2xl"></i>
-                <span class="font-medium text-sm">Ошибка</span>
-                <span class="text-xs text-red-200 opacity-80">Нажмите снова</span>
-            `;
-            importBtn.className = originalClasses.replace('bg-green-600', 'bg-red-600');
-            
-            // Показываем ошибку
-            if (window.showErrorNotification) {
-                showErrorNotification('Ошибка при импорте данных: ' + error.message);
-            }
-            
-            // Восстанавливаем кнопку через 3 секунды
-            setTimeout(() => {
-                importBtn.innerHTML = originalHTML;
-                importBtn.className = originalClasses;
-                importBtn.disabled = false;
-                isImporting = false;
-            }, 3000);
-        })
-        .finally(() => {
-            // Удаляем файловый input
-            if (fileInput && document.body.contains(fileInput)) {
-                document.body.removeChild(fileInput);
-            }
-        });
-    } else {
-        console.error('Import button not found');
-        if (window.showErrorNotification) {
-            showErrorNotification('Ошибка: не найдена кнопка импорта');
-        }
-    }
-}
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Backup functions loaded');
-    
-    // Проверяем, что кнопки найдены
-    const exportBtn = document.getElementById('exportBtn');
-    const importBtn = document.getElementById('importBtn');
-    
-    console.log('Export button found:', !!exportBtn);
-    console.log('Import button found:', !!importBtn);
-    
-    // Добавляем обработчики, если они не установлены через onclick
-    if (exportBtn && !exportBtn.onclick) {
-        exportBtn.addEventListener('click', exportData);
-    }
-    if (importBtn && !importBtn.onclick) {
-        importBtn.addEventListener('click', importData);
-    }
-});
-
-// Функции уведомлений (если не определены)
-if (typeof showSuccessNotification === 'undefined') {
-    window.showSuccessNotification = function(message) {
-        alert('SUCCESS: ' + message);
-    };
-}
-
-if (typeof showErrorNotification === 'undefined') {
-    window.showErrorNotification = function(message) {
-        alert('ERROR: ' + message);
-    };
-}
-
-if (typeof showLoadingNotification === 'undefined') {
-    window.showLoadingNotification = function(message) {
-        console.log('LOADING: ' + message);
-    };
-}
-</script>
 
 
 <!-- Управление данными -->
 <div class="bg-zinc-800/60 rounded-2xl p-5 mb-6 border border-gray-700/50 shadow-lg">
   <h3 class="font-semibold text-white mb-6 flex items-center">
     <i class="fas fa-database mr-3 text-blue-400"></i>
-    <span>Управление данными</span>
+    <span>{% trans "Управление данными" %}</span>
   </h3>
 
   <!-- Основные операции -->
@@ -721,8 +379,8 @@ if (typeof showLoadingNotification === 'undefined') {
         <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
           <i class="fas fa-download text-lg text-blue-300"></i>
         </div>
-        <span class="font-semibold text-sm">Экспорт</span>
-        <span class="text-xs text-blue-200/70">Backup данных</span>
+        <span class="font-semibold text-sm">{% trans "Экспорт" %}</span>
+        <span class="text-xs text-blue-200/70">{% trans "Backup данных" %}</span>
       </button>
     </div>
 
@@ -736,483 +394,240 @@ if (typeof showLoadingNotification === 'undefined') {
         <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
           <i class="fas fa-upload text-lg text-green-300"></i>
         </div>
-        <span class="font-semibold text-sm">Импорт</span>
-        <span class="text-xs text-green-200/70">Восстановить</span>
+        <span class="font-semibold text-sm">{% trans "Импорт" %}</span>
+        <span class="text-xs text-green-200/70">{% trans "Восстановить" %}</span>
       </button>
     </div>
   </div>
 
   <!-- Банковские импорты -->
-  <div class="space-y-4">
+{% load static %}
+
+<div class="space-y-4">
     <!-- Заголовок банковских импортов -->
     <div class="flex items-center justify-between">
-      <h4 class="font-medium text-white/90 text-sm flex items-center">
-        <i class="fas fa-building-columns mr-2 text-purple-400"></i>
-        Импорт из банков
-      </h4>
-      <span class="text-xs text-gray-400 bg-gray-700/50 px-2 py-1 rounded-lg">авто</span>
+        <h4 class="font-medium text-white/90 text-sm flex items-center">
+            <i class="fas fa-building-columns mr-2 text-purple-400"></i>
+            {% trans "Импорт из банков" %}
+        </h4>
     </div>
 
     <!-- Мбанк -->
     <div class="group">
-      <button 
-        id="importMbankBtn"
-        onclick="openMbankInstructionModal()"
-        class="w-full bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] hover:from-[#2a2a2a] hover:to-[#3a3a3a] text-white p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.01] border border-[#fabf00]/40 hover:border-[#fabf00]/60 hover:shadow-lg hover:shadow-[#fabf00]/10 flex items-center justify-between"
-      >
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-lg bg-[#fabf00]/10 flex items-center justify-center group-hover:bg-[#fabf00]/20 transition-colors">
-            <img src="{% static 'main/mico.svg' %}" alt="Mbank" class="w-6 h-6 object-contain">
-          </div>
-          <div class="text-left">
-            <div class="font-semibold text-white text-sm">Мбанк</div>
-            <div class="text-xs text-gray-400">Excel выписка</div>
-          </div>
-        </div>
-        <i class="fas fa-chevron-right text-gray-500 text-sm group-hover:text-[#fabf00] transition-colors"></i>
-      </button>
-    </div>
-  </div>
+        <div class="flex space-x-2">
+            <!-- Основная кнопка импорта -->
+            <button 
+                id="importMbankBtn"
+                class="flex-1 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] hover:from-[#2a2a2a] hover:to-[#3a3a3a] text-white p-3 rounded-xl transition-all duration-300 border border-[#fabf00]/40 hover:border-[#fabf00]/60 hover:shadow-lg hover:shadow-[#fabf00]/10 flex items-center justify-between"
+            >
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-[#fabf00]/10 flex items-center justify-center group-hover:bg-[#fabf00]/20 transition-colors">
+                        <img src="{% static 'main/icons/mico.svg' %}" alt="Mbank" class="w-5 h-5 object-contain">
+                    </div>
+                    <div class="text-left">
+                        <div class="font-semibold text-white text-sm">{% trans "MBank" %}</div>
+                        <div class="text-xs text-gray-400">{% trans "Excel выписка" %}</div>
+                    </div>
+                </div>
+                <i class="fas fa-upload text-gray-500 text-sm group-hover:text-[#fabf00] transition-colors"></i>
+            </button>
 
-  <!-- Информационный блок -->
-  <div class="mt-6 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50">
-    <div class="flex items-start space-x-2">
-      <i class="fas fa-info-circle text-blue-400 mt-0.5 text-sm"></i>
-      <div class="flex-1">
-        <p class="text-white text-xs font-medium mb-1">Автоматическая обработка</p>
-        <p class="text-gray-400 text-xs leading-relaxed">
-          Импорт из банков автоматически определяет категории и добавляет транзакции
-        </p>
-      </div>
+            <!-- Кнопка инструкции -->
+            <button 
+                onclick="openMbankInstructionModal()"
+                class="px-3 bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-xl transition-colors flex items-center justify-center"
+                title="Инструкция по выписке"
+            >
+                <i class="fas fa-question text-sm"></i>
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
-  <!-- Скрытый input для импорта Мбанка -->
-  <input type="file" id="mbankFileInput" accept=".csv,.xlsx" class="hidden">
-
- 
-
-<!-- Импорт из Мбанка -->
-
-
-
+<!-- Информационный блок -->
+<div class="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50">
+    <div class="flex items-start space-x-2">
+        <i class="fas fa-info-circle text-blue-400 mt-0.5 text-sm"></i>
+        <div class="flex-1">
+            <p class="text-white text-xs font-medium mb-1">{% trans "Автоматическая обработка" %}</p>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                {% trans "Импорт из банков автоматически определяет категории и добавляет транзакции" %}
+            </p>
+        </div>
+    </div>
+</div>
 
 <!-- Скрытый input для импорта Мбанка -->
 <input type="file" id="mbankFileInput" accept=".xlsx,.xls" class="hidden">
 
 <!-- Модальное окно с инструкцией по выписке Мбанка -->
 <div id="mbankInstructionModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
-  <div class="bg-gray-800 rounded-2xl w-11/12 max-w-md max-h-[80vh] overflow-hidden border border-gray-600/50 flex flex-col">
-    <!-- Заголовок модального окна -->
-    <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50 flex-shrink-0">
-      <div class="flex items-center space-x-2">
-        <h3 class="text-lg font-bold text-white">Инструкция по выписке</h3>
-      </div>
-      <button onclick="closeMbankInstructionModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
-        <i class="fas fa-times text-lg"></i>
-      </button>
-    </div>
-    
-    <!-- Контент с инструкцией -->
-    <div class="flex-1 overflow-y-auto p-4">
-      <div class="space-y-4">
-        <!-- Шаг 1 -->
-        <div class="bg-gray-700/30 rounded-lg p-4">
-          <div class="flex items-start space-x-3">
-            <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span class="text-white text-xs font-bold">1</span>
+    <div class="bg-gray-800 rounded-2xl w-11/12 max-w-md max-h-[80vh] overflow-hidden border border-gray-600/50 flex flex-col">
+        <!-- Заголовок модального окна -->
+        <div class="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-900/50 flex-shrink-0">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'main/icons/mico.svg' %}" alt="Mbank" class="w-8 h-8">
+                <div>
+                    <h3 class="text-xl font-bold text-white">{% trans "Инструкция" %}</h3>
+                   
+                </div>
             </div>
-            <div class="flex-1">
-              <p class="text-white font-medium mb-2">Запрос выписки по счету</p>
-              <p class="text-gray-300 text-sm leading-relaxed">
-                Чтобы запросить выписки по определенному счету, вам нужно выбрать счет, нажать на кнопку «Выписки». В открывшемся окне выбрать период за который вам нужна выписка и нажать на кнопку «Применить».
-              </p>
-            </div>
-          </div>
+            <button onclick="closeMbankInstructionModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
         </div>
-
-        <!-- Шаг 2 -->
-        <div class="bg-gray-700/30 rounded-lg p-4">
-          <div class="flex items-start space-x-3">
-            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span class="text-white text-xs font-bold">2</span>
-            </div>
-            <div class="flex-1">
-              <p class="text-white font-medium mb-2">Формирование документа</p>
-              <p class="text-gray-300 text-sm leading-relaxed">
-                После необходимо выбрать нужный формат документа и нажать на кнопку «Сформировать». Вам для скачивания будут доступны форматы PDF и Excel. <span class="text-green-400 font-semibold">Вам нужно выбрать Excel (XLS, XLSX) формат.</span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Важное примечание -->
-        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-          <div class="flex items-start space-x-2">
-            <i class="fas fa-exclamation-triangle text-yellow-400 mt-0.5"></i>
-            <div>
-              <p class="text-yellow-400 text-sm font-medium mb-1">Важно!</p>
-              <p class="text-yellow-300/80 text-xs leading-relaxed">
-                Убедитесь, что вы выбираете именно <span class="font-semibold">Excel формат (XLS или XLSX)</span>, а не PDF. Только Excel файлы поддерживаются для импорта.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Футер с кнопками -->
-    <div class="p-4 border-t border-gray-700 bg-gray-900/30 flex-shrink-0">
-      <div class="flex space-x-3">
-        <button 
-          onclick="closeMbankInstructionModal()"
-          class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl transition-colors"
-        >
-          Отмена
-        </button>
-        <button 
-          onclick="startMbankImport()"
-          class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl transition-colors flex items-center justify-center space-x-2"
-        >
-          <i class="fas fa-upload"></i>
-          <span>Загрузить</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-// Функции для управления модальным окном
-function openMbankInstructionModal() {
-    const modal = document.getElementById('mbankInstructionModal');
-    modal.classList.remove('hidden');
-}
-
-function closeMbankInstructionModal() {
-    const modal = document.getElementById('mbankInstructionModal');
-    modal.classList.add('hidden');
-}
-
-// Функция для начала импорта (вызывается из модалки)
-// Функция для начала импорта (вызывается из модалки)
-function startMbankImport() {
-    closeMbankInstructionModal();
-    
-    // Даем небольшую задержку перед открытием выбора файла
-    setTimeout(() => {
-        const fileInput = document.getElementById('mbankFileInput');
-        if (fileInput) {
-            fileInput.click();
-        }
-    }, 300);
-}
-
-// Обработчик выбора файла
-// Найти этот код в panel_page.html и заменить его:
-
-// Обработчик выбора файла
-document.getElementById('mbankFileInput').addEventListener('change', function(event) {
-    handleMbankFileImport(event);
-});
-
-// Функция для получения CSRF токена
-function getCSRFToken() {
-    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-    return csrfInput ? csrfInput.value : '';
-}
-
-// Обработчик импорта файла Мбанка
-// Обработчик импорта файла Мбанка
-function handleMbankFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Проверяем расширение файла
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    if (!['xlsx', 'xls'].includes(fileExtension)) {
-        if (window.showErrorNotification) {
-            showErrorNotification('Поддерживаются только Excel файлы (XLSX, XLS)');
-        }
-        return;
-    }
-
-    // УДАЛЕНО ВСЕ ПОДТВЕРЖДЕНИЯ - сразу начинаем импорт
-
-    const importMbankBtn = document.getElementById('importMbankBtn');
-    if (importMbankBtn) {
-        const originalHTML = importMbankBtn.innerHTML;
         
-        // Обновляем кнопку - показываем анимацию загрузки
-        importMbankBtn.innerHTML = `
-            <i class="fas fa-spinner fa-spin"></i>
-            <span class="font-semibold text-sm">Импорт...</span>
-        `;
-        importMbankBtn.disabled = true;
+        <!-- Контент с инструкцией -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="space-y-4">
+                <!-- Шаг 1 -->
+                <div class="flex items-start space-x-4 p-4 bg-gray-700/30 rounded-xl">
+    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <span class="text-white text-sm font-bold">1</span>
+    </div>
+    <div class="flex-1">
+        <p class="text-white font-medium mb-2">{% trans "Запрос выписки по счету" %}</p>
+        <p class="text-gray-300 text-sm leading-relaxed">
+            {% trans "Выберите нужный счет, перейдите в раздел «Выписки», укажите период и нажмите «Применить»" %}
+        </p>
+    </div>
+</div>
 
-        if (window.showLoadingNotification) {
-            showLoadingNotification('Импорт данных из Мбанка...');
-        }
+<!-- Шаг 2 -->
+<div class="flex items-start space-x-4 p-4 bg-gray-700/30 rounded-xl">
+    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <span class="text-white text-sm font-bold">2</span>
+    </div>
+    <div class="flex-1">
+        <p class="text-white font-medium mb-2">{% trans "Формирование документа" %}</p>
+        <p class="text-gray-300 text-sm leading-relaxed">
+            {% trans "Выберите" %} <span class="text-green-400 font-semibold">{% trans "Excel (XLS, XLSX)" %}</span> {% trans "формат и нажмите «Сформировать» для скачивания" %}
+        </p>
+    </div>
+</div>
 
-        const formData = new FormData();
-        formData.append('mbank_file', file);
+<!-- Важное примечание -->
+<div class="bg-yellow-500/10 rounded-xl p-4">
+    <div class="flex items-start space-x-3">
+        <i class="fas fa-exclamation-triangle text-yellow-400 mt-0.5 text-base"></i>
+        <div>
+            <p class="text-yellow-400 font-medium mb-1">{% trans "Важно!" %}</p>
+            <p class="text-yellow-300/80 text-sm leading-relaxed">
+                {% trans "Убедитесь, что выбираете именно" %} <span class="font-semibold">{% trans "Excel формат" %}</span>. {% trans "PDF файлы не поддерживаются для импорта." %}
+            </p>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- Футер с кнопками -->
+        <div class="p-6 border-t border-gray-700 bg-gray-900/30 flex-shrink-0">
+            <button 
+                onclick="closeMbankInstructionModal()"
+                class="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl transition-colors font-medium"
+            >
+                {% trans "Закрыть" %}
+            </button>
+        </div>
+    </div>
+</div>
 
-        fetch('/import/mbank/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken()
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Успех - показываем "Успешно импортировано!" на кнопке
-                importMbankBtn.innerHTML = `
-                    <i class="fas fa-check"></i>
-                    <span class="font-semibold text-sm">Успешно импортировано!</span>
-                `;
-                
-                if (window.showSuccessNotification) {
-                    showSuccessNotification(data.message || `Успешно импортировано ${data.count} транзакций!`);
-                }
-                
-                // Перезагрузка через 2 секунды
-                setTimeout(() => window.location.href = '/', 2000);
-            } else {
-                throw new Error(data.message || 'Ошибка импорта');
-            }
-        })
-        .catch(error => {
-            console.error('Mbank import error:', error);
-            if (window.showErrorNotification) {
-                showErrorNotification('Ошибка при импорте: ' + error.message);
-            }
-            // Восстанавливаем кнопку
-            importMbankBtn.innerHTML = originalHTML;
-            importMbankBtn.disabled = false;
-        });
-    }
-}
-
-
-// Закрытие модалки по клику вне области
-document.getElementById('mbankInstructionModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeMbankInstructionModal();
-    }
-});
-</script>
-
-
-
+</div>
+</div>
+</div>
+</div>
 </div>
 
 
 <script>
-// Импорт из Мбанка
-function importMbank() {
-    console.log('Mbank import started...');
+function changeLanguage(langCode) {
+    console.log('Changing language to:', langCode);
     
-    // Создаем файловый input
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.csv,.xlsx,.xls'; // Добавил .xls
-    fileInput.style.display = 'none';
+    // Показываем индикатор загрузки
+    const currentLanguage = document.getElementById('currentLanguage');
+    const originalText = currentLanguage.textContent;
+    currentLanguage.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
-    // Добавляем обработчик события change
-    fileInput.addEventListener('change', function(event) {
-        handleMbankFileImport(event, fileInput);
+    // Отключаем кнопки
+    const languageButtons = document.querySelectorAll('.language-btn');
+    languageButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
     });
     
-    document.body.appendChild(fileInput);
-    fileInput.click();
+    // Создаем FormData
+    const formData = new FormData();
+    formData.append('language', langCode);
+    formData.append('csrfmiddlewaretoken', getCsrfToken());
     
-    // Удаляем input после использования
-    setTimeout(() => {
-        if (document.body.contains(fileInput)) {
-            document.body.removeChild(fileInput);
+    // Отправляем запрос
+    fetch('/update-language/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
         }
-    }, 1000);
-}
-
-// Функция для получения CSRF токена
-function getCSRFToken() {
-    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfInput) {
-        return csrfInput.value;
-    }
-    
-    // Альтернативный способ получения CSRF токена
-    const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
-    if (csrfCookie) {
-        return csrfCookie.split('=')[1];
-    }
-    
-    console.error('CSRF token not found');
-    return '';
-}
-
-// Обработчик выбора файла для импорта Мбанка
-function handleMbankFileImport(event, fileInput) {
-    console.log('Mbank file selected for import');
-    
-    const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-    
-    console.log('Selected Mbank file:', file.name, file.size, file.type);
-    
-    // Проверяем расширение файла
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) { // Добавил .xls
-        if (window.showErrorNotification) {
-            showErrorNotification('Поддерживаются только CSV и Excel файлы (CSV, XLSX, XLS)');
-        }
-        return;
-    }
-
-
-
-    
-    // Находим кнопку импорта Мбанка
-    const importMbankBtn = document.getElementById('importMbankBtn');
-    console.log('Mbank import button found:', !!importMbankBtn);
-    
-    if (importMbankBtn) {
-        // Сохраняем оригинальное состояние
-        const originalHTML = importMbankBtn.innerHTML;
-        const originalClasses = importMbankBtn.className;
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
         
-        // Обновляем кнопку
-        importMbankBtn.innerHTML = `
-            <i class="fas fa-spinner fa-spin text-xl"></i>
-            <span class="font-semibold text-sm">Импорт...</span>
-        `;
-        importMbankBtn.className = originalClasses + ' cursor-not-allowed opacity-75';
-        importMbankBtn.disabled = true;
-        
-        // Показываем уведомление
-        if (window.showLoadingNotification) {
-            showLoadingNotification('Импорт данных из Мбанка...');
-        }
-        
-        const formData = new FormData();
-        formData.append('mbank_file', file);
-        
-        console.log('Sending Mbank import request...');
-        console.log('CSRF Token:', getCSRFToken() ? 'Found' : 'Not found');
-        
-        fetch('/import/mbank/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken()
-            }
-        })
-        .then(response => {
-            console.log('Mbank import response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Mbank import response data:', data);
-            
-            if (data.success) {
-                // Успех
-                importMbankBtn.innerHTML = `
-                    <i class="fas fa-check text-xl"></i>
-                    <span class="font-semibold text-sm">Успешно!</span>
-                `;
-                importMbankBtn.className = originalClasses.replace('bg-purple-600', 'bg-green-600') + ' cursor-not-allowed';
-                
-                if (window.showSuccessNotification) {
-                    showSuccessNotification(data.message || `Успешно импортировано ${data.count} транзакций из Мбанка!`);
-                }
-                
-                // Перезагрузка через 2 секунды
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                // Ошибка
-                throw new Error(data.message || 'Неизвестная ошибка');
-            }
-        })
-        .catch(error => {
-            console.error('Mbank import error:', error);
-            
-            // Восстанавливаем кнопку с ошибкой
-            importMbankBtn.innerHTML = `
-                <i class="fas fa-times text-xl"></i>
-                <span class="font-semibold text-sm">Ошибка</span>
-            `;
-            importMbankBtn.className = originalClasses.replace('bg-purple-600', 'bg-red-600');
-            
-            // Показываем ошибку
-            if (window.showErrorNotification) {
-                showErrorNotification('Ошибка при импорте из Мбанка: ' + error.message);
-            }
-            
-            // Восстанавливаем кнопку через 3 секунды
-            setTimeout(() => {
-                importMbankBtn.innerHTML = originalHTML;
-                importMbankBtn.className = originalClasses;
-                importMbankBtn.disabled = false;
-            }, 3000);
-        })
-        .finally(() => {
-            // Удаляем файловый input
-            if (fileInput && document.body.contains(fileInput)) {
-                document.body.removeChild(fileInput);
-            }
+        // Всегда пытаемся обработать как JSON
+        return response.json().catch(() => {
+            // Если не JSON, создаем объект ошибки
+            throw new Error('Invalid JSON response from server');
         });
-    } else {
-        console.error('Mbank import button not found');
-        if (window.showErrorNotification) {
-            showErrorNotification('Ошибка: не найдена кнопка импорта Мбанка');
+    })
+    .then(data => {
+        console.log('Server response:', data);
+        
+        if (data.success) {
+            const languageNames = {
+                'ru': 'Русский',
+                'en': 'English',
+                'kg': 'Кыргызча'
+            };
+            
+            // Обновляем отображение текущего языка
+            currentLanguage.textContent = data.language_name || languageNames[langCode] || langCode;
+            
+            // Показываем уведомление об успехе
+            if (typeof showSuccessNotification === 'function') {
+                showSuccessNotification(data.message || 'Язык успешно изменен!');
+            }
+            
+            // Перезагружаем страницу через 1 секунду
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            currentLanguage.textContent = originalText;
+            if (typeof showErrorNotification === 'function') {
+                showErrorNotification(data.error || 'Ошибка при смене языка');
+            }
         }
-    }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        currentLanguage.textContent = originalText;
+        
+        // Показываем детальную ошибку
+        if (typeof showErrorNotification === 'function') {
+            showErrorNotification('Ошибка сети или сервера: ' + error.message);
+        }
+    })
+    .finally(() => {
+        // Включаем кнопки обратно
+        languageButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
+    });
 }
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Backup functions loaded');
-    
-    // Проверяем, что кнопки найдены
-    const exportBtn = document.getElementById('exportBtn');
-    const importBtn = document.getElementById('importBtn');
-    const importMbankBtn = document.getElementById('importMbankBtn');
-    
-    console.log('Export button found:', !!exportBtn);
-    console.log('Import button found:', !!importBtn);
-    console.log('Mbank import button found:', !!importMbankBtn);
-    
-    // Добавляем обработчики, если они не установлены через onclick
-    if (exportBtn && !exportBtn.onclick) {
-        exportBtn.addEventListener('click', exportData);
-    }
-    if (importBtn && !importBtn.onclick) {
-        importBtn.addEventListener('click', importData);
-    }
-    if (importMbankBtn && !importMbankBtn.onclick) {
-        importMbankBtn.addEventListener('click', importMbank);
-    }
-});
+// Вспомогательная функция для получения CSRF токена
+function getCsrfToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfToken ? csrfToken.value : '';
+}
 </script>
-
-
-        </div>
-    </div>
-</div>
-        </div></div>
-
-
-

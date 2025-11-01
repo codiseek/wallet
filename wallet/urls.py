@@ -93,6 +93,6 @@ urlpatterns = [
     path('update_profile/', views.update_profile, name='update_profile'),
     path('delete_account/', views.delete_account, name='delete_account'),
     path('import/mbank/', views.import_mbank_view, name='import_mbank')
-
+    
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

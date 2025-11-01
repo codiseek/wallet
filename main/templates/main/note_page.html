@@ -1,4 +1,5 @@
-<!-- Заметки вкладка -->
+{% load static %}
+{% load i18n %}
 <div class="mobile-tab mt-2" id="tab-notes">
     <div class="mobile-section">
         <div class="mobile-content">
@@ -6,12 +7,12 @@
                 <div class="flex justify-between items-center -mt-5 mb-4">
                     <h2 class="text-lg font-bold mb-4  flex items-center">
                 <i class="fa-solid fa-feather-pointed text-blue-400 mr-2"></i>
-                        Список заметок
+                        {% trans "Список заметок" %}
                     </h2>
                 <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3" 
         id="add-note-btn"
         onclick="document.querySelector('.add-note-btn').click()">
-    <i class="fas fa-plus mr-1"></i> Добавить
+    <i class="fas fa-plus mr-1"></i> {% trans "Добавить" %}
 </button>
                    
             </div>
@@ -29,11 +30,11 @@
                     </div>
                     
                     <!-- Заголовок -->
-                    <h3 class="text-xl font-bold text-white mb-3">Ваши умные заметки</h3>
+                    <h3 class="text-xl font-bold text-white mb-3">{% trans "Ваши умные заметки" %}</h3>
                     
                     <!-- Описание -->
                     <p class="text-gray-400 text-sm mb-6 max-w-sm mx-auto">
-                        Создавайте заметки с напоминаниями и никогда не упускайте важное
+                        {% trans "Создавайте заметки с напоминаниями и никогда не упускайте важное" %}
                     </p>
                     
                     <!-- Преимущества в виде карточек -->
@@ -44,8 +45,8 @@
                                 <i class="fas fa-bell text-blue-400 text-sm"></i>
                             </div>
                             <div class="text-left">
-                                <h4 class="text-white text-sm font-semibold">Умные напоминания</h4>
-                                <p class="text-gray-400 text-xs">Получайте уведомления точно в срок</p>
+                                <h4 class="text-white text-sm font-semibold">{% trans "Умные напоминания" %}</h4>
+                                <p class="text-gray-400 text-xs">{% trans "Получайте уведомления точно в срок" %}</p>
                             </div>
                         </div>
                         
@@ -55,8 +56,8 @@
                                 <i class="fas fa-layer-group text-green-400 text-sm"></i>
                             </div>
                             <div class="text-left">
-                                <h4 class="text-white text-sm font-semibold">Все под контролем</h4>
-                                <p class="text-gray-400 text-xs">Просматривайте и редактируйте в любое время</p>
+                                <h4 class="text-white text-sm font-semibold">{% trans "Все под контролем" %}</h4>
+                                <p class="text-gray-400 text-xs">{% trans "Просматривайте и редактируйте в любое время" %}</p>
                             </div>
                         </div>
                         
@@ -66,8 +67,8 @@
                                 <i class="fas fa-rocket text-purple-400 text-sm"></i>
                             </div>
                             <div class="text-left">
-                                <h4 class="text-white text-sm font-semibold">Мгновенный доступ</h4>
-                                <p class="text-gray-400 text-xs">Ваши мысли всегда под рукой</p>
+                                <h4 class="text-white text-sm font-semibold">{% trans "Мгновенный доступ" %}</h4>
+                                <p class="text-gray-400 text-xs">{% trans "Ваши мысли всегда под рукой" %}</p>
                             </div>
                         </div>
                     </div>
@@ -76,7 +77,7 @@
                     <button class="add-note-btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg"
                             onclick="openAddNoteModal()">
                         <i class="fas fa-plus mr-2"></i>
-                        Создать первую заметку
+                        {% trans "Создать первую заметку" %}
                     </button>
                 </div>
             </div>

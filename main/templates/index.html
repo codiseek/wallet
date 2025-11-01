@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <!-- PWA мета-теги -->
     <meta name="application-name" content="coinza">
@@ -132,25 +132,26 @@
 </script>
 
 <!-- Подключение Tailwind и JS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="/static/main/utils.js"></script>
-<script src="/static/main/modals.js"></script>
-<script src="/static/main/notification-logo.js"></script>
-<script src="/static/main/currency.js"></script>
-<script src="/static/main/debt.js"></script>
-<script src="/static/main/balance.js"></script>
-<script src="/static/main/categories.js"></script>
-<script src="/static/main/categories-modal.js"></script>
-<script src="/static/main/notes.js"></script>  
-<script src="/static/main/admin.js"></script>     
-<script src="/static/main/transactions.js"></script>
-<script src="/static/main/savings.js"></script>
-<script src="/static/main/navigation.js"></script>
-<script src="/static/main/admin.js"></script> 
-<script src="/static/main/profile.js"></script> 
-<script src="/static/main/todo.js"></script> 
-<script src="/static/main/app.js"></script>
 
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="{% static 'main/utils.js' %}"></script>
+<script src="{% static 'main/modals.js' %}"></script>
+<script src="{% static 'main/notification-logo.js' %}"></script>
+<script src="{% static 'main/currency.js' %}"></script>
+<script src="{% static 'main/debt.js' %}"></script>
+<script src="{% static 'main/balance.js' %}"></script>
+<script src="{% static 'main/categories.js' %}"></script>
+<script src="{% static 'main/categories-modal.js' %}"></script>
+<script src="{% static 'main/notes.js' %}"></script>  
+<script src="{% static 'main/admin.js' %}"></script>     
+<script src="{% static 'main/transactions.js' %}"></script>
+<script src="{% static 'main/savings.js' %}"></script>
+<script src="{% static 'main/navigation.js' %}"></script>
+<script src="{% static 'main/backup.js' %}"></script> 
+<script src="{% static 'main/mbank_import.js' %}"></script> 
+<script src="{% static 'main/profile.js' %}"></script> 
+<script src="{% static 'main/todo.js' %}"></script> 
+<script src="{% static 'main/app.js' %}"></script>
    
 
   <script>

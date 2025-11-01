@@ -1,36 +1,37 @@
 {% load static %}
+{% load i18n %}
 <!-- История операций -->
 <div class="card-gradient rounded-2xl ">
     <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-bold">История операций</h2>
+        <h2 class="text-lg font-bold">{% trans "История операций" %}</h2>
         <!-- Кнопка фильтра -->
         <div class="relative ">
             <button id="filterToggleBtn" class="bg-gray-800 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors">
-                <span id="currentFilterText">За неделю</span>
+                <span id="currentFilterText">{% trans "За неделю" %}</span>
                 
             </button>
            <!-- Выпадающий список -->
 <div id="filterDropdown" class="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl hidden min-w-40 z-[100]">
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="day">
-        За день
+        {% trans "За день" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="week">
-        За неделю
+        {% trans "За неделю" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="month">
-        За 1 месяц
+        {% trans "За 1 месяц" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="3months">
-        За 3 месяца
+        {% trans "За 3 месяца" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="6months">
-        За 6 месяцев
+        {% trans "За 6 месяцев" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors border-b border-gray-700" data-filter="9months">
-        За 9 месяцев
+        {% trans "За 9 месяцев" %}
     </button>
     <button class="filter-option w-full text-left px-4 py-3 hover:bg-gray-700 text-sm transition-colors" data-filter="12months">
-        За 12 месяцев
+        {% trans "За 12 месяцев" %}
     </button>
 </div>
         </div>
@@ -43,7 +44,7 @@
     <!-- Кнопка загрузки еще -->
     <div id="loadMoreContainer" class="mt-4 text-center hidden">
         <button id="loadMoreBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg text-sm transition-colors">
-            Загрузить еще
+            {% trans "Загрузить еще" %}
         </button>
     </div>
     
@@ -63,8 +64,8 @@
     <!-- Текст в стиле мысли/комментария -->
     <div class="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl p-6 border-2 border-dashed border-blue-400/30">
         <p class="text-gray-200 text-sm leading-relaxed text-center">
-           Здесь будут отображаться все ваши
-            финансовые операции!
+           {% trans "Здесь будут отображаться все ваши
+            финансовые операции!" %}
         </p>
     </div>
 </div>
@@ -75,11 +76,11 @@
     <!-- Совет 1 - Mbank -->
     <div class="flex items-start space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:border-[#fabf00]/30 transition-all duration-300">
         <div class="w-8 h-8 rounded-lg bg-blue-900/80 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <img src="{% static 'main/mico.svg' %}" alt="Mbank" class="w-4 h-4">
+            <img src="{% static 'main/icons/mico.svg' %}" alt="Mbank" class="w-4 h-4">
         </div>
         <div class="text-left">
-            <p class="text-white font-medium text-sm">Импорт из MBank</p>
-            <p class="text-gray-400 text-xs mt-1">Загружайте выписки прямо из банка в панели управления</p>
+            <p class="text-white font-medium text-sm">{% trans "Импорт из MBank" %}</p>
+            <p class="text-gray-400 text-xs mt-1">{% trans "Загружайте выписки прямо из банка в панели управления" %}</p>
         </div>
     </div>
 
@@ -89,8 +90,8 @@
             <i class="fas fa-plus text-blue-400 text-sm"></i>
         </div>
         <div class="text-left">
-            <p class="text-white font-medium text-sm">Добавляйте доходы и расходы</p>
-            <p class="text-gray-400 text-xs mt-1">Отслеживайте каждую операцию для полной картины</p>
+            <p class="text-white font-medium text-sm">{% trans "Добавляйте доходы и расходы" %}</p>
+            <p class="text-gray-400 text-xs mt-1">{% trans "Отслеживайте каждую операцию для полной картины" %}</p>
         </div>
     </div>
 
@@ -100,8 +101,8 @@
             <i class="fas fa-chart-pie text-green-400 text-sm"></i>
         </div>
         <div class="text-left">
-            <p class="text-white font-medium text-sm">Анализируйте статистику</p>
-            <p class="text-gray-400 text-xs mt-1">Смотрите куда уходят деньги и откуда приходят</p>
+            <p class="text-white font-medium text-sm">{% trans "Анализируйте статистику" %}</p>
+            <p class="text-gray-400 text-xs mt-1">{% trans "Смотрите куда уходят деньги и откуда приходят" %}</p>
         </div>
     </div>
 
@@ -111,8 +112,8 @@
             <i class="fas fa-tags text-purple-400 text-sm"></i>
         </div>
         <div class="text-left">
-            <p class="text-white font-medium text-sm">Сортируйте по категориям</p>
-            <p class="text-gray-400 text-xs mt-1">Группируйте операции для лучшего понимания</p>
+            <p class="text-white font-medium text-sm">{% trans "Сортируйте по категориям" %}</p>
+            <p class="text-gray-400 text-xs mt-1">{% trans "Группируйте операции для лучшего понимания" %}</p>
         </div>
     </div>
 </div>
@@ -142,7 +143,7 @@
     <!-- Текст в стиле мысли/комментария -->
     <div class="bg-gradient-to-r from-red-500/10 to-red-500/10 rounded-2xl p-6 border-2 border-dashed border-red-400/30">
         <p class="text-gray-200 text-sm leading-relaxed text-center">
-           Здесь пока пусто!
+           {% trans "Здесь пока пусто!" %}
         </p>
     </div>
 </div>

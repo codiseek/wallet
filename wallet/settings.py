@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'main.middleware.UserLanguageMiddleware', 
+    
 ]
 
 
@@ -123,7 +124,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 🔐 LOGIN
 LOGIN_URL = '/hello/'
-LANGUAGE_CODE = 'en'  # язык по умолчанию
+LANGUAGE_CODE = 'ru'  # язык по умолчанию
 LANGUAGES = [
     ('ru', _('Русский')),
     ('en', _('English')),

@@ -1,11 +1,9 @@
 // Новые обработчики с предотвращением всплытия
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - initializing profile handlers');
     
     // Обработчик для кнопки удаления аккаунта в модалке профиля
     const deleteAccountBtn = document.querySelector('.delete-account-btn');
     if (deleteAccountBtn) {
-        console.log('Found delete account button by class, attaching handler');
         deleteAccountBtn.addEventListener('click', function(e) {
             console.log('Delete account button clicked');
             e.stopPropagation();
@@ -143,7 +141,6 @@ function openProfileModalFromMenu() {
 }
 
 function openProfileModal() {
-    console.log('openProfileModal called');
     loadProfileInfo();
 
     const modal = document.getElementById('profileModal');
@@ -156,12 +153,10 @@ function openProfileModal() {
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
         }
-        console.log('Profile modal opened');
     }
 }
 
 function closeProfileModal() {
-    console.log('closeProfileModal called');
     const modal = document.getElementById('profileModal');
     if (modal) {
         if (typeof animateModal === 'function') {
