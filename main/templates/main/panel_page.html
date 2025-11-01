@@ -225,6 +225,7 @@
             {% if LANGUAGE_CODE == 'ru' %}Русский
             {% elif LANGUAGE_CODE == 'en' %}{% trans "English" %}
             {% elif LANGUAGE_CODE == 'ky' %}{% trans "Кыргызча" %}
+            {% elif LANGUAGE_CODE == 'uk' %}{% trans "Українська" %}
             {% else %}Русский{% endif %}
         </span>
     </div>
@@ -236,29 +237,85 @@
     </p>
 
     <!-- Упрощенная форма смены языка -->
-    <div class="grid grid-cols-3 gap-2">
-        <button type="button" onclick="changeLanguage('ru')"
-            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-            <span class="text-white text-sm">
-                {% if LANGUAGE_CODE == 'ru' %}Русский
-                {% else %}{% trans "Русский" %}
-                {% endif %}
-            </span>
-        </button>
-        
-        <button type="button" onclick="changeLanguage('en')"
-            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-            <span class="text-white text-sm">{% trans "English" %}</span>
-        </button>
+    <div class="grid grid-cols-3 gap-2 mb-2">
+    <!-- Основные языки (всегда видимые) -->
+    <button type="button" onclick="changeLanguage('uk')"
+        class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'uk' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <span class="text-white text-sm">{% trans "Українська" %}</span>
+    </button>
+    
+    <button type="button" onclick="changeLanguage('en')"
+        class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'en' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <span class="text-white text-sm">{% trans "English" %}</span>
+    </button>
 
-        <button type="button" onclick="changeLanguage('ky')"
-            class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ky' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
-            <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
-        </button>
-    </div>
+    <button type="button" onclick="changeLanguage('ky')"
+        class="language-btn flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ky' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <span class="text-white text-sm">{% trans "Кыргызча" %}</span>
+    </button>
+    
+    <!-- Дополнительные языки (изначально скрытые) -->
+    <button type="button" onclick="changeLanguage('ru')"
+        class="language-btn hidden additional-language flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'ru' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <span class="text-white text-sm">
+            {% if LANGUAGE_CODE == 'ru' %}Русский
+            {% else %}{% trans "Русский" %}
+            {% endif %}
+        </span>
+    </button>
+    
+    <!-- Можно добавить другие языки здесь -->
+    <!-- <button type="button" onclick="changeLanguage('de')"
+        class="language-btn hidden additional-language flex items-center justify-center py-3 px-4 rounded-lg transition-all duration-200 border {% if LANGUAGE_CODE == 'de' %}border-2 border-purple-500 bg-purple-500/10{% else %}border-gray-600 hover:bg-gray-700{% endif %}">
+        <span class="text-white text-sm">Deutsch</span>
+    </button> -->
 </div>
-            <!-- Блок выбора валюты -->
-        <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
+
+    <!-- Кнопка "Открыть все языки" -->
+    <button 
+        id="showAllLanguagesBtn" 
+        onclick="toggleAllLanguages()"
+        class="w-full mt-4 text-xs text-gray-500 hover:text-gray-400 py-1 transition-colors duration-200 flex items-center justify-center"
+    >
+        <span>{% trans "Открыть все языки" %}</span>
+        <i class="fas fa-chevron-down text-xs ml-1 transform transition-transform duration-200" id="languageChevron"></i>
+    </button>
+</div>
+
+
+<script>
+
+    // Функция для показа/скрытия всех языков
+function toggleAllLanguages() {
+    const additionalLanguages = document.querySelectorAll('.additional-language');
+    const showAllBtn = document.getElementById('showAllLanguagesBtn');
+    const languageChevron = document.getElementById('languageChevron');
+    
+    additionalLanguages.forEach(lang => {
+        if (lang.classList.contains('hidden')) {
+            lang.classList.remove('hidden');
+            showAllBtn.querySelector('span').textContent = 'Скрыть языки';
+            languageChevron.classList.add('rotate-180');
+        } else {
+            lang.classList.add('hidden');
+            showAllBtn.querySelector('span').textContent = 'Открыть все языки';
+            languageChevron.classList.remove('rotate-180');
+        }
+    });
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Убедимся, что дополнительные языки скрыты
+    const additionalLanguages = document.querySelectorAll('.additional-language');
+    additionalLanguages.forEach(lang => {
+        lang.classList.add('hidden');
+    });
+});
+</script>
+
+<!-- Блок выбора валюты -->
+<div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
             <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -273,24 +330,77 @@
         {% trans "Выберите валюту для отображения сумм." %}
     </p>
 
-    <div class="flex gap-2">
+    <div class="grid grid-cols-5 gap-2 mb-2">
+        <!-- Основные валюты (всегда видимые) -->
         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'c' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="c" title="Сом">
             <i class="fa-solid fa-c text-white text-lg"></i>
         </button>
-        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
-            <i class="fas fa-ruble-sign text-white text-lg"></i>
+<button class="currency-btn  flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '₴' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="₴" title="Гривна">
+            <i class="fa-solid fa-hryvnia-sign text-white text-lg"></i>
+
         </button>
+        
+
         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '$' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="$" title="Доллар">
             <i class="fas fa-dollar-sign text-white text-lg"></i>
         </button>
+        
+        <!-- Дополнительные валюты (hidden additional-currency) -->
         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '€' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="€" title="Евро">
             <i class="fas fa-euro-sign text-white text-lg"></i>
         </button>
-         <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '₸' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="₸" title="Тенге">
+        <button class="currency-btn flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == '₸' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="₸" title="Тенге">
             <i class="fa-solid fa-tenge-sign text-white text-lg"></i>
         </button>
+
+        <button class="currency-btn hidden additional-currency flex-1 flex items-center justify-center py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all duration-200 border {% if user_currency == 'r' %}border-2 border-green-500{% else %}border-gray-600{% endif %}" data-currency="r" title="Рубль">
+            <i class="fas fa-ruble-sign text-white text-lg"></i>
+        </button>
+
     </div>
+
+    <!-- Кнопка "Открыть все валюты" -->
+    <button 
+        id="showAllCurrenciesBtn" 
+        onclick="toggleAllCurrencies()"
+        class="w-full mt-4 text-xs text-gray-500 hover:text-gray-400 py-1 transition-colors duration-200 flex items-center justify-center"
+    >
+        <span>{% trans "Открыть все валюты" %}</span>
+        <i class="fas fa-chevron-down text-xs ml-1 transform transition-transform duration-200" id="currencyChevron"></i>
+    </button>
 </div>
+
+<script>
+    // Функция для показа/скрытия всех валют
+function toggleAllCurrencies() {
+    const additionalCurrencies = document.querySelectorAll('.additional-currency');
+    const showAllBtn = document.getElementById('showAllCurrenciesBtn');
+    const currencyChevron = document.getElementById('currencyChevron');
+    
+    additionalCurrencies.forEach(currency => {
+        if (currency.classList.contains('hidden')) {
+            currency.classList.remove('hidden');
+            showAllBtn.querySelector('span').textContent = 'Скрыть валюты';
+            currencyChevron.classList.add('rotate-180');
+        } else {
+            currency.classList.add('hidden');
+            showAllBtn.querySelector('span').textContent = 'Открыть все валюты';
+            currencyChevron.classList.remove('rotate-180');
+        }
+    });
+}
+
+// Инициализация при загрузке страницы для валют
+document.addEventListener('DOMContentLoaded', function() {
+    // Убедимся, что дополнительные валюты скрыты
+    const additionalCurrencies = document.querySelectorAll('.additional-currency');
+    additionalCurrencies.forEach(currency => {
+        currency.classList.add('hidden');
+    });
+});
+</script>
+
+
 
           <!-- Настройка процента резерва -->
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
@@ -588,7 +698,8 @@ function changeLanguage(langCode) {
             const languageNames = {
                 'ru': 'Русский',
                 'en': 'English',
-                'ky': 'Кыргызча'
+                'ky': 'Кыргызча',
+                'uk': 'Українська'
             };
             
             // Обновляем отображение текущего языка

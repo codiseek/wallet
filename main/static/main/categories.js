@@ -244,6 +244,7 @@ async function loadUserCategories(filter = null) {
                 case '$': currencySymbol = '$'; break;
                 case '€': currencySymbol = '€'; break;
                 case '₸': currencySymbol = '₸'; break;
+                case '₴': currencySymbol = '₴'; break;
             }
             
             data.categories.forEach(category => {

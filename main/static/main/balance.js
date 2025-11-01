@@ -15,6 +15,7 @@ function updateBalanceDisplay() {
         case '$': symbol = '$'; break;
         case '€': symbol = '€'; break;
         case '₸': symbol = '₸'; break;
+        case '₴': symbol = '₴'; break;
     }
     
     if (totalEl && window.initialBalances) {
@@ -233,6 +234,7 @@ function updateBalanceDisplay() {
         case '$': symbol = '$'; break;
         case '€': symbol = '€'; break;
         case '₸': symbol = '₸'; break;
+        case '₴': symbol = '₴'; break;
     }
     
     if (totalEl && window.initialBalances) {

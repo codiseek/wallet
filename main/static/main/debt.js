@@ -58,6 +58,7 @@ refreshDebtsOnCurrencyChange() {
         case '$': return '$';
         case '€': return '€';
         case '₸': return '₸';
+        case '₴': return '₴';
         default: return 'с';
     }
 }

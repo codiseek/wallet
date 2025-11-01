@@ -1001,7 +1001,7 @@ def update_currency(request):
         print(f"User: {request.user.username}")
         print(f"Requested currency: {currency}")
         
-        if currency not in ['c', 'r', '$', '€', '₸']:
+        if currency not in ['c', 'r', '$', '€', '₸', '₴']:
             return JsonResponse({'success': False, 'error': 'Неверная валюта'})
         
         # ГАРАНТИРУЕМ, ЧТО ПРОФИЛЬ СУЩЕСТВУЕТ
@@ -3051,7 +3051,7 @@ def update_language(request):
         lang_code = request.POST.get("language")
         
         # Простая проверка допустимых языков
-        if lang_code not in ['ru', 'en', 'ky']:
+        if lang_code not in ['ru', 'en', 'ky', 'uk']:
             return JsonResponse({
                 'success': False,
                 'error': 'Неверный код языка'
@@ -3071,7 +3071,8 @@ def update_language(request):
             'language_name': {
                 'ru': 'Русский',
                 'en': 'English', 
-                'ky': 'Кыргызча'
+                'ky': 'Кыргызча',
+                'uk': 'Українська'
             }.get(lang_code, lang_code)
         })
         

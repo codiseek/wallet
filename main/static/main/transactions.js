@@ -205,6 +205,7 @@ function openTransactionDetail(transactionElement) {
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
         case '₸': currencySymbol = '₸'; break;
+        case '₴': currencySymbol = '₴'; break;
     }
     
     const isIncome = transactionType === 'income';
@@ -385,6 +386,7 @@ function updateTransactionDetailModal() {
         case '$': currencySymbol = '$'; break;
         case '€': currencySymbol = '€'; break;
         case '₸': currencySymbol = '₸'; break;
+        case '₴': currencySymbol = '₴'; break;
     }
     
     const isIncome = transactionType === 'income';

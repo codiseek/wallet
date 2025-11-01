@@ -1560,3 +1560,7 @@ backdrop-filter: blur(20px) !important;
 #deleteAccountModal {
     z-index: 1001; /* Чуть выше чем профиль */
 }
+
+.rotate-180 {
+    transform: rotate(180deg);
+}

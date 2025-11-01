@@ -96,6 +96,7 @@ function updateAllCurrencyButtons(selectedCurrency) {
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
             case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
+            case '₴': iconClass = 'fa-solid fa-hryvnia-sign'; break;
         }
  
         // Если кнопка содержит текст вместо иконки, заменяем на иконку
@@ -122,6 +123,7 @@ function restoreCurrencyButtons() {
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
             case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
+            case '₴': iconClass = 'fa-solid fa-hryvnia-sign'; break;
         }
         
         btn.innerHTML = `<i class="${iconClass} text-white text-lg"></i>`;
@@ -181,6 +183,7 @@ function initCurrencyButtons() {
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
             case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
+            case '₴': iconClass = 'fa-solid fa-hryvnia-sign'; break;
         }
         
         // Если кнопка не содержит иконку, устанавливаем её
@@ -202,7 +205,7 @@ function updateBalanceCurrencyIcon(currency) {
     
     // Удаляем все классы иконок валют
     balanceIcon.className = '';
-    balanceIcon.classList.add('fas', 'text-[110px]', 'text-blue-800/20', 'absolute', 'top-3', 'right-4');
+    balanceIcon.classList.add('fas', 'text-[100px]', 'text-blue-800/20', 'absolute', 'top-3', 'right-4');
     
     // Добавляем нужную иконку
     switch(currency) {
@@ -220,6 +223,9 @@ function updateBalanceCurrencyIcon(currency) {
             break;
         case '₸':
             balanceIcon.classList.add('fa-tenge-sign');
+            break;
+        case '₴':
+            balanceIcon.classList.add('fa-hryvnia-sign');
             break;
         default:
             balanceIcon.classList.add('fa-c');
@@ -240,6 +246,7 @@ function updateCurrencySymbols(currency) {
         case '$': symbol = '$'; break;
         case '€': symbol = '€'; break;
         case '₸': symbol = '₸'; break;
+        case '₴': symbol = '₴'; break;
     }
     
     // Обновляем все элементы с классом currency-symbol
@@ -298,6 +305,7 @@ function updateCurrentCurrencyDisplay(currency) {
         case '$': currencyName = 'Доллар'; break;
         case '€': currencyName = 'Евро'; break;
         case '₸': currencyName = 'Тенге'; break;
+        case '₴': currencyName = 'Гривна'; break;
     }
     
     currentCurrencyEl.textContent = currencyName;
