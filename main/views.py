@@ -3298,11 +3298,11 @@ def import_mbank_view(request):
             'success': False, 
             'message': f'Ошибка при обработке файла: {str(e)}'
         })
-    
 
 def import_mbank(file_path, user):
     """
     Умная функция импорта транзакций из Мбанка с автоматическим определением категорий
+    и добавлением начального баланса
     """
     try:
         print(f"=== НАЧАЛО ИМПОРТА МБАНК ДЛЯ {user.username} ===")
@@ -3330,7 +3330,7 @@ def import_mbank(file_path, user):
         if len(df.columns) < 5:
             return {'success': False, 'message': f'Недостаточно колонок. Найдено: {len(df.columns)}, нужно: 5'}
         
-        # Создаем только категорию MBank заранее (она всегда нужна)
+        # Создаем категорию MBank
         mbank_category, created = Category.objects.get_or_create(
             user=user,
             name='MBank',
@@ -3341,96 +3341,171 @@ def import_mbank(file_path, user):
         )
         print(f"Категория MBank: {'создана' if created else 'существовала'}")
         
-        # СЛОВАРЬ КАТЕГОРИЙ И КЛЮЧЕВЫХ СЛОВ (но не создаем их заранее)
-        category_keywords = {
-    'Тулпар': {
-        'keywords': ['Тулпар', 'TULPAR'],
-        'color': "#8B80F9",
-        'icon': '/static/main/icons/tulpar.svg'
-    },
-    'Куликовский': {
-        'keywords': ['Kulikovskiy', 'куликовский'],
-        'color': "#5D8BF4",
-        'icon': '/static/main/icons/kulikov.svg'
-    },
-    'Globus': {
-        'keywords': ['globus', 'глобус'],
-        'color': '#FF7B7B',
-        'icon': '/static/main/icons/globus.svg'
-    },
-    'Аптека': {
-        'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация', 'дарыкана'],
-        'color': '#4ECDC4',
-        'icon': 'fas fa-pills'
-    },
-    'Мой дом': {
-        'keywords': ['Мой дом'],
-        'color': '#10D452',
-        'icon': '/static/main/icons/moi-dom.svg'
-    },
-    'Интернет': {
-        'keywords': ['Exnet', 'homeline', 'megaline', 'skynet', 'fastnet', 'aknet', 'neotelecom', 'акнет', 'фастнет', 'скайнет', 'мега-лайн'],
-        'color': "#A0AABC",
-        'icon': 'fa-solid fa-wifi'
-    },
-    'KFC': {
-        'keywords': ['KFC'],
-        'color': "#FFCC00",
-        'icon': '/static/main/icons/kfc.svg'
-    },
-    'Lalafo': {
-        'keywords': ['Lalafo'],
-        'color': "#00FF88",
-        'icon': '/static/main/icons/lalafo.svg'
-    },
-    'Finca Bank': {
-        'keywords': ['Finca', 'финка', 'FINCA_Bank'],
-        'color': "#FF3366",
-        'icon': '/static/main/icons/finca.svg'
-    },
-    'Элкарт': {
-        'keywords': ['Элкарт'],
-        'color': "#3399FF",
-        'icon': '/static/main/icons/elcard.svg'
-    },
-    'MEGA': {
-        'keywords': ['Mega', 'megacom'],
-        'color': "#00FF66",
-        'icon': '/static/main/icons/mega.svg'
-    },
-    'O!Dengi': {
-        'keywords': ['O!Dengi', 'оденьги', 'O!'],
-        'color': "#FF27A6",
-        'icon': '/static/main/icons/o.svg'
-    },
-    'Dodo Pizza': {
-        'keywords': ['Dodo', 'Dodo Pizza', 'Додо пицца'],
-        'color': "#FF4444",
-        'icon': '/static/main/icons/dodo.svg'
-    },
-    'Optima Bank': {
-        'keywords': ['optima', 'оптима'],
-        'color': "#CCCCCC",
-        'icon': '/static/main/icons/optima.svg'
-    },
-    'Оптовые цены': {
-        'keywords': ['Оптовые цены'],
-        'color': "#66B3FF",
-        'icon': 'fa-solid fa-cart-shopping'
-    },
-    'Spar': {
-        'keywords': ['Spar'],
-        'color': "#FF6B6B",
-        'icon': '/static/main/icons/spar.svg'
-    },
-    'Перекресток': {
-        'keywords': ['Перекресток'],
-        'color': "#9D95FF",
-        'icon': '/static/main/icons/per.svg'
-    }
-}
+        # ПОИСК НАЧАЛЬНОГО БАЛАНСА
+        initial_balance = Decimal('0')
+        initial_balance_found = False
         
-        # Кэш для категорий (создаем только при необходимости)
+        # Фразы для поиска начального баланса
+        balance_phrases = [
+            'средства на начало периода',
+            'начальный остаток',
+            'остаток на начало периода',
+            'баланс на начало'
+        ]
+        
+        # Ищем начальный баланс в данных
+        for index, row in df.iterrows():
+            all_text = ' '.join([str(cell) for cell in row.values if pd.notna(cell)]).lower()
+            
+            # Проверяем на фразы начального баланса
+            for phrase in balance_phrases:
+                if phrase in all_text:
+                    print(f"Найдена строка с начальным балансом: {all_text}")
+                    
+                    # Извлекаем числовое значение из строки
+                    for cell in row.values:
+                        if pd.notna(cell):
+                            cell_str = str(cell).strip()
+                            # Ищем числовые значения
+                            numbers = re.findall(r'[+-]?\d+[\s,]*\d*[.,]?\d*', cell_str)
+                            for num_str in numbers:
+                                try:
+                                    clean_num = num_str.replace(' ', '').replace(',', '.')
+                                    # Убираем лишние точки
+                                    if clean_num.count('.') > 1:
+                                        parts = clean_num.split('.')
+                                        clean_num = parts[0] + '.' + ''.join(parts[1:])
+                                    
+                                    balance_value = Decimal(clean_num)
+                                    if balance_value > 0:
+                                        initial_balance = balance_value
+                                        initial_balance_found = True
+                                        print(f"✅ Найден начальный баланс: {initial_balance}")
+                                        break
+                                except (ValueError, InvalidOperation) as e:
+                                    continue
+                            if initial_balance_found:
+                                break
+                    if initial_balance_found:
+                        break
+            if initial_balance_found:
+                break
+        
+        # ДОБАВЛЯЕМ ТРАНЗАКЦИЮ НАЧАЛЬНОГО БАЛАНСА
+        if initial_balance_found and initial_balance > 0:
+            # Проверяем, нет ли уже такой транзакции
+            existing_initial = Transaction.objects.filter(
+                user=user,
+                amount=initial_balance,
+                type='income',
+                description='Начальный баланс из выписки',
+                category=mbank_category
+            ).first()
+            
+            if not existing_initial:
+                # Создаем транзакцию начального баланса
+                Transaction.objects.create(
+                    user=user,
+                    amount=initial_balance,
+                    type='income',
+                    description='Начальный баланс из выписки',
+                    category=mbank_category,
+                    transaction_date=timezone.now()
+                )
+                print(f"✅ Создана транзакция начального баланса: {initial_balance}")
+            else:
+                print("ℹ️ Транзакция начального баланса уже существует")
+        
+        # СЛОВАРЬ КАТЕГОРИЙ И КЛЮЧЕВЫХ СЛОВ
+        category_keywords = {
+            'Тулпар': {
+                'keywords': ['Тулпар', 'TULPAR'],
+                'color': "#8B80F9",
+                'icon': '/static/main/icons/tulpar.svg'
+            },
+            'Куликовский': {
+                'keywords': ['Kulikovskiy', 'куликовский'],
+                'color': "#5D8BF4",
+                'icon': '/static/main/icons/kulikov.svg'
+            },
+            'Globus': {
+                'keywords': ['globus', 'глобус'],
+                'color': '#FF7B7B',
+                'icon': '/static/main/icons/globus.svg'
+            },
+            'Аптека': {
+                'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация', 'дарыкана'],
+                'color': '#4ECDC4',
+                'icon': 'fas fa-pills'
+            },
+            'Мой дом': {
+                'keywords': ['Мой дом'],
+                'color': '#10D452',
+                'icon': '/static/main/icons/moi-dom.svg'
+            },
+            'Интернет': {
+                'keywords': ['Exnet', 'homeline', 'megaline', 'skynet', 'fastnet', 'aknet', 'neotelecom', 'акнет', 'фастнет', 'скайнет', 'мега-лайн'],
+                'color': "#A0AABC",
+                'icon': 'fa-solid fa-wifi'
+            },
+            'KFC': {
+                'keywords': ['KFC'],
+                'color': "#FFCC00",
+                'icon': '/static/main/icons/kfc.svg'
+            },
+            'Lalafo': {
+                'keywords': ['Lalafo'],
+                'color': "#00FF88",
+                'icon': '/static/main/icons/lalafo.svg'
+            },
+            'Finca Bank': {
+                'keywords': ['Finca', 'финка', 'FINCA_Bank'],
+                'color': "#FF3366",
+                'icon': '/static/main/icons/finca.svg'
+            },
+            'Элкарт': {
+                'keywords': ['Элкарт'],
+                'color': "#3399FF",
+                'icon': '/static/main/icons/elcard.svg'
+            },
+            'MEGA': {
+                'keywords': ['Mega', 'megacom'],
+                'color': "#00FF66",
+                'icon': '/static/main/icons/mega.svg'
+            },
+            'O!Dengi': {
+                'keywords': ['O!Dengi', 'оденьги', 'O!'],
+                'color': "#FF27A6",
+                'icon': '/static/main/icons/o.svg'
+            },
+            'Dodo Pizza': {
+                'keywords': ['Dodo', 'Dodo Pizza', 'Додо пицца'],
+                'color': "#FF4444",
+                'icon': '/static/main/icons/dodo.svg'
+            },
+            'Optima Bank': {
+                'keywords': ['optima', 'оптима'],
+                'color': "#CCCCCC",
+                'icon': '/static/main/icons/optima.svg'
+            },
+            'Оптовые цены': {
+                'keywords': ['Оптовые цены'],
+                'color': "#66B3FF",
+                'icon': 'fa-solid fa-cart-shopping'
+            },
+            'Spar': {
+                'keywords': ['Spar'],
+                'color': "#FF6B6B",
+                'icon': '/static/main/icons/spar.svg'
+            },
+            'Перекресток': {
+                'keywords': ['Перекресток'],
+                'color': "#9D95FF",
+                'icon': '/static/main/icons/per.svg'
+            }
+        }
+        
+        # Кэш для категорий
         categories_cache = {'MBank': mbank_category}
         
         # Функция для определения категории по описанию
@@ -3442,36 +3517,31 @@ def import_mbank(file_path, user):
                     if keyword.lower() in desc_lower:
                         return category_name
             
-            # Если не нашли подходящую категорию - используем MBank
             return 'MBank'
         
         transactions_created = 0
         errors = []
         skipped_rows = []
-        category_stats = {}  # Статистика по категориям
-        created_categories = []  # Список созданных категорий
+        category_stats = {}
+        created_categories = []
         
-        # Полный список служебных строк, которые нужно пропускать
+        # Список служебных строк для пропуска
         service_phrases = [
-            # Заголовки и информация о счете
             'выписка из лицевого счета за период',
             'лицевой счет:',
             'валюта:',
             'состояние счета на:',
             'текущий остаток средств:',
             'ФИО/Наименование клиента:',
-            
-            # Периоды и балансы
             'средства на начало периода',
             'зачисления за период',
             'списания за период',
             'средства на конец периода'
         ]
         
-        # Обрабатываем КАЖДУЮ строку
+        # Обрабатываем каждую строку
         for index, row in df.iterrows():
             try:
-                # Используем iloc для доступа по позициям
                 date_val = row.iloc[0]  # Колонка 0 - Дата
                 operation_val = row.iloc[1] if len(row) > 1 else ''  # Колонка 1 - Операция
                 debit_val = row.iloc[2] if len(row) > 2 else 0  # Колонка 2 - Дебет
@@ -3504,7 +3574,7 @@ def import_mbank(file_path, user):
                 if is_service_line:
                     continue
                 
-                # Дополнительная проверка: если в операции или получателе есть только цифры или очень короткий текст - возможно это служебная строка
+                # Проверка на слишком короткий текст
                 if len(operation.strip()) < 3 and len(recipient.strip()) < 3:
                     skipped_rows.append(f"Строка {index+1}: слишком короткий текст операции/получателя")
                     continue
@@ -3557,7 +3627,7 @@ def import_mbank(file_path, user):
                 if not description:
                     description = f"Транзакция Мбанк {index + 1}"
                 
-                # ОПРЕДЕЛЯЕМ КАТЕГОРИЮ ПО ОПИСАНИЮ
+                # Определяем категорию по описанию
                 detected_category = detect_category(description)
                 
                 # Если категория еще не создана, создаем ее
@@ -3577,7 +3647,6 @@ def import_mbank(file_path, user):
                             created_categories.append(detected_category)
                             print(f"Создана новая категория: {detected_category}")
                     else:
-                        # Если категория не найдена в словаре (это MBank), используем MBank
                         categories_cache[detected_category] = mbank_category
                 
                 category = categories_cache[detected_category]
@@ -3589,19 +3658,18 @@ def import_mbank(file_path, user):
                 
                 print(f"Определена категория: {detected_category} для описания: {description}")
                 
-                # ПАРСИМ ДАТУ И ВРЕМЯ ИЗ ВЫПИСКИ
+                # Парсим дату и время из выписки
                 transaction_datetime = None
                 if pd.notna(date_val) and str(date_val).strip() not in ['', 'NaN', 'NaT', 'None']:
                     date_time_str = str(date_val).strip()
                     try:
-                        # Пробуем разные форматы даты и времени
                         datetime_formats = [
-                            '%d.%m.%Y %H:%M',      # 22.10.2025 15:04
-                            '%d.%m.%Y %H:%M:%S',   # 22.10.2025 15:04:30
-                            '%d.%m.%Y',            # 22.10.2025
-                            '%Y-%m-%d %H:%M:%S',   # 2025-10-22 15:04:30
-                            '%Y-%m-%d %H:%M',      # 2025-10-22 15:04
-                            '%Y-%m-%d',            # 2025-10-22
+                            '%d.%m.%Y %H:%M',
+                            '%d.%m.%Y %H:%M:%S',
+                            '%d.%m.%Y',
+                            '%Y-%m-%d %H:%M:%S',
+                            '%Y-%m-%d %H:%M',
+                            '%Y-%m-%d',
                         ]
                         
                         for fmt in datetime_formats:
@@ -3612,20 +3680,17 @@ def import_mbank(file_path, user):
                                 continue
                         
                         if transaction_datetime is None:
-                            # Если не распарсилось, пробуем pandas
                             transaction_datetime = pd.to_datetime(date_time_str)
                             
                     except Exception as e:
                         print(f"Ошибка парсинга даты '{date_time_str}': {e}")
-                        # Используем текущее время, если не удалось распарсить
                         transaction_datetime = timezone.now()
                 else:
-                    # Используем текущее время, если дата отсутствует
                     transaction_datetime = timezone.now()
                 
                 print(f"Создаем транзакцию: {transaction_datetime} - {amount} - {transaction_type} - {description} - категория: {detected_category}")
                 
-                # Проверяем, нет ли уже такой транзакции (чтобы избежать дубликатов)
+                # Проверяем, нет ли уже такой транзакции
                 existing_transaction = Transaction.objects.filter(
                     user=user,
                     amount=amount,
@@ -3638,7 +3703,7 @@ def import_mbank(file_path, user):
                     skipped_rows.append(f"Строка {index+1}: дубликат транзакции")
                     continue
                 
-                # СОЗДАЕМ ТРАНЗАКЦИЮ с сохранением даты из банка и определенной категорией
+                # Создаем транзакцию
                 Transaction.objects.create(
                     user=user,
                     amount=amount,
@@ -3657,8 +3722,17 @@ def import_mbank(file_path, user):
                 print(f"❌ Ошибка в строке {index+1}: {e}")
                 continue
         
+        # Формируем результат
+        result_stats = {
+            'transactions_created': transactions_created,
+            'initial_balance_added': initial_balance_found,
+            'initial_balance_amount': float(initial_balance) if initial_balance_found else 0
+        }
+        
         print(f"=== ИТОГ ИМПОРТА ===")
         print(f"Создано транзакций: {transactions_created}")
+        if initial_balance_found:
+            print(f"Добавлен начальный баланс: {initial_balance}")
         print(f"Ошибок: {len(errors)}")
         print(f"Пропущено строк: {len(skipped_rows)}")
         print("Распределение по категориям:")
@@ -3670,17 +3744,14 @@ def import_mbank(file_path, user):
             for category_name in created_categories:
                 print(f"  - {category_name}")
         
-        if skipped_rows:
-            print("Причины пропуска (первые 10):")
-            for reason in skipped_rows[:10]:
-                print(f"  - {reason}")
-        
         result = {
-            'success': transactions_created > 0,
-            'message': f'Успешно импортировано {transactions_created} транзакций из Мбанка' if transactions_created > 0 else 'Не удалось импортировать транзакции',
+            'success': transactions_created > 0 or initial_balance_found,
+            'message': f'Успешно импортировано {transactions_created} транзакций из Мбанка' + 
+                      (f' и добавлен начальный баланс {initial_balance}' if initial_balance_found else ''),
             'count': transactions_created,
             'category_stats': category_stats,
-            'created_categories': created_categories
+            'created_categories': created_categories,
+            'initial_balance': result_stats
         }
         
         if errors:
