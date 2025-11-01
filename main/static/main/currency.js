@@ -180,7 +180,7 @@ function initCurrencyButtons() {
             case 'r': iconClass = 'fas fa-ruble-sign'; break;
             case '$': iconClass = 'fas fa-dollar-sign'; break;
             case '€': iconClass = 'fas fa-euro-sign'; break;
-            case '₸': iconClass = 'fa-solid fa-tenge-sig'; break;
+            case '₸': iconClass = 'fa-solid fa-tenge-sign'; break;
         }
         
         // Если кнопка не содержит иконку, устанавливаем её
@@ -219,7 +219,7 @@ function updateBalanceCurrencyIcon(currency) {
             balanceIcon.classList.add('fa-euro-sign');
             break;
         case '₸':
-            balanceIcon.classList.add('fa-tenge-sig');
+            balanceIcon.classList.add('fa-tenge-sign');
             break;
         default:
             balanceIcon.classList.add('fa-c');

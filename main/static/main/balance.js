@@ -44,7 +44,119 @@ function updateBalanceDisplay() {
     // Обновляем символы валюты отдельно
     updateCurrencySymbols(currentCurrency);
     
+    // Обновляем прогресс-бар
+    updateBalanceProgressBar();
+    
     updateSavingsDisplay();
+}
+
+function updateBalanceProgressBar() {
+    const progressBar = document.getElementById('balanceProgressBar');
+    if (!progressBar || !window.initialBalances) return;
+    
+    const income = parseFloat(window.initialBalances.income || 0);
+    const expense = parseFloat(window.initialBalances.expense || 0);
+    const total = income + expense;
+    
+    // Если нет доходов и расходов, показываем пустую серую шкалу
+    if (total <= 0) {
+        progressBar.innerHTML = '<div class="bg-gray-600 h-3 rounded-full w-full"></div>';
+        return;
+    }
+    
+    const incomePercent = (income / total) * 100;
+    const expensePercent = (expense / total) * 100;
+    
+    // Создаем шкалу с темным разделителем между частями
+    let progressHTML = '';
+    
+    if (incomePercent > 0 && expensePercent > 0) {
+        // Если есть и доходы и расходы - показываем обе части с разделителем
+        progressHTML = `
+            <div class="flex h-3">
+                <div class="bg-green-500 h-3 transition-all duration-500 ease-out rounded-l-full" style="width: ${incomePercent}%"></div>
+                <div class="w-[2px] bg-gray-600"></div>
+                <div class="bg-red-500 h-3 transition-all duration-500 ease-out rounded-r-full" style="width: ${expensePercent}%"></div>
+            </div>
+        `;
+    } else if (incomePercent > 0) {
+        // Если только доходы - зеленая полная шкала
+        progressHTML = `<div class="bg-green-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: ${incomePercent}%"></div>`;
+    } else if (expensePercent > 0) {
+        // Если только расходы - красная полная шкала
+        progressHTML = `<div class="bg-red-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: ${expensePercent}%"></div>`;
+    }
+    
+    progressBar.innerHTML = progressHTML;
+}
+
+
+function updateBalancesAfterTransaction(type, amount, reserveAmount = 0) {
+    if (!window.initialBalances) window.initialBalances = { 
+        total: 0, 
+        income: 0, 
+        expense: 0, 
+        total_reserve: 0,
+        monthly_reserve: 0 
+    };
+    
+    let total = parseFloat(window.initialBalances.total || 0);
+    let income = parseFloat(window.initialBalances.income || 0);
+    let expense = parseFloat(window.initialBalances.expense || 0);
+    let total_reserve = parseFloat(window.initialBalances.total_reserve || 0);
+    let monthly_reserve = parseFloat(window.initialBalances.monthly_reserve || 0);
+
+    if (type === 'income') {
+        total += amount - reserveAmount;
+        income += amount;
+        total_reserve += reserveAmount;
+        monthly_reserve += reserveAmount;
+    } else {
+        total -= amount;
+        expense += amount;
+    }
+
+    window.initialBalances.total = total;
+    window.initialBalances.income = income;
+    window.initialBalances.expense = expense;
+    window.initialBalances.total_reserve = total_reserve;
+    window.initialBalances.monthly_reserve = monthly_reserve;
+    
+    updateBalanceDisplay();
+}
+
+function updateBalancesAfterDelete(type, amount, reserveAmount = 0) {
+    if (!window.initialBalances) window.initialBalances = { 
+        total: 0, 
+        income: 0, 
+        expense: 0, 
+        total_reserve: 0,
+        monthly_reserve: 0 
+    };
+    
+    let total = parseFloat(window.initialBalances.total || 0);
+    let income = parseFloat(window.initialBalances.income || 0);
+    let expense = parseFloat(window.initialBalances.expense || 0);
+    let total_reserve = parseFloat(window.initialBalances.total_reserve || 0);
+    let monthly_reserve = parseFloat(window.initialBalances.monthly_reserve || 0);
+
+    if (type === 'income') {
+        total -= amount - reserveAmount;
+        income -= amount;
+        total_reserve -= reserveAmount;
+        monthly_reserve -= reserveAmount;
+    } else {
+        total += amount;
+        expense -= amount;
+    }
+
+    window.initialBalances.total = total;
+    window.initialBalances.income = income;
+    window.initialBalances.expense = expense;
+    window.initialBalances.total_reserve = total_reserve;
+    window.initialBalances.monthly_reserve = monthly_reserve;
+    
+    updateBalanceDisplay();
 }
 
 
@@ -82,39 +194,7 @@ function updateBalancesAfterTransaction(type, amount, reserveAmount = 0) {
     updateBalanceDisplay();
 }
 
-function updateBalancesAfterDelete(type, amount, reserveAmount = 0) {
-    if (!window.initialBalances) window.initialBalances = { 
-        total: 0, 
-        income: 0, 
-        expense: 0, 
-        total_reserve: 0,
-        monthly_reserve: 0 
-    };
-    
-    let total = parseFloat(window.initialBalances.total || 0);
-    let income = parseFloat(window.initialBalances.income || 0);
-    let expense = parseFloat(window.initialBalances.expense || 0);
-    let total_reserve = parseFloat(window.initialBalances.total_reserve || 0);
-    let monthly_reserve = parseFloat(window.initialBalances.monthly_reserve || 0);
 
-    if (type === 'income') {
-        total -= amount - reserveAmount;
-        income -= amount;
-        total_reserve -= reserveAmount;
-        monthly_reserve -= reserveAmount; // вычитаем из месячного резерва
-    } else {
-        total += amount;
-        expense -= amount;
-    }
-
-    window.initialBalances.total = total;
-    window.initialBalances.income = income;
-    window.initialBalances.expense = expense;
-    window.initialBalances.total_reserve = total_reserve;
-    window.initialBalances.monthly_reserve = monthly_reserve;
-    
-    updateBalanceDisplay();
-}
 
 // Добавьте в balance.js
 function reloadBalanceData() {
@@ -135,55 +215,7 @@ function reloadBalanceData() {
 window.reloadBalanceData = reloadBalanceData;
 
 
-// -----------------------------
-// Локальное обновление балансов при удалении транзакции
-// -----------------------------
-function updateBalancesAfterDelete(type, amount) {
-    if (!window.initialBalances) window.initialBalances = { total: 0, income: 0, expense: 0 };
-    
-    let total = parseFloat(window.initialBalances.total || 0);
-    let income = parseFloat(window.initialBalances.income || 0);
-    let expense = parseFloat(window.initialBalances.expense || 0);
 
-    if (type === 'income') {
-        // Удаляем доход: уменьшаем общий баланс и доходы
-        total -= amount;
-        income -= amount;
-    } else {
-        // Удаляем расход: увеличиваем общий баланс и уменьшаем расходы
-        total += amount;
-        expense -= amount;
-    }
-
-    window.initialBalances.total = total;
-    window.initialBalances.income = income;
-    window.initialBalances.expense = expense;
-    
-    updateBalanceDisplay();
-}
-
-
-
-function updateBalanceProgressBar() {
-    const progressBar = document.getElementById('balanceProgressBar');
-    if (!progressBar || !window.initialBalances) return;
-    
-    const income = parseFloat(window.initialBalances.income || 0);
-    const expense = parseFloat(window.initialBalances.expense || 0);
-    const total = income + expense;
-    
-    if (total > 0) {
-        const incomePercent = (income / total) * 100;
-        const expensePercent = (expense / total) * 100;
-        
-        progressBar.innerHTML = `
-            <div class="bg-green-500 h-2 rounded-l-full" style="width: ${incomePercent}%"></div>
-            <div class="bg-red-500 h-2 rounded-r-full" style="width: ${expensePercent}%"></div>
-        `;
-    } else {
-        progressBar.innerHTML = '<div class="bg-gray-600 h-2 rounded-full w-full"></div>';
-    }
-}
 
 // Обновите функцию updateBalanceDisplay
 function updateBalanceDisplay() {
