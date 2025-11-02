@@ -76,18 +76,23 @@
 {% if user.is_staff %}
 <!-- Административная панель -->
 <div class="bg-red-900/20 rounded-xl p-4 mb-6 border border-red-500/30 admin-panel">
-    <h3 class="font-semibold text-white mb-4 flex items-center">
-        <i class="fas fa-shield-alt mr-2 text-yellow-400"></i>
-        <span>{% trans "Администрирование" %}</span>
-    </h3>
-    
-    <!-- Основная кнопка -->
-    <button onclick="toggleAdminUsersModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-3 mb-4">
-        <i class="fas fa-users text-lg"></i>
-        <span class="text-base font-medium">{% trans "Управление пользователями" %}</span>
-    </button>
+    <!-- Заголовок -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex -mt-2 items-center space-x-2">
+            <i class="fas fa-shield-alt text-yellow-400"></i>
+            <h3 class="font-semibold text-white">{% trans "Админка" %}</h3>
+        </div>
+        <!-- Кнопка управления пользователями -->
+        <button 
+             onclick="toggleAdminUsersModal()" 
+            class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 mb-3"
+        >
+            
+            <span>{% trans "Юзеры" %}</span>
+        </button>
+    </div>
 
-    <!-- Статистика пользователей -->
+    <!-- Статистика пользователей (ВСЕГДА ВИДИМА) -->
     <div class="grid grid-cols-3 gap-3 mb-4">
         <div class="bg-white/10 rounded-lg p-3 text-center">
             <div id="totalUsersCount" class="text-2xl font-bold text-green-400">0</div>
@@ -103,7 +108,36 @@
         </div>
     </div>
 
-    <!-- Последние пользователи -->
+    <!-- Кнопка для разворачивания списка пользователей -->
+    <button 
+        id="showAdminUsersBtn" 
+        onclick="toggleAdminUsersList()"
+        class="w-full mt-4 text-xs text-gray-500 hover:text-gray-400 py-1 transition-colors duration-200 flex items-center justify-center"
+    >
+        <span>{% trans "Показать все" %}</span>
+        <i class="fas fa-chevron-down text-xs ml-1 transform transition-transform duration-200" id="adminUsersChevron"></i>
+    </button>
+
+    <!-- Список пользователей (скрыт по умолчанию) -->
+
+<div id="adminUsersList" class="hidden mt-4 space-y-4">
+    <!-- Блок последнего пользователя -->
+    <div class="bg-black/30 rounded-lg p-4 border border-purple-500/30">
+        <h4 class="text-white font-medium mb-3 flex items-center text-sm">
+            <i class="fas fa-crown mr-2 text-yellow-400"></i>
+            <span>{% trans "Последний зарегистрированный" %}</span>
+        </h4>
+        
+        <div id="lastUserDetails" class="space-y-3">
+            <!-- Загрузка -->
+            <div class="text-center py-4 text-gray-400">
+                <i class="fas fa-spinner animate-spin mr-2"></i>
+                <span>{% trans "Загрузка..." %}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Существующий блок последних регистраций -->
     <div class="bg-black/30 rounded-lg p-3 border border-white/10">
         <h4 class="text-white font-medium mb-2 flex items-center text-sm">
             <i class="fas fa-clock mr-2 text-gray-400"></i>
@@ -111,7 +145,6 @@
         </h4>
         
         <div id="recentUsersList">
-            <!-- Динамический список будет здесь -->
             <div class="text-center py-4 text-gray-400">
                 <i class="fas fa-spinner animate-spin mr-2"></i>
                 <span>{% trans "Загрузка..." %}</span>
@@ -120,7 +153,7 @@
     </div>
 </div>
 
-{% endif %}
+</div>
 
 <!-- Модальное окно списка пользователей -->
 <div id="adminUsersModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
@@ -147,15 +180,12 @@
                         id="usersSearchInput"
                         placeholder="Поиск по имени или email..." 
                         data-translate-placeholder="panel.search_users"
-                        class="w-full bg-gray-700 border border-gray-600 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-0 outline-none transition-all"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-xl pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-0 outline-none transition-all"
                         oninput="searchUsers()"
                     >
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
-                <button class="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-xl transition-colors flex items-center space-x-2">
-                    <i class="fas fa-filter"></i>
-                    <span>{% trans "Фильтры" %}</span>
-                </button>
+                
             </div>
         </div>
         
@@ -187,23 +217,577 @@
             </div>
         </div>
         
-        <!-- Статистика в футере -->
-        <div class="p-4 border-t border-gray-700 bg-gray-900/30 flex-shrink-0">
-            <div class="flex justify-between items-center text-sm">
-                <div class="text-gray-400">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    <span>{% trans "Всего пользователей" %}:</span> <span id="modalTotalUsers" class="text-white font-semibold">0</span>
-                </div>
-                <button class="text-purple-400 hover:text-purple-300 text-sm flex items-center space-x-1">
-                    <i class="fas fa-download"></i>
-                    <span>{% trans "Экспорт" %}</span>
-                </button>
-            </div>
-        </div>
+
+       
     </div>
 </div>
 
+<script>
+// Функция для загрузки информации о последнем пользователе
+function loadLastUserDetails() {
+    const lastUserDetails = document.getElementById('lastUserDetails');
+    
+    // Показываем индикатор загрузки
+    lastUserDetails.innerHTML = `
+        <div class="text-center py-4 text-gray-400">
+            <i class="fas fa-spinner animate-spin mr-2"></i>
+            <span>Загрузка...</span>
+        </div>
+    `;
 
+    fetch('/api/admin/last-user-details/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.last_user) {
+            updateLastUserDetails(data.last_user);
+        } else {
+            showLastUserError(data.error || 'Ошибка загрузки данных');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading last user details:', error);
+        showLastUserError('Ошибка сети: ' + error.message);
+    });
+}
+
+// Функция для показа ошибки
+function showLastUserError(message) {
+    document.getElementById('lastUserDetails').innerHTML = `
+        <div class="text-center py-4 text-red-400">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+}
+
+
+// Вспомогательные функции для форматирования времени
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'только что';
+    if (diffMins < 60) return `${diffMins} мин назад`;
+    if (diffHours < 24) return `${diffHours} ч назад`;
+    if (diffDays === 1) return 'вчера';
+    if (diffDays < 7) return `${diffDays} дн назад`;
+    
+    return date.toLocaleDateString('ru-RU');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+
+// Функция для обновления отображения информации о последнем пользователе
+function updateLastUserDetails(user) {
+    const lastUserDetails = document.getElementById('lastUserDetails');
+    
+    // Форматируем даты
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Никогда';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+const dateJoined = formatDate(user.date_joined);
+const lastLogin = user.last_login ? formatDate(user.last_login) : 'Никогда';
+const lastActivity = user.last_activity ? getTimeAgo(user.last_activity) : 'Никогда';
+
+    lastUserDetails.innerHTML = `
+        <!-- Основная информация -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-gray-700/50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">ID пользователя</div>
+                <div class="text-white font-mono text-sm">#${user.id}</div>
+            </div>
+            <div class="bg-gray-700/50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Статус</div>
+                <div class="flex items-center">
+                    <span class="w-2 h-2 rounded-full ${user.is_active ? 'bg-green-400' : 'bg-red-400'} mr-2"></span>
+                    <span class="text-white text-sm">${user.is_active ? 'Активен' : 'Неактивен'}</span>
+                    ${user.is_staff ? '<span class="ml-2 px-1 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">Staff</span>' : ''}
+                </div>
+            </div>
+        </div>
+
+        <!-- Логин и Email -->
+        <div class="space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Логин:</span>
+                <span class="text-white font-medium">${user.username}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Email:</span>
+                <span class="text-white text-sm">${user.email}</span>
+            </div>
+        </div>
+
+        <!-- Даты -->
+        <div class="space-y-2 pt-2 border-t border-gray-600/50">
+    <div class="flex justify-between items-center">
+        <span class="text-gray-400 text-sm">Дата регистрации:</span>
+        <span class="text-white text-sm">${dateJoined}</span>
+    </div>
+    <div class="flex justify-between items-center">
+        <span class="text-gray-400 text-sm">Последний вход:</span>
+        <span class="text-white text-sm">${lastLogin}</span>
+    </div>
+    <div class="flex justify-between items-center">
+        <span class="text-gray-400 text-sm">Последняя активность:</span>
+        <span class="text-white text-sm">${lastActivity}</span>
+    </div>
+</div>
+
+        <!-- Статистика -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Статистика активности</div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-blue-500/10 rounded p-2 text-center">
+                    <div class="text-blue-400 font-bold text-lg">${user.stats.transactions_count}</div>
+                    <div class="text-gray-400 text-xs">Транзакции</div>
+                </div>
+                <div class="bg-green-500/10 rounded p-2 text-center">
+                    <div class="text-green-400 font-bold text-lg">${user.stats.categories_count}</div>
+                    <div class="text-gray-400 text-xs">Категории</div>
+                </div>
+                <div class="bg-purple-500/10 rounded p-2 text-center">
+                    <div class="text-purple-400 font-bold text-lg">${user.stats.notes_count}</div>
+                    <div class="text-gray-400 text-xs">Заметки</div>
+                </div>
+                <div class="bg-yellow-500/10 rounded p-2 text-center">
+                    <div class="text-yellow-400 font-bold text-lg">${user.stats.todos_count}</div>
+                    <div class="text-gray-400 text-xs">Задачи</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Финансы -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Финансы</div>
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Баланс:</span>
+                    <span class="text-white font-medium ${user.stats.balance >= 0 ? 'text-green-400' : 'text-red-400'}">${user.stats.balance.toFixed(2)} ${user.profile.currency}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Доходы:</span>
+                    <span class="text-green-400 text-sm">${user.stats.income.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Расходы:</span>
+                    <span class="text-red-400 text-sm">${user.stats.expense.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Резерв:</span>
+                    <span class="text-blue-400 text-sm">${user.stats.reserve.toFixed(2)}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Настройки профиля</div>
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Валюта:</span>
+                    <span class="text-white text-sm">${user.profile.currency}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Резерв (%):</span>
+                    <span class="text-white text-sm">${user.profile.reserve_percentage}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Язык:</span>
+                    <span class="text-white text-sm">${getLanguageName(user.profile.language)}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Долги -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Активные долги:</span>
+                <span class="text-white text-sm">${user.stats.debts_count}</span>
+            </div>
+        </div>
+    `;
+}
+
+// Вспомогательная функция для получения названия языка
+function getLanguageName(code) {
+    const languages = {
+        'ru': 'Русский',
+        'en': 'English', 
+        'ky': 'Кыргызча',
+        'uk': 'Українська'
+    };
+    return languages[code] || code;
+}
+
+// Обновляем функцию toggleAdminUsersList чтобы загружать данные при открытии
+function toggleAdminUsersList() {
+    const content = document.getElementById('adminUsersList');
+    const chevron = document.getElementById('adminUsersChevron');
+    
+    content.classList.toggle('hidden');
+    chevron.classList.toggle('rotate-180');
+    
+    // Если список открывается и еще не загружены данные о последнем пользователе
+    if (!content.classList.contains('hidden')) {
+        loadLastUserDetails();
+    }
+}
+
+
+
+// Функция для отображения списка пользователей в новом формате
+function displayUsersList(users, append = false) {
+    const container = document.getElementById('usersListContainer');
+    
+    if (!append) {
+        container.innerHTML = '';
+    }
+
+    if (users.length === 0) {
+        if (!append) {
+            container.innerHTML = '<div class="text-center text-gray-400 py-8">Пользователи не найдены</div>';
+        }
+        return;
+    }
+
+    users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = 'user-item bg-gray-800/50 rounded-xl p-4 mb-3 border border-gray-700/50 cursor-pointer transition-all duration-200 hover:bg-gray-700/50';
+        userElement.setAttribute('data-user-id', user.id);
+        
+        const joinedDate = new Date(user.date_joined).toLocaleDateString('ru-RU');
+        const lastActivity = user.last_activity ? getTimeAgo(user.last_activity) : 'Никогда';
+        
+        userElement.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <!-- Аватар -->
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-500 flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                </div>
+                
+                <!-- Информация -->
+                <div class="flex-1">
+                    <h2 class="text-lg font-medium text-white mb-1">${user.username}</h2>
+                    <p class="text-sm text-gray-400">
+                        ID ${user.id} • ${joinedDate}
+                    </p>
+                    
+                </div>
+                
+                <!-- Статус -->
+                <div class="text-right">
+                    <div class="flex items-center justify-end space-x-2 mb-1">
+                        <span class="w-2 h-2 rounded-full ${user.is_active ? 'bg-green-400' : 'bg-red-400'}"></span>
+                        <span class="text-xs ${user.is_active ? 'text-green-400' : 'text-red-400'}">${user.is_active ? 'Активен' : 'Неактивен'}</span>
+                    </div>
+                    ${user.is_staff ? '<span class="inline-block px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-lg">Staff</span>' : ''}
+                </div>
+            </div>
+            
+            <!-- Свернутая статистика -->
+            <div class="user-summary mt-3 grid grid-cols-3 gap-2 text-center">
+                <div class="bg-gray-700/30 rounded-lg p-2">
+                    <div class="text-blue-400 font-bold text-sm">${user.transactions_count}</div>
+                    <div class="text-gray-400 text-xs">Транзакции</div>
+                </div>
+                <div class="bg-gray-700/30 rounded-lg p-2">
+                    <div class="text-green-400 font-bold text-sm">${user.categories_count}</div>
+                    <div class="text-gray-400 text-xs">Категории</div>
+                </div>
+                <div class="bg-gray-700/30 rounded-lg p-2">
+                    <div class="font-bold text-sm ${user.balance >= 0 ? 'text-green-400' : 'text-red-400'}">${user.balance.toFixed(2)}</div>
+                    <div class="text-gray-400 text-xs">Баланс</div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(userElement);
+    });
+
+    // Добавляем обработчики событий для каждого пользователя
+    document.querySelectorAll('.user-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            toggleUserDetails(userId, this);
+        });
+    });
+}
+
+// Функция для переключения отображения деталей пользователя
+// Функция для переключения отображения деталей пользователя
+function toggleUserDetails(userId, userElement) {
+    // Проверяем, не открыты ли уже детали этого пользователя
+    const existingDetails = userElement.nextElementSibling;
+    
+    // Если детали уже открыты и это тот же пользователь - сворачиваем
+    if (existingDetails && 
+        existingDetails.classList.contains('user-details') && 
+        !existingDetails.classList.contains('loading')) {
+        existingDetails.remove();
+        return;
+    }
+
+    // Удаляем детали других пользователей
+    document.querySelectorAll('.user-details').forEach(details => {
+        details.remove();
+    });
+
+    // Показываем индикатор загрузки
+    const loadingDetails = document.createElement('div');
+    loadingDetails.className = 'user-details loading bg-gray-800/80 rounded-xl p-4 mb-3 border border-gray-700/50';
+    loadingDetails.innerHTML = `
+        <div class="text-center py-4 text-gray-400">
+            <i class="fas fa-spinner animate-spin mr-2"></i>
+            <span>Загрузка детальной информации...</span>
+        </div>
+    `;
+    userElement.after(loadingDetails);
+
+    // Загружаем детальную информацию о пользователе
+    fetch(`/api/admin/user-details/${userId}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Удаляем индикатор загрузки
+        if (loadingDetails.parentNode) {
+            loadingDetails.remove();
+        }
+        
+        if (data.success) {
+            // Создаем блок с деталями
+            const detailsElement = document.createElement('div');
+            detailsElement.className = 'user-details bg-gray-800/80 rounded-xl p-4 mb-3 border border-gray-700/50';
+            detailsElement.innerHTML = generateUserDetailsHTML(data.user);
+            userElement.after(detailsElement);
+        } else {
+            throw new Error(data.error || 'Ошибка загрузки данных');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading user details:', error);
+        // Удаляем индикатор загрузки
+        if (loadingDetails.parentNode) {
+            loadingDetails.remove();
+        }
+        
+        // Показываем ошибку
+        const errorElement = document.createElement('div');
+        errorElement.className = 'user-details bg-gray-800/80 rounded-xl p-4 mb-3 border border-red-700/50';
+        errorElement.innerHTML = `
+            <div class="text-center py-4 text-red-400">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>Ошибка загрузки: ${error.message}</span>
+            </div>
+        `;
+        userElement.after(errorElement);
+    });
+}
+
+
+
+
+
+// Функция для генерации HTML детальной информации о пользователе
+function generateUserDetailsHTML(user) {
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Никогда';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getTimeAgo = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'только что';
+        if (diffMins < 60) return `${diffMins} мин назад`;
+        if (diffHours < 24) return `${diffHours} ч назад`;
+        if (diffDays === 1) return 'вчера';
+        if (diffDays < 7) return `${diffDays} дн назад`;
+        
+        return date.toLocaleDateString('ru-RU');
+    };
+
+    const dateJoined = formatDate(user.date_joined);
+    const lastLogin = user.last_login ? formatDate(user.last_login) : 'Никогда';
+    const lastActivity = user.last_activity ? getTimeAgo(user.last_activity) : 'Никогда';
+
+    return `
+        <!-- Основная информация -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-gray-700/50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">ID пользователя</div>
+                <div class="text-white font-mono text-sm">#${user.id}</div>
+            </div>
+            <div class="bg-gray-700/50 rounded-lg p-3">
+                <div class="text-xs text-gray-400 mb-1">Статус</div>
+                <div class="flex items-center">
+                    <span class="w-2 h-2 rounded-full ${user.is_active ? 'bg-green-400' : 'bg-red-400'} mr-2"></span>
+                    <span class="text-white text-sm">${user.is_active ? 'Активен' : 'Неактивен'}</span>
+                    ${user.is_staff ? '<span class="ml-2 px-1 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">Staff</span>' : ''}
+                </div>
+            </div>
+        </div>
+
+        <!-- Логин и Email -->
+        <div class="space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Логин:</span>
+                <span class="text-white font-medium">${user.username}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Email:</span>
+                <span class="text-white text-sm">${user.email}</span>
+            </div>
+        </div>
+
+        <!-- Даты -->
+        <div class="space-y-2 pt-2 border-t border-gray-600/50">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Дата регистрации:</span>
+                <span class="text-white text-sm">${dateJoined}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Последний вход:</span>
+                <span class="text-white text-sm">${lastLogin}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Последняя активность:</span>
+                <span class="text-white text-sm">${lastActivity}</span>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Статистика активности</div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-blue-500/10 rounded p-2 text-center">
+                    <div class="text-blue-400 font-bold text-lg">${user.stats.transactions_count}</div>
+                    <div class="text-gray-400 text-xs">Транзакции</div>
+                </div>
+                <div class="bg-green-500/10 rounded p-2 text-center">
+                    <div class="text-green-400 font-bold text-lg">${user.stats.categories_count}</div>
+                    <div class="text-gray-400 text-xs">Категории</div>
+                </div>
+                <div class="bg-purple-500/10 rounded p-2 text-center">
+                    <div class="text-purple-400 font-bold text-lg">${user.stats.notes_count}</div>
+                    <div class="text-gray-400 text-xs">Заметки</div>
+                </div>
+                <div class="bg-yellow-500/10 rounded p-2 text-center">
+                    <div class="text-yellow-400 font-bold text-lg">${user.stats.todos_count}</div>
+                    <div class="text-gray-400 text-xs">Задачи</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Финансы -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Финансы</div>
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Баланс:</span>
+                    <span class="text-white font-medium ${user.stats.balance >= 0 ? 'text-green-400' : 'text-red-400'}">${user.stats.balance.toFixed(2)} ${user.profile.currency}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Доходы:</span>
+                    <span class="text-green-400 text-sm">${user.stats.income.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Расходы:</span>
+                    <span class="text-red-400 text-sm">${user.stats.expense.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Резерв:</span>
+                    <span class="text-blue-400 text-sm">${user.stats.reserve.toFixed(2)}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="text-xs text-gray-400 mb-2">Настройки профиля</div>
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Валюта:</span>
+                    <span class="text-white text-sm">${user.profile.currency}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Резерв (%):</span>
+                    <span class="text-white text-sm">${user.profile.reserve_percentage}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Язык:</span>
+                    <span class="text-white text-sm">${getLanguageName(user.profile.language)}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Долги -->
+        <div class="pt-2 border-t border-gray-600/50">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Активные долги:</span>
+                <span class="text-white text-sm">${user.stats.debts_count}</span>
+            </div>
+        </div>
+    `;
+}
+
+
+</script>
+
+{% endif %}
 
 
 <!-- Блок выбора языка -->

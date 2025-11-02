@@ -23,9 +23,6 @@
     }
 
 
-
-
-// Загрузка статистики администратора
 // Обновленная функция loadAdminStats в admin.js
 async function loadAdminStats() {
     try {
@@ -146,100 +143,6 @@ async function loadUsersList(page = 1) {
         
         if (loader) loader.classList.add('hidden');
         if (content) content.classList.remove('hidden');
-    }
-}
-
-// Отображение списка пользователей в модальном окне
-function displayUsersList(users, hasMore = false) {
-    const container = document.getElementById('usersListContainer');
-    const loadMoreBtn = document.getElementById('loadMoreUsersBtn');
-    
-    if (!container) return;
-    
-    if (currentAdminPage === 1) {
-        container.innerHTML = '';
-    }
-    
-    if (users.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-8 text-gray-400">
-                <i class="fas fa-users text-4xl mb-2"></i>
-                <p>Пользователи не найдены</p>
-            </div>
-        `;
-        return;
-    }
-    
-    users.forEach(user => {
-        const userCard = document.createElement('div');
-        userCard.className = 'bg-gray-700/50 rounded-lg p-4 mb-3 border border-gray-600/30';
-        
-        const statusBadge = user.is_active ? 
-            '<span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full">Активен</span>' :
-            '<span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full">Неактивен</span>';
-        
-        const staffBadge = user.is_staff ? 
-            '<span class="bg-purple-500/20 text-purple-400 text-xs px-2 py-1 rounded-full ml-2">Админ</span>' : '';
-        
-        userCard.innerHTML = `
-            <div class="flex items-start justify-between mb-2">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                        <i class="fas fa-user text-white"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <h4 class="font-semibold text-white">${escapeHtml(user.username)}</h4>
-                            ${statusBadge}
-                            ${staffBadge}
-                        </div>
-                        <p class="text-gray-400 text-sm mt-1">ID: ${user.id}</p>
-                    </div>
-                </div>
-                <button class="user-actions-btn text-gray-400 hover:text-white p-1 rounded" data-user-id="${user.id}">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 text-xs mt-3">
-                <div>
-                    <p class="text-gray-400">Зарегистрирован</p>
-                    <p class="text-white">${formatDate(user.date_joined)}</p>
-                </div>
-                <div>
-                    <p class="text-gray-400">Последний вход</p>
-                    <p class="text-white">${user.last_login ? formatDate(user.last_login) : 'Никогда'}</p>
-                </div>
-            </div>
-            
-            <div class="mt-3 pt-3 border-t border-gray-600/50">
-                <div class="flex justify-between text-xs">
-                    <div class="text-center">
-                        <p class="text-gray-400">Транзакций</p>
-                        <p class="text-white font-semibold">${user.transactions_count || 0}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-gray-400">Категорий</p>
-                        <p class="text-white font-semibold">${user.categories_count || 0}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-gray-400">Баланс</p>
-                        <p class="text-white font-semibold">${user.balance || 0}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(userCard);
-    });
-    
-    // Показать/скрыть кнопку "Загрузить еще"
-    if (loadMoreBtn) {
-        if (hasMore) {
-            loadMoreBtn.classList.remove('hidden');
-        } else {
-            loadMoreBtn.classList.add('hidden');
-        }
     }
 }
 

@@ -37,9 +37,10 @@ import uuid
 from django.core.files.storage import default_storage
 from django.http import HttpResponseRedirect
 from django.utils import translation
-
+from django.contrib.sessions.models import Session
 import pytz
 from main.models import Transaction, Category
+from .models import DebtPayment
 
 
 from .models import (
@@ -1609,6 +1610,117 @@ def generate_random_password(length=12):
     return ''.join(random.choice(characters) for i in range(length))
 
 
+@staff_member_required
+@login_required
+def get_last_user_details(request):
+    """Получение детальной информации о последнем зарегистрированном пользователе"""
+    try:
+        # Получаем последнего пользователя
+        last_user = User.objects.order_by('-date_joined').first()
+        
+        if not last_user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Пользователи не найдены'
+            })
+        
+        # Собираем статистику пользователя
+        transactions_count = Transaction.objects.filter(user=last_user).count()
+        categories_count = Category.objects.filter(user=last_user).count()
+        notes_count = Note.objects.filter(user=last_user).count()
+        todos_count = Todo.objects.filter(user=last_user).count()
+        debts_count = Debt.objects.filter(user=last_user).count()
+        
+        # Расчет баланса
+        income_result = Transaction.objects.filter(user=last_user, type='income').aggregate(total=Sum('amount'))
+        expense_result = Transaction.objects.filter(user=last_user, type='expense').aggregate(total=Sum('amount'))
+        reserve_result = Transaction.objects.filter(user=last_user, type='income').aggregate(total=Sum('reserve_amount'))
+        
+        income = income_result['total'] or Decimal('0')
+        expense = expense_result['total'] or Decimal('0')
+        reserve = reserve_result['total'] or Decimal('0')
+        balance = income - expense - reserve
+        
+        # Получаем профиль пользователя
+        profile = getattr(last_user, 'userprofile', None)
+        
+        # РАСЧЕТ ПОСЛЕДНЕЙ АКТИВНОСТИ ПО ВСЕМ МОДЕЛЯМ
+        last_activity = None
+        
+        # Проверяем последнюю транзакцию
+        last_transaction = Transaction.objects.filter(user=last_user).order_by('-created_at').first()
+        if last_transaction and last_transaction.created_at:
+            last_activity = last_transaction.created_at
+        
+        # Проверяем последнюю заметку
+        last_note = Note.objects.filter(user=last_user).order_by('-created_at').first()
+        if last_note and last_note.created_at:
+            if not last_activity or last_note.created_at > last_activity:
+                last_activity = last_note.created_at
+        
+        # Проверяем последнюю задачу
+        last_todo = Todo.objects.filter(user=last_user).order_by('-created_at').first()
+        if last_todo and last_todo.created_at:
+            if not last_activity or last_todo.created_at > last_activity:
+                last_activity = last_todo.created_at
+        
+        # Проверяем последний долг
+        last_debt = Debt.objects.filter(user=last_user).order_by('-created_at').first()
+        if last_debt and last_debt.created_at:
+            if not last_activity or last_debt.created_at > last_activity:
+                last_activity = last_debt.created_at
+        
+        # Проверяем последний платеж по долгу
+        last_debt_payment = DebtPayment.objects.filter(debt__user=last_user).order_by('-payment_date').first()
+        if last_debt_payment and last_debt_payment.payment_date:
+            if not last_activity or last_debt_payment.payment_date > last_activity:
+                last_activity = last_debt_payment.payment_date
+        
+        # Если активность не найдена, используем дату регистрации
+        if not last_activity:
+            last_activity = last_user.date_joined
+
+        user_data = {
+            'id': last_user.id,
+            'username': last_user.username,
+            'email': last_user.email or 'Не указан',
+            'date_joined': last_user.date_joined.isoformat(),
+            'last_login': last_user.last_login.isoformat() if last_user.last_login else None,
+            'last_activity': last_activity.isoformat(),  # ДОБАВЛЯЕМ ПОСЛЕДНЮЮ АКТИВНОСТЬ
+            'is_active': last_user.is_active,
+            'is_staff': last_user.is_staff,
+            'stats': {
+                'transactions_count': transactions_count,
+                'categories_count': categories_count,
+                'notes_count': notes_count,
+                'todos_count': todos_count,
+                'debts_count': debts_count,
+                'balance': float(balance),
+                'income': float(income),
+                'expense': float(expense),
+                'reserve': float(reserve)
+            },
+            'profile': {
+                'currency': profile.currency if profile else 'c',
+                'reserve_percentage': profile.reserve_percentage if profile else 10,
+                'target_reserve': float(profile.target_reserve) if profile and profile.target_reserve else 0,
+                'language': profile.language if profile else 'ru'
+            }
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'last_user': user_data
+        })
+        
+    except Exception as e:
+        print(f"Error in get_last_user_details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
 def register(request):
     if request.method == 'POST':
         try:
@@ -1623,7 +1735,7 @@ def register(request):
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=0):
+                if time_passed < timedelta(minutes=30):
                     return JsonResponse({
                         "success": False, 
                         "error": "С одного устройства можно регистрироваться только 1 раз в 30 минут!"
@@ -2233,7 +2345,7 @@ def get_admin_stats(request):
 @staff_member_required
 @login_required
 def get_admin_users(request):
-    """Получение списка пользователей с пагинацией"""
+    """Получение списка пользователей с пагинацией и последней активностью"""
     try:
         page = int(request.GET.get('page', 1))
         limit = int(request.GET.get('limit', 10))
@@ -2271,12 +2383,43 @@ def get_admin_users(request):
             reserve = reserve_result['total'] or Decimal('0')
             balance = income - expense - reserve
 
+            # ВЫЧИСЛЯЕМ ПОСЛЕДНЮЮ АКТИВНОСТЬ
+            last_activity = None
+            
+            # Проверяем последнюю транзакцию
+            last_transaction = Transaction.objects.filter(user=user).order_by('-created_at').first()
+            if last_transaction and last_transaction.created_at:
+                last_activity = last_transaction.created_at
+            
+            # Проверяем последнюю заметку
+            last_note = Note.objects.filter(user=user).order_by('-created_at').first()
+            if last_note and last_note.created_at:
+                if not last_activity or last_note.created_at > last_activity:
+                    last_activity = last_note.created_at
+            
+            # Проверяем последнюю задачу
+            last_todo = Todo.objects.filter(user=user).order_by('-created_at').first()
+            if last_todo and last_todo.created_at:
+                if not last_activity or last_todo.created_at > last_activity:
+                    last_activity = last_todo.created_at
+            
+            # Проверяем последний долг
+            last_debt = Debt.objects.filter(user=user).order_by('-created_at').first()
+            if last_debt and last_debt.created_at:
+                if not last_activity or last_debt.created_at > last_activity:
+                    last_activity = last_debt.created_at
+            
+            # Если активность не найдена, используем дату регистрации
+            if not last_activity:
+                last_activity = user.date_joined
+
             users_data.append({
                 'id': user.id,
                 'username': user.username,
                 'email': user.email or 'Не указан',
-                'date_joined': user.date_joined,
-                'last_login': user.last_login,
+                'date_joined': user.date_joined.isoformat(),
+                'last_login': user.last_login.isoformat() if user.last_login else None,
+                'last_activity': last_activity.isoformat(),  # ДОБАВЛЯЕМ ПОСЛЕДНЮЮ АКТИВНОСТЬ
                 'is_active': user.is_active,
                 'is_staff': user.is_staff,
                 'transactions_count': transactions_count,
@@ -2301,12 +2444,113 @@ def get_admin_users(request):
         return JsonResponse({'success': False, 'error': str(e)})
     
 
+@staff_member_required
+@login_required
+def get_user_details(request, user_id):
+    """Получение детальной информации о конкретном пользователе"""
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Собираем статистику пользователя
+        transactions_count = Transaction.objects.filter(user=user).count()
+        categories_count = Category.objects.filter(user=user).count()
+        notes_count = Note.objects.filter(user=user).count()
+        todos_count = Todo.objects.filter(user=user).count()
+        debts_count = Debt.objects.filter(user=user).count()
+        
+        # Расчет баланса
+        income_result = Transaction.objects.filter(user=user, type='income').aggregate(total=Sum('amount'))
+        expense_result = Transaction.objects.filter(user=user, type='expense').aggregate(total=Sum('amount'))
+        reserve_result = Transaction.objects.filter(user=user, type='income').aggregate(total=Sum('reserve_amount'))
+        
+        income = income_result['total'] or Decimal('0')
+        expense = expense_result['total'] or Decimal('0')
+        reserve = reserve_result['total'] or Decimal('0')
+        balance = income - expense - reserve
+        
+        # Получаем профиль пользователя
+        profile = getattr(user, 'userprofile', None)
+        
+        # РАСЧЕТ ПОСЛЕДНЕЙ АКТИВНОСТИ ПО ВСЕМ МОДЕЛЯМ
+        last_activity = None
+        
+        # Проверяем последнюю транзакцию
+        last_transaction = Transaction.objects.filter(user=user).order_by('-created_at').first()
+        if last_transaction and last_transaction.created_at:
+            last_activity = last_transaction.created_at
+        
+        # Проверяем последнюю заметку
+        last_note = Note.objects.filter(user=user).order_by('-created_at').first()
+        if last_note and last_note.created_at:
+            if not last_activity or last_note.created_at > last_activity:
+                last_activity = last_note.created_at
+        
+        # Проверяем последнюю задачу
+        last_todo = Todo.objects.filter(user=user).order_by('-created_at').first()
+        if last_todo and last_todo.created_at:
+            if not last_activity or last_todo.created_at > last_activity:
+                last_activity = last_todo.created_at
+        
+        # Проверяем последний долг
+        last_debt = Debt.objects.filter(user=user).order_by('-created_at').first()
+        if last_debt and last_debt.created_at:
+            if not last_activity or last_debt.created_at > last_activity:
+                last_activity = last_debt.created_at
+        
+        # Проверяем последний платеж по долгу
+        last_debt_payment = DebtPayment.objects.filter(debt__user=user).order_by('-payment_date').first()
+        if last_debt_payment and last_debt_payment.payment_date:
+            if not last_activity or last_debt_payment.payment_date > last_activity:
+                last_activity = last_debt_payment.payment_date
+        
+        # Если активность не найдена, используем дату регистрации
+        if not last_activity:
+            last_activity = user.date_joined
+
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email or 'Не указан',
+            'date_joined': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'last_activity': last_activity.isoformat(),
+            'is_active': user.is_active,
+            'is_staff': user.is_staff,
+            'stats': {
+                'transactions_count': transactions_count,
+                'categories_count': categories_count,
+                'notes_count': notes_count,
+                'todos_count': todos_count,
+                'debts_count': debts_count,
+                'balance': float(balance),
+                'income': float(income),
+                'expense': float(expense),
+                'reserve': float(reserve)
+            },
+            'profile': {
+                'currency': profile.currency if profile else 'c',
+                'reserve_percentage': profile.reserve_percentage if profile else 10,
+                'target_reserve': float(profile.target_reserve) if profile and profile.target_reserve else 0,
+                'language': profile.language if profile else 'ru'
+            }
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'user': user_data
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Пользователь не найден'})
+    except Exception as e:
+        print(f"Error in get_user_details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 
-
-
-    # Добавьте эти views в views.py
+        
 
 @login_required
 def get_todos(request):
@@ -4197,8 +4441,7 @@ def import_optima_bank(file_path, user_obj):
                             datetime_str = f"{date_str} {time_str}"
                             naive_datetime = datetime.strptime(datetime_str, '%d.%m.%Y %H:%M')
                             
-                            # Явно указываем временную зону Asia/Bishkek
-                            import pytz
+
                             bishkek_tz = pytz.timezone('Asia/Bishkek')
                             transaction_datetime = bishkek_tz.localize(naive_datetime)
                             

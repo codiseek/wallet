@@ -95,6 +95,8 @@ urlpatterns = [
     path('import/mbank/', views.import_mbank_view, name='import_mbank'),
     path('import/optima/', views.import_optima_view, name='import_optima_bank'),
     path('delete-all-data/', views.delete_all_transactions_and_categories, name='delete_all_data'),
+    path('api/admin/last-user-details/', views.get_last_user_details, name='get_last_user_details'),
+    path('api/admin/user-details/<int:user_id>/', views.get_user_details, name='get_user_details'),
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
