@@ -187,22 +187,22 @@ function escapeHtml(text) {
 
 // Управление модальным окном
 function toggleAdminUsersModal() {
-    if (!adminUsersModal) return;
+    const modal = document.getElementById('adminUsersModal');
+    const body = document.body;
     
-    if (adminUsersModal.classList.contains('hidden')) {
-        // Открываем модалку с анимацией
-        animateModal(adminUsersModal, true);
-        currentAdminPage = 1;
-        loadUsersList(1);
+    if (modal.classList.contains('hidden')) {
+        // Блокируем прокрутку
+        body.style.overflow = 'hidden';
+        
+        // Загружаем первую страницу пользователей
+        loadAdminUsers(1, false);
+        modal.classList.remove('hidden');
     } else {
-        // Закрываем модалку с анимацией
-        animateModal(adminUsersModal, false);
+        // Разблокируем прокрутку
+        body.style.overflow = '';
+        
+        modal.classList.add('hidden');
     }
-}
-
-// Загрузка следующих пользователей
-function loadMoreUsers() {
-    loadUsersList(currentAdminPage + 1);
 }
 
 // Инициализация обработчиков

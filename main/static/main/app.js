@@ -7,6 +7,12 @@ let isLoading = false;
 let currentCategory = 'all';
 const PAGE_SIZE = 10;
 
+// Глобальные переменные для пагинации пользователей
+let currentUsersPage = 1;
+const usersPerPage = 10;
+let hasMoreUsers = false;
+
+
 // Добавьте в начало файла с другими глобальными переменными
 let currentTransactionDetailData = null;
 

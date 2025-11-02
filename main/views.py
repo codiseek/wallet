@@ -1680,13 +1680,34 @@ def get_last_user_details(request):
         if not last_activity:
             last_activity = last_user.date_joined
 
+        # ПРОВЕРЯЕМ ИМПОРТЫ ИЗ БАНКОВ - ДОБАВЛЯЕМ ЭТУ ЛОГИКУ
+        bank_imports = []
+        
+        # Проверяем наличие категории MBank
+        if Category.objects.filter(user=last_user, name='MBank').exists():
+            bank_imports.append('MBank')
+        
+        # Проверяем наличие категории Optima Bank
+        if Category.objects.filter(user=last_user, name='Optima Bank').exists():
+            bank_imports.append('Optima Bank')
+        
+        # Проверяем транзакции с категориями банков
+        mbank_transactions = Transaction.objects.filter(user=last_user, category__name='MBank').count()
+        optima_transactions = Transaction.objects.filter(user=last_user, category__name='Optima Bank').count()
+        
+        # Если есть транзакции но нет категории, все равно считаем что импорт был
+        if mbank_transactions > 0 and 'MBank' not in bank_imports:
+            bank_imports.append('MBank')
+        if optima_transactions > 0 and 'Optima Bank' not in bank_imports:
+            bank_imports.append('Optima Bank')
+
         user_data = {
             'id': last_user.id,
             'username': last_user.username,
             'email': last_user.email or 'Не указан',
             'date_joined': last_user.date_joined.isoformat(),
             'last_login': last_user.last_login.isoformat() if last_user.last_login else None,
-            'last_activity': last_activity.isoformat(),  # ДОБАВЛЯЕМ ПОСЛЕДНЮЮ АКТИВНОСТЬ
+            'last_activity': last_activity.isoformat(),
             'is_active': last_user.is_active,
             'is_staff': last_user.is_staff,
             'stats': {
@@ -1698,7 +1719,10 @@ def get_last_user_details(request):
                 'balance': float(balance),
                 'income': float(income),
                 'expense': float(expense),
-                'reserve': float(reserve)
+                'reserve': float(reserve),
+                'bank_imports': bank_imports,  # ДОБАВЛЯЕМ ИНФОРМАЦИЮ ОБ ИМПОРТАХ
+                'mbank_transactions': mbank_transactions,
+                'optima_transactions': optima_transactions,
             },
             'profile': {
                 'currency': profile.currency if profile else 'c',
@@ -1718,7 +1742,8 @@ def get_last_user_details(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
-
+    
+    
 
 
 def register(request):
@@ -2507,6 +2532,27 @@ def get_user_details(request, user_id):
         if not last_activity:
             last_activity = user.date_joined
 
+        # ПРОВЕРЯЕМ ИМПОРТЫ ИЗ БАНКОВ
+        bank_imports = []
+        
+        # Проверяем наличие категории MBank
+        if Category.objects.filter(user=user, name='MBank').exists():
+            bank_imports.append('MBank')
+        
+        # Проверяем наличие категории Optima Bank
+        if Category.objects.filter(user=user, name='Optima Bank').exists():
+            bank_imports.append('Optima Bank')
+        
+        # Проверяем транзакции с категориями банков (на всякий случай)
+        mbank_transactions = Transaction.objects.filter(user=user, category__name='MBank').count()
+        optima_transactions = Transaction.objects.filter(user=user, category__name='Optima Bank').count()
+        
+        # Если есть транзакции но нет категории, все равно считаем что импорт был
+        if mbank_transactions > 0 and 'MBank' not in bank_imports:
+            bank_imports.append('MBank')
+        if optima_transactions > 0 and 'Optima Bank' not in bank_imports:
+            bank_imports.append('Optima Bank')
+
         user_data = {
             'id': user.id,
             'username': user.username,
@@ -2525,7 +2571,10 @@ def get_user_details(request, user_id):
                 'balance': float(balance),
                 'income': float(income),
                 'expense': float(expense),
-                'reserve': float(reserve)
+                'reserve': float(reserve),
+                'bank_imports': bank_imports,  # ДОБАВЛЯЕМ ИНФОРМАЦИЮ ОБ ИМПОРТАХ
+                'mbank_transactions': mbank_transactions,
+                'optima_transactions': optima_transactions,
             },
             'profile': {
                 'currency': profile.currency if profile else 'c',
@@ -2547,8 +2596,6 @@ def get_user_details(request, user_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
-
-
 
         
 
