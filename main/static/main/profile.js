@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteAccountBtn = document.querySelector('.delete-account-btn');
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', function(e) {
-            console.log('Delete account button clicked');
             e.stopPropagation();
             e.preventDefault();
             handleDeleteAccount();
@@ -81,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const deleteAccountBtn = document.getElementById('deleteAccountBtn');
             if (deleteAccountBtn) {
                 deleteAccountBtn.disabled = !e.target.checked;
-                console.log('Global handler: checkbox changed, button disabled:', deleteAccountBtn.disabled);
             }
         }
     });
@@ -134,7 +132,6 @@ function handleExportData() {
 
 function openProfileModalFromMenu() {
     closeUserMenu();
-    // Добавляем небольшую задержку для плавного перехода
     setTimeout(() => {
         openProfileModal();
     }, 100);
@@ -145,11 +142,9 @@ function openProfileModal() {
 
     const modal = document.getElementById('profileModal');
     if (modal) {
-        // Используем стандартную функцию animateModal из modals.js
         if (typeof animateModal === 'function') {
             animateModal(modal, true);
         } else {
-            // Fallback
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
         }
@@ -168,44 +163,22 @@ function closeProfileModal() {
     }
 }
 
-// Функции без параметра event
 function handleDeleteAccount() {
     const profileModal = document.getElementById('profileModal');
     const deleteModal = document.getElementById('deleteAccountModal');
     
     if (profileModal && deleteModal) {
-        // просто прячем контент профиля
         const content = profileModal.querySelector('.modal-content');
         if (content) content.classList.add('hidden');
-
-        // показываем удаление
         deleteModal.classList.remove('hidden');
     }
 }
 
 function backToProfileModal() {
-    console.log('Simple version: Switching back to profile modal');
-    
     const profileModal = document.getElementById('profileModal');
     const deleteModal = document.getElementById('deleteAccountModal');
     
     if (profileModal && deleteModal) {
-        deleteModal.classList.add('hidden');
-        profileModal.classList.remove('hidden');
-    }
-}
-
-
-
-
-function backToProfileModal() {
-    console.log('backToProfileModal called');
-    
-    const profileModal = document.getElementById('profileModal');
-    const deleteModal = document.getElementById('deleteAccountModal');
-    
-    if (profileModal && deleteModal) {
-        // Закрываем модалку удаления
         if (typeof animateModal === 'function') {
             animateModal(deleteModal, false);
         } else {
@@ -213,7 +186,6 @@ function backToProfileModal() {
             deleteModal.style.display = 'none';
         }
         
-        // Открываем модалку профиля
         setTimeout(() => {
             if (typeof animateModal === 'function') {
                 animateModal(profileModal, true);
@@ -221,53 +193,33 @@ function backToProfileModal() {
                 profileModal.style.display = 'flex';
                 profileModal.classList.remove('hidden');
             }
-            console.log('Switched back to profile modal');
         }, 300);
     }
 }
 
-
-
 function openDeleteAccountModal() {
-    console.log('openDeleteAccountModal called - attempting to open modal');
     const modal = document.getElementById('deleteAccountModal');
     if (!modal) {
-        console.error('Delete account modal not found!');
         return;
     }
     
-    console.log('Delete account modal found, removing hidden class');
     modal.classList.remove('hidden');
-    console.log('Modal should be visible now');
     
-    // Даем время для отрисовки DOM перед поиском элементов
     setTimeout(() => {
-        // Сбрасываем чекбокс и блокируем кнопку
         const confirmDelete = document.getElementById('confirmDelete');
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        
-        console.log('Found elements:', {
-            confirmDelete: !!confirmDelete,
-            deleteAccountBtn: !!deleteAccountBtn
-        });
         
         if (confirmDelete && deleteAccountBtn) {
             confirmDelete.checked = false;
             deleteAccountBtn.disabled = true;
             
-            // Удаляем старые обработчики и добавляем новый
             confirmDelete.onchange = function() {
-                console.log('Checkbox changed:', this.checked);
                 deleteAccountBtn.disabled = !this.checked;
             };
             
-            // Также добавляем обработчик click для надежности
             confirmDelete.onclick = function() {
-                console.log('Checkbox clicked:', this.checked);
                 deleteAccountBtn.disabled = !this.checked;
             };
-        } else {
-            console.error('Could not find confirmDelete or deleteAccountBtn elements');
         }
     }, 50);
 }
@@ -287,13 +239,11 @@ function closeUserMenu() {
     }
 }
 
-// Функция для меню пользователя
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
     if (menu) {
         menu.classList.toggle('hidden');
         
-        // Закрытие меню при клике вне его
         document.addEventListener('click', function closeMenu(e) {
             if (!menu.contains(e.target) && !e.target.closest('.user-menu-btn')) {
                 menu.classList.add('hidden');
@@ -303,11 +253,9 @@ function toggleUserMenu() {
     }
 }
 
-// Экспорт данных
 function exportUserData() {
     showSuccessNotification('Начинаем экспорт данных...');
     
-    // Создаем скрытую ссылку для скачивания
     const link = document.createElement('a');
     link.href = '/export_user_data/';
     link.download = 'backup.json';
@@ -318,8 +266,15 @@ function exportUserData() {
     showSuccessNotification('Экспорт завершен! Файл скачан.');
 }
 
-// Удаление аккаунта
 function deleteAccount() {
+    const passwordInput = document.getElementById('confirmPasswordDelete');
+    const password = passwordInput.value.trim();
+    
+    if (!password) {
+        showErrorNotification('Введите пароль для подтверждения');
+        return;
+    }
+
     if (!document.getElementById('confirmDelete').checked) {
         showErrorNotification('Подтвердите удаление аккаунта');
         return;
@@ -328,23 +283,26 @@ function deleteAccount() {
     const btn = document.getElementById('deleteAccountBtn');
     const originalText = btn.innerHTML;
     
-    // Показываем загрузку
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Удаление...';
 
     fetch('/delete_account/', {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'X-Requested-With': 'XMLHttpRequest'
-        }
+        },
+        body: JSON.stringify({
+            password: password
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             showSuccessNotification(data.message);
             setTimeout(() => {
-                window.location.href = '/'; // Перенаправляем на главную
+                window.location.href = '/';
             }, 2000);
         } else {
             showErrorNotification(data.error);
@@ -353,7 +311,6 @@ function deleteAccount() {
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
         showErrorNotification('Ошибка при удалении аккаунта');
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -361,29 +318,35 @@ function deleteAccount() {
 }
 
 function loadProfileInfo() {
-    fetch('/get_profile_info/')
+    return fetch('/get_profile_info/')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 updateProfileDisplay(data.profile);
+                updateProfileNotification(data.profile);
+                return data.profile;
             }
+            throw new Error('Failed to load profile info');
         })
         .catch(error => {
-            console.error('Ошибка загрузки профиля:', error);
+            throw error;
         });
 }
 
+function refreshProfileNotification() {
+    loadProfileInfo().then(profile => {
+        updateProfileNotification(profile);
+    }).catch(error => {});
+}
+
 function updateProfileDisplay(profile) {
-    // Заполняем поля формы
     document.getElementById('firstNameInput').value = profile.first_name || '';
     document.getElementById('emailInput').value = profile.email || '';
     document.getElementById('phoneInput').value = profile.phone || '';
     
-    // Обновляем прогресс
     document.getElementById('completionPercentage').textContent = profile.completion_percentage + '%';
     document.getElementById('completionProgress').style.width = profile.completion_percentage + '%';
     
-    // Обновляем уведомление в интерфейсе
     updateProfileNotification(profile);
 }
 
@@ -391,42 +354,123 @@ function updateProfileNotification(profile) {
     const notification = document.getElementById('profileNotification');
     if (!notification) return;
     
-    if (profile.completion_percentage < 50) {
-        notification.innerHTML = `
-<div class="group bg-gray-800/50 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/30 transition-all duration-300 cursor-pointer" onclick="openProfileModal()">
-    <div class="flex items-center justify-between">
+    const hasEmail = profile.email && profile.email.trim() !== '';
+    const hasPasswordChanged = profile.password_changed;
+    
+    if (hasEmail && hasPasswordChanged) {
+        if (!notification.classList.contains('hidden')) {
+            notification.style.opacity = '1';
+            notification.style.transition = 'all 0.5s ease-in-out';
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+                notification.style.opacity = '';
+                notification.style.transform = '';
+            }, 600);
+        }
+        return;
+    }
+    
+    const notificationHTML = `
+<div class="group bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-4 border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300">
+    <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 bg-blue-500/10 rounded-lg flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                <i class="fa-solid fa-shield-cat text-blue-400 text-sm group-hover:text-blue-300"></i>
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-shield-halved text-white text-sm"></i>
             </div>
             <div>
-                <p class="text-white font-medium text-sm">Защитите ваш аккаунт!</p>
-                <p class="text-gray-400 text-xs">Добавьте email для восстановления доступа!</p>
+                <p class="text-white font-semibold text-sm">Защитите ваш аккаунт!</p>
+                <p class="text-blue-300 text-xs">Добавьте email и установите пароль для безопасности</p>
             </div>
         </div>
-        <i class="fas fa-chevron-right text-gray-500 text-sm group-hover:text-blue-400 transition-colors"></i>
     </div>
+    
+    <div class="flex space-x-3">
+        ${!hasEmail ? `
+        <button onclick="openProfileModal()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center space-x-2">
+            <i class="fas fa-envelope text-xs"></i>
+            <span>Добавить почту</span>
+        </button>
+        ` : ''}
+        
+        ${!hasPasswordChanged ? `
+        <button onclick="openPasswordModal()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center space-x-2">
+            <i class="fas fa-lock text-xs"></i>
+            <span>Придумать пароль</span>
+        </button>
+        ` : ''}
+    </div>
+    
+    ${hasEmail || hasPasswordChanged ? `
+    <div class="mt-3 pt-3 border-t border-blue-500/20">
+        <div class="flex items-center space-x-2 text-green-400 text-xs">
+            <i class="fas fa-check-circle"></i>
+            <span>${hasEmail ? '✓ Email добавлен' : ''}${hasEmail && hasPasswordChanged ? ', ' : ''}${hasPasswordChanged ? '✓ Пароль установлен' : ''}</span>
+        </div>
+    </div>
+    ` : ''}
 </div>
-        `;
+    `;
+    
+    if (notification.classList.contains('hidden')) {
+        notification.innerHTML = notificationHTML;
         notification.classList.remove('hidden');
-    } else if (profile.completion_percentage < 100) {
-        notification.innerHTML = `
-            <div class="flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-user-edit text-blue-400"></i>
-                    <div>
-                        <p class="text-white font-semibold">Профиль заполнен на ${profile.completion_percentage}%</p>
-                        <p class="text-blue-300 text-sm">Можете добавить дополнительную информацию</p>
-                    </div>
-                </div>
-                <button onclick="openProfileModal()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors">
-                    Обновить
-                </button>
-            </div>
-        `;
-        notification.classList.remove('hidden');
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+            notification.style.transition = 'all 0.5s ease-in-out';
+        }, 50);
     } else {
-        notification.classList.add('hidden');
+        notification.style.opacity = '0.7';
+        setTimeout(() => {
+            notification.innerHTML = notificationHTML;
+            notification.style.opacity = '1';
+        }, 300);
+    }
+}
+
+function checkDeleteConditions() {
+    const passwordInput = document.getElementById('confirmPasswordDelete');
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteAccountBtn');
+    const passwordMessage = document.getElementById('passwordDeleteMessage');
+    
+    const hasPassword = passwordInput.value.trim() !== '';
+    const isConfirmed = confirmCheckbox.checked;
+    
+    if (hasPassword) {
+        passwordMessage.textContent = 'Пароль введен';
+        passwordMessage.className = 'text-xs mt-1 text-green-400';
+        passwordMessage.classList.remove('hidden');
+    } else {
+        passwordMessage.textContent = 'Введите пароль для подтверждения';
+        passwordMessage.className = 'text-xs mt-1 text-red-400';
+        passwordMessage.classList.remove('hidden');
+    }
+    
+    deleteButton.disabled = !(hasPassword && isConfirmed);
+}
+
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
     }
 }
 
@@ -436,7 +480,6 @@ function saveProfile() {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     
-    // Показываем загрузку
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
     
@@ -458,25 +501,27 @@ function saveProfile() {
         if (data.success) {
             showSuccessNotification(data.message);
             updateProfileDisplay(data.profile);
-            // Закрываем модалку с анимацией через 1.5 секунды
-            setTimeout(() => {
-                const modal = document.getElementById('profileModal');
-                if (modal && typeof animateModal === 'function') {
-                    animateModal(modal, false);
-                } else {
-                    closeProfileModal(); // fallback
-                }
-            }, 1500);
+            
+            return loadProfileInfo().then(freshProfile => {
+                updateProfileNotification(freshProfile);
+                
+                setTimeout(() => {
+                    const modal = document.getElementById('profileModal');
+                    if (modal && typeof animateModal === 'function') {
+                        animateModal(modal, false);
+                    } else {
+                        closeProfileModal();
+                    }
+                }, 1500);
+            });
         } else {
             showErrorNotification(data.error || 'Ошибка сохранения');
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
         showErrorNotification('Ошибка сохранения: ' + error.message);
     })
     .finally(() => {
-        // Восстанавливаем кнопку
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     });

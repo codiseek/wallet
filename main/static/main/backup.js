@@ -1,15 +1,9 @@
-
-   
-
-
 // Переменная для отслеживания состояния импорта
 let isImporting = false;
 
 // Функция для экспорта данных
 function exportData() {
     if (isImporting) return;
-    
-    console.log('Export started...');
     
     if (window.showLoadingNotification) {
         showLoadingNotification('Подготовка данных для экспорта...');
@@ -42,7 +36,6 @@ function exportData() {
         }
     })
     .catch(error => {
-        console.error('Export error:', error);
         if (window.showErrorNotification) {
             showErrorNotification('Ошибка при экспорте данных: ' + error.message);
         }
@@ -52,11 +45,8 @@ function exportData() {
 // Функция для импорта данных
 function importData() {
     if (isImporting) {
-        console.log('Import already in progress');
         return;
     }
-    
-    console.log('Import started...');
     
     // Создаем файловый input
     const fileInput = document.createElement('input');
@@ -82,27 +72,18 @@ function importData() {
 
 // Обработчик выбора файла для импорта
 function handleFileImport(event, fileInput) {
-    console.log('File selected for import');
-    
     const file = event.target.files[0];
     if (!file) {
-        console.log('No file selected');
         return;
     }
-    
-    console.log('Selected file:', file.name, file.size, file.type);
     
     // Подтверждение импорта
     if (!confirm('ВНИМАНИЕ: При импорте будут перезаписаны все текущие данные. Продолжить?')) {
-        console.log('Import cancelled by user');
         return;
     }
 
-    console.log('User confirmed import');
-    
     // Находим кнопку импорта
     const importBtn = document.getElementById('importBtn');
-    console.log('Import button found:', !!importBtn);
     
     if (importBtn) {
         // Сохраняем оригинальное состояние
@@ -129,8 +110,6 @@ function handleFileImport(event, fileInput) {
         const formData = new FormData();
         formData.append('backup_file', file);
         
-        console.log('Sending import request...');
-        
         fetch('/import-data/', {
             method: 'POST',
             body: formData,
@@ -139,12 +118,9 @@ function handleFileImport(event, fileInput) {
             }
         })
         .then(response => {
-            console.log('Import response status:', response.status);
             return response.json();
         })
         .then(data => {
-            console.log('Import response data:', data);
-            
             if (data.success) {
                 // Успех
                 importBtn.innerHTML = `
@@ -168,8 +144,6 @@ function handleFileImport(event, fileInput) {
             }
         })
         .catch(error => {
-            console.error('Import error:', error);
-            
             // Восстанавливаем кнопку с ошибкой
             importBtn.innerHTML = `
                 <i class="fas fa-times text-2xl"></i>
@@ -198,7 +172,6 @@ function handleFileImport(event, fileInput) {
             }
         });
     } else {
-        console.error('Import button not found');
         if (window.showErrorNotification) {
             showErrorNotification('Ошибка: не найдена кнопка импорта');
         }
@@ -207,14 +180,9 @@ function handleFileImport(event, fileInput) {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Backup functions loaded');
-    
     // Проверяем, что кнопки найдены
     const exportBtn = document.getElementById('exportBtn');
     const importBtn = document.getElementById('importBtn');
-    
-    console.log('Export button found:', !!exportBtn);
-    console.log('Import button found:', !!importBtn);
     
     // Добавляем обработчики, если они не установлены через onclick
     if (exportBtn && !exportBtn.onclick) {
@@ -240,8 +208,6 @@ if (typeof showErrorNotification === 'undefined') {
 
 if (typeof showLoadingNotification === 'undefined') {
     window.showLoadingNotification = function(message) {
-        console.log('LOADING: ' + message);
+        // Без действия, так как это уведомление о загрузке
     };
 }
-
-

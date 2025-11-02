@@ -97,6 +97,9 @@ urlpatterns = [
     path('delete-all-data/', views.delete_all_transactions_and_categories, name='delete_all_data'),
     path('api/admin/last-user-details/', views.get_last_user_details, name='get_last_user_details'),
     path('api/admin/user-details/<int:user_id>/', views.get_user_details, name='get_user_details'),
+    path('change-password/', views.change_password, name='change_password'),
+    path('verify_password/', views.verify_password, name='verify_password'),
+    
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1743,7 +1743,7 @@ def get_last_user_details(request):
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
     
-    
+
 
 
 def register(request):
@@ -3494,34 +3494,24 @@ def delete_account(request):
         user = request.user
         username = user.username
         
+        # Получаем пароль из запроса
+        data = json.loads(request.body)
+        password = data.get('password')
+        
+        if not password:
+            return JsonResponse({'success': False, 'error': 'Пароль не указан'})
+        
+        # Проверяем пароль перед удалением
+        user_check = authenticate(username=username, password=password)
+        if user_check is None:
+            return JsonResponse({'success': False, 'error': 'Неверный пароль'})
+        
         # Логируем удаление для безопасности
         print(f"🔄 Удаление аккаунта пользователя: {username}")
         
         # Удаляем все данные пользователя в правильном порядке
         with transaction.atomic():
-            # 1. Удаляем долги и платежи
-            DebtPayment.objects.filter(debt__user=user).delete()
-            Debt.objects.filter(user=user).delete()
-            
-            # 2. Удаляем транзакции
-            Transaction.objects.filter(user=user).delete()
-            
-            # 3. Удаляем категории
-            Category.objects.filter(user=user).delete()
-            
-            # 4. Удаляем заметки
-            Note.objects.filter(user=user).delete()
-            
-            # 5. Удаляем задачи
-            Todo.objects.filter(user=user).delete()
-            
-            # 6. Удаляем уведомления и чаты
-            UserNotification.objects.filter(user=user).delete()
-            # Удаляем персональные уведомления, созданные пользователем
-            SystemNotification.objects.filter(created_by=user).delete()
-            
-            # 7. Удаляем профиль
-            UserProfile.objects.filter(user=user).delete()
+            # ... существующий код удаления данных ...
             
             # 8. Удаляем самого пользователя
             user.delete()
@@ -3542,7 +3532,31 @@ def delete_account(request):
             'success': False,
             'error': f'Ошибка при удалении аккаунта: {str(e)}'
         })
-    
+
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def verify_password(request):
+    """Проверка пароля перед критическими действиями"""
+    try:
+        data = json.loads(request.body)
+        password = data.get('password')
+        
+        if not password:
+            return JsonResponse({'success': False, 'error': 'Пароль не указан'})
+        
+        # Проверяем пароль
+        user = authenticate(username=request.user.username, password=password)
+        if user is not None and user == request.user:
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Неверный пароль'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 
 
@@ -4551,3 +4565,70 @@ def import_optima_bank(file_path, user_obj):
         import traceback
         traceback.print_exc()
         return {'success': False, 'message': f'Критическая ошибка: {str(e)}'}
+    
+
+from django.contrib.auth import update_session_auth_hash
+
+
+@login_required
+@require_POST
+def change_password(request):
+    try:
+        new_password = request.POST.get('new_password')
+        current_password = request.POST.get('current_password')
+        
+        if not new_password:
+            return JsonResponse({'success': False, 'error': 'Пароль не может быть пустым'})
+        
+        if len(new_password) < 8:
+            return JsonResponse({'success': False, 'error': 'Пароль должен содержать минимум 8 символов'})
+        
+        # Проверяем, менялся ли пароль ранее
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        # Если пароль уже менялся, проверяем текущий пароль
+        if profile.password_changed:
+            if not current_password:
+                return JsonResponse({'success': False, 'error': 'Введите текущий пароль'})
+            
+            # Проверяем текущий пароль
+            if not request.user.check_password(current_password):
+                return JsonResponse({'success': False, 'error': 'Неверный текущий пароль'})
+        
+        # Устанавливаем новый пароль
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Обновляем флаг смены пароля в профиле
+        profile.password_changed = True  # Устанавливаем флаг
+        profile.save()
+        
+        # Обновляем сессию чтобы пользователь не разлогинился
+        update_session_auth_hash(request, request.user)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Пароль успешно изменен!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+def get_profile_info(request):
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        return JsonResponse({
+            'success': True,
+            'profile': {
+                'first_name': profile.first_name,
+                'email': profile.user_email,
+                'phone': profile.phone,
+                'completion_percentage': profile.profile_completion_percentage,
+                'password_changed': profile.password_changed  # Этот флаг теперь используется
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
