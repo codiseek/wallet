@@ -38,7 +38,7 @@ from django.core.files.storage import default_storage
 from django.http import HttpResponseRedirect
 from django.utils import translation
 
-
+import pytz
 from main.models import Transaction, Category
 
 
@@ -1421,7 +1421,36 @@ def add_transaction(request):
     return JsonResponse({"success": False, "error": "Неверный метод запроса"})
 
 
+@login_required
+@require_POST
+def delete_all_transactions_and_categories(request):
+    """Удаление всех транзакций и категорий пользователя"""
+    try:
+        user = request.user
+        
+        # Удаляем все транзакции пользователя
+        transactions_count = Transaction.objects.filter(user=user).count()
+        Transaction.objects.filter(user=user).delete()
+        
+        # Удаляем все категории пользователя
+        categories_count = Category.objects.filter(user=user).count()
+        Category.objects.filter(user=user).delete()
+        
+        print(f"✅ Удалено {transactions_count} транзакций и {categories_count} категорий для пользователя {user.username}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Все данные успешно удалены: {transactions_count} транзакций и {categories_count} категорий'
+        })
+        
+    except Exception as e:
+        print(f"❌ Ошибка при удалении транзакций и категорий: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка при удалении: {str(e)}'
+        })
 
+        
 def hello(request):
     user_agent = get_user_agent(request)
     
@@ -1594,7 +1623,7 @@ def register(request):
             last_registration = cache.get(cache_key)
             if last_registration:
                 time_passed = timezone.now() - last_registration
-                if time_passed < timedelta(minutes=30):
+                if time_passed < timedelta(minutes=0):
                     return JsonResponse({
                         "success": False, 
                         "error": "С одного устройства можно регистрироваться только 1 раз в 30 минут!"
@@ -3763,4 +3792,472 @@ def import_mbank(file_path, user):
         print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
         import traceback
         print(traceback.format_exc())
+        return {'success': False, 'message': f'Критическая ошибка: {str(e)}'}
+    
+
+
+@login_required
+@require_POST
+@csrf_protect
+def import_optima_view(request):
+    """Обработка импорта из Optima Bank для всех пользователей"""
+    try:
+        if not request.FILES.get('optima_file'):
+            return JsonResponse({
+                'success': False, 
+                'message': 'Файл не выбран'
+            })
+        
+        uploaded_file = request.FILES['optima_file']
+        
+        print(f"=== НАЧАЛО ОБРАБОТКИ OPTIMA ЗАПРОСА ===")
+        print(f"Пользователь: {request.user.username}")
+        print(f"Тип пользователя: {type(request.user)}")
+        print(f"Файл: {uploaded_file.name}, размер: {uploaded_file.size}")
+        
+        # Проверяем расширение файла
+        file_name = uploaded_file.name.lower()
+        if not file_name.endswith('.pdf'):
+            return JsonResponse({
+                'success': False, 
+                'message': 'Поддерживаются только PDF файлы для Optima Bank'
+            })
+        
+        # Сохраняем временный файл
+        temp_dir = 'temp_imports'
+        os.makedirs(temp_dir, exist_ok=True)
+        temp_path = os.path.join(temp_dir, f'optima_import_{request.user.id}_{uploaded_file.name}')
+        
+        with open(temp_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+        
+        print(f"Файл сохранен: {temp_path}")
+        
+        try:
+            # Вызываем функцию импорта с правильным пользователем
+            result = import_optima_bank(temp_path, request.user)
+            
+            # Добавляем отладочную информацию
+            result['debug'] = {
+                'user': request.user.username,
+                'file': uploaded_file.name,
+                'file_size': uploaded_file.size
+            }
+            
+            return JsonResponse(result)
+            
+        except Exception as e:
+            print(f"❌ Ошибка в import_optima_bank: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False, 
+                'message': f'Ошибка при импорте данных: {str(e)}'
+            })
+        finally:
+            # Удаляем временный файл
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                print(f"Временный файл удален: {temp_path}")
+                
+    except Exception as e:
+        print(f"❌ ОШИБКА В OPTIMA VIEW: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Ошибка при обработке файла: {str(e)}'
+        })
+
+def import_optima_bank(file_path, user_obj):
+    """
+    Умная функция импорта транзакций из Optima Bank с автоматическим определением категорий
+    """
+    try:
+        print(f"=== НАЧАЛО ИМПОРТА OPTIMA BANK ДЛЯ {user_obj.username} ===")
+        
+        # Импортируем библиотеки для работы с PDF
+        try:
+            import pdfplumber
+            import re
+        except ImportError as e:
+            print(f"❌ Не установлены необходимые библиотеки: {e}")
+            return {'success': False, 'message': 'Не установлены библиотеки для работы с PDF. Установите: pip install pdfplumber'}
+        
+        # Создаем категорию Optima Bank
+        optima_category, created = Category.objects.get_or_create(
+            user=user_obj,
+            name='Optima Bank',
+            defaults={
+                'color': '#FF6B6B',
+                'icon': '/static/main/icons/optima.svg'
+            }
+        )
+        
+        # СЛОВАРЬ КАТЕГОРИЙ И КЛЮЧЕВЫХ СЛОВ
+        category_keywords = {
+            'Google': {
+                'keywords': ['GOOGLE', 'Google'],
+                'color': "#4285F4",
+                'icon': 'fab fa-google'
+            },
+            'Facebook': {
+                'keywords': ['FACEBK', 'Facebook'],
+                'color': "#1877F2",
+                'icon': 'fab fa-facebook'
+            },
+            'Instagram': {
+                'keywords': ['INSTAGRAM', 'Instagram'],
+                'color': "#E4405F",
+                'icon': 'fab fa-instagram'
+            },
+            'WhatsApp': {
+                'keywords': ['WhatsApp'],
+                'color': "#25D366",
+                'icon': 'fab fa-whatsapp'
+            },
+            'Курсы': {
+                'keywords': ['COURSERA', 'ALISON', 'Udemy'],
+                'color': "#FF6B6B",
+                'icon': 'fas fa-graduation-cap'
+            },
+            'Продукты': {
+                'keywords': ['SPAR', 'Globus', 'Перекресток', 'BAR PEREKRESTOK', 'Magazin Dobryi'],
+                'color': "#4CAF50",
+                'icon': 'fas fa-shopping-basket'
+            },
+            'Транспорт': {
+                'keywords': ['Yandex', 'Uber', 'Bolt'],
+                'color': "#FFA000",
+                'icon': 'fas fa-taxi'
+            },
+            'Тулпар': {
+                'keywords': ['Тулпар', 'TULPAR'],
+                'color': "#8B80F9",
+                'icon': '/static/main/icons/tulpar.svg'
+            },
+            'Куликовский': {
+                'keywords': ['Kulikovskiy', 'куликовский'],
+                'color': "#5D8BF4",
+                'icon': '/static/main/icons/kulikov.svg'
+            },
+            'Globus': {
+                'keywords': ['globus', 'глобус'],
+                'color': '#FF7B7B',
+                'icon': '/static/main/icons/globus.svg'
+            },
+            'Аптека': {
+                'keywords': ['аптека', 'apteka', 'pharmacy', 'медтехника', 'фармация', 'дарыкана'],
+                'color': '#4ECDC4',
+                'icon': 'fas fa-pills'
+            },
+            'Мой дом': {
+                'keywords': ['Мой дом'],
+                'color': '#10D452',
+                'icon': '/static/main/icons/moi-dom.svg'
+            },
+            'Интернет': {
+                'keywords': ['Exnet', 'homeline', 'megaline', 'skynet', 'fastnet', 'aknet', 'neotelecom', 'акнет', 'фастнет', 'скайнет', 'мега-лайн'],
+                'color': "#A0AABC",
+                'icon': 'fa-solid fa-wifi'
+            },
+            'KFC': {
+                'keywords': ['KFC'],
+                'color': "#FFCC00",
+                'icon': '/static/main/icons/kfc.svg'
+            },
+            'Lalafo': {
+                'keywords': ['Lalafo'],
+                'color': "#00FF88",
+                'icon': '/static/main/icons/lalafo.svg'
+            },
+            'Finca Bank': {
+                'keywords': ['Finca', 'финка', 'FINCA_Bank'],
+                'color': "#FF3366",
+                'icon': '/static/main/icons/finca.svg'
+            },
+            'Элкарт': {
+                'keywords': ['Элкарт'],
+                'color': "#3399FF",
+                'icon': '/static/main/icons/elcard.svg'
+            },
+            'MEGA': {
+                'keywords': ['Mega', 'megacom'],
+                'color': "#00FF66",
+                'icon': '/static/main/icons/mega.svg'
+            },
+            'O!Dengi': {
+                'keywords': ['O!Dengi', 'оденьги', 'O!'],
+                'color': "#FF27A6",
+                'icon': '/static/main/icons/o.svg'
+            },
+            'Dodo Pizza': {
+                'keywords': ['Dodo', 'Dodo Pizza', 'Додо пицца'],
+                'color': "#FF4444",
+                'icon': '/static/main/icons/dodo.svg'
+            },
+            'Optima Bank': {
+                'keywords': ['optima', 'оптима'],
+                'color': "#CCCCCC",
+                'icon': '/static/main/icons/optima.svg'
+            },
+            'Оптовые цены': {
+                'keywords': ['Оптовые цены'],
+                'color': "#66B3FF",
+                'icon': 'fa-solid fa-cart-shopping'
+            },
+            'Spar': {
+                'keywords': ['Spar'],
+                'color': "#FF6B6B",
+                'icon': '/static/main/icons/spar.svg'
+            },
+            'Перекресток': {
+                'keywords': ['Перекресток'],
+                'color': "#9D95FF",
+                'icon': '/static/main/icons/per.svg'
+            }
+        }
+        
+        # Функция для определения категории по описанию
+        def detect_category(description):
+            desc_lower = description.lower()
+            
+            for category_name, category_data in category_keywords.items():
+                for keyword in category_data['keywords']:
+                    if keyword.lower() in desc_lower:
+                        return category_name
+            
+            return 'Optima Bank'
+        
+        # Кэш для категорий
+        categories_cache = {'Optima Bank': optima_category}
+        
+        # Читаем PDF файл
+        transactions_created = 0
+        errors = []
+        
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                all_text = ""
+                
+                # Извлекаем текст со всех страниц
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        all_text += page_text + "\n"
+                
+                print(f"Извлеченный текст из PDF ({len(all_text)} символов)")
+                
+                # УЛУЧШЕННЫЙ ПАРСИНГ ТРАНЗАКЦИЙ - ИЩЕМ РЕАЛЬНОЕ ВРЕМЯ
+                transactions_data = []
+                
+                # Разбиваем на строки и ищем транзакции
+                lines = all_text.split('\n')
+                
+                i = 0
+                while i < len(lines):
+                    line = lines[i].strip()
+                    # Очищаем от спецсимволов
+                    line = line.replace('\u200b', '').replace('\xa0', ' ').strip()
+                    
+                    # Пропускаем пустые и служебные строки
+                    if not line or any(phrase in line.lower() for phrase in [
+                        'фио', 'инн', 'адрес', 'номер счета', 'номер карты', 'валюта счета',
+                        'период:', 'остаток на', 'дата создания', 'оао "оптима банк"', 'тел.:'
+                    ]):
+                        i += 1
+                        continue
+                    
+                    # ИЩЕМ СТРОКУ С ДАТОЙ В ФОРМАТЕ DD.MM.YYYY
+                    date_match = re.match(r'(\d{2}\.\d{2}\.\d{4})', line)
+                    if date_match:
+                        date_str = date_match.group(1)
+                        time_str = "00:00"  # По умолчанию
+                        description = ""
+                        amount_kgs = None
+                        
+                        # Ищем время в текущей строке
+                        time_match = re.search(r'(\d{1,2}:\d{2})', line)
+                        if time_match:
+                            time_str = time_match.group(1)
+                            print(f"🕒 Найдено время в текущей строке: {time_str}")
+                        else:
+                            # Ищем время в следующих строках (максимум 2 строки)
+                            for j in range(i+1, min(i+3, len(lines))):
+                                next_line = lines[j].strip()
+                                next_line = next_line.replace('\u200b', '').replace('\xa0', ' ').strip()
+                                time_match = re.search(r'(\d{1,2}:\d{2})', next_line)
+                                if time_match:
+                                    time_str = time_match.group(1)
+                                    print(f"🕒 Найдено время в следующей строке {j+1}: {time_str}")
+                                    break
+                        
+                        # Извлекаем описание (убираем дату)
+                        desc_line = line[date_match.end():].strip()
+                        
+                        # Ищем сумму в KGS в этой строке
+                        amount_match = re.search(r'([-]?\d{1,3}(?:\s?\d{3})*(?:[.,]\d+)?)\s?KGS', desc_line)
+                        if amount_match:
+                            amount_str = amount_match.group(1).replace(' ', '').replace(',', '.')
+                            try:
+                                amount_val = Decimal(amount_str)
+                                if amount_val != 0:  # Игнорируем нулевые суммы
+                                    amount_kgs = amount_val
+                                    # Убираем сумму из описания
+                                    desc_line = desc_line[:amount_match.start()] + desc_line[amount_match.end():]
+                            except (ValueError, InvalidOperation):
+                                pass
+                        
+                        description = desc_line.strip()
+                        
+                        # Если не нашли сумму в этой строке, проверяем следующие строки
+                        if amount_kgs is None:
+                            for j in range(i+1, min(i+3, len(lines))):
+                                next_line = lines[j].strip()
+                                if not next_line:
+                                    continue
+                                
+                                # Пропускаем строки, которые уже использовались для времени
+                                if re.match(r'^\d{1,2}:\d{2}$', next_line):
+                                    continue
+                                
+                                # Ищем сумму в следующей строке
+                                amount_match = re.search(r'([-]?\d{1,3}(?:\s?\d{3})*(?:[.,]\d+)?)\s?KGS', next_line)
+                                if amount_match:
+                                    amount_str = amount_match.group(1).replace(' ', '').replace(',', '.')
+                                    try:
+                                        amount_val = Decimal(amount_str)
+                                        if amount_val != 0:
+                                            amount_kgs = amount_val
+                                            # Добавляем описание из следующей строки (без суммы)
+                                            desc_part = next_line[:amount_match.start()].strip()
+                                            if desc_part and len(description) < 100:
+                                                description += ' ' + desc_part
+                                            break
+                                    except (ValueError, InvalidOperation):
+                                        pass
+                                elif len(description) < 100:
+                                    # Добавляем к описанию если нет суммы
+                                    description += ' ' + next_line
+                        
+                        # Если нашли сумму, добавляем транзакцию
+                        if amount_kgs is not None and description:
+                            transaction_type = 'expense' if amount_kgs < 0 else 'income'
+                            amount_abs = abs(amount_kgs)
+                            
+                            transactions_data.append({
+                                'date': date_str,
+                                'time': time_str,
+                                'description': description.strip(),
+                                'amount': amount_abs,
+                                'type': transaction_type
+                            })
+                    
+                    i += 1
+                
+                print(f"Найдено {len(transactions_data)} транзакций для обработки")
+                
+                # ВЫВОДИМ ПЕРВЫЕ ТРАНЗАКЦИИ ДЛЯ ПРОВЕРКИ ВРЕМЕНИ
+                print("=== ПЕРВЫЕ ТРАНЗАКЦИИ ДЛЯ ПРОВЕРКИ ===")
+                for idx, trans in enumerate(transactions_data[:10]):
+                    print(f"{idx+1}. Дата: {trans['date']} | Время: {trans['time']} | Сумма: {trans['amount']} | Описание: {trans['description'][:50]}...")
+                print("=====================================")
+                
+                # СОЗДАНИЕ ТРАНЗАКЦИЙ В БАЗЕ - СОХРАНЯЕМ РЕАЛЬНОЕ ВРЕМЯ
+                for transaction in transactions_data:
+                    try:
+                        # Определяем категорию
+                        detected_category = detect_category(transaction['description'])
+                        
+                        # Создаем/получаем категорию
+                        if detected_category not in categories_cache:
+                            if detected_category in category_keywords:
+                                category_data = category_keywords[detected_category]
+                                category_obj, created = Category.objects.get_or_create(
+                                    user=user_obj,
+                                    name=detected_category,
+                                    defaults={
+                                        'color': category_data['color'],
+                                        'icon': category_data.get('icon', 'fas fa-circle')
+                                    }
+                                )
+                                categories_cache[detected_category] = category_obj
+                            else:
+                                categories_cache[detected_category] = optima_category
+                        
+                        category = categories_cache[detected_category]
+                        
+                        # СОЗДАЕМ ДАТУ С РЕАЛЬНЫМ ВРЕМЕНЕМ ИЗ ВЫПИСКИ
+                        date_str = transaction['date']
+                        time_str = transaction['time']
+                        
+                        try:
+                            # Создаем datetime объект с реальным временем
+                            datetime_str = f"{date_str} {time_str}"
+                            naive_datetime = datetime.strptime(datetime_str, '%d.%m.%Y %H:%M')
+                            
+                            # Явно указываем временную зону Asia/Bishkek
+                            import pytz
+                            bishkek_tz = pytz.timezone('Asia/Bishkek')
+                            transaction_datetime = bishkek_tz.localize(naive_datetime)
+                            
+                            print(f"🕒 Сохраняем время: {transaction_datetime}")
+                            
+                        except Exception as e:
+                            print(f"❌ Ошибка создания datetime: {e}")
+                            transaction_datetime = timezone.now()
+                        
+                        # Проверяем существующую транзакцию
+                        existing = Transaction.objects.filter(
+                            user=user_obj,
+                            amount=transaction['amount'],
+                            type=transaction['type'],
+                            description=transaction['description'],
+                            transaction_date__date=transaction_datetime.date()
+                        ).first()
+                        
+                        if existing:
+                            print(f"⏩ Пропущен дубликат: {transaction['description']}")
+                            continue
+                        
+                        # СОЗДАЕМ ТРАНЗАКЦИЮ С РЕАЛЬНЫМ ВРЕМЕНЕМ
+                        Transaction.objects.create(
+                            user=user_obj,
+                            amount=transaction['amount'],
+                            type=transaction['type'],
+                            description=transaction['description'],
+                            category=category,
+                            transaction_date=transaction_datetime
+                        )
+                        
+                        transactions_created += 1
+                        print(f"✅ Создана транзакция #{transactions_created}: {transaction_datetime} - {transaction['amount']} - {transaction['description'][:30]}...")
+                        
+                    except Exception as e:
+                        errors.append(f"Ошибка: {e}")
+                        print(f"❌ Ошибка создания транзакции: {e}")
+                        continue
+                        
+        except Exception as e:
+            print(f"❌ Ошибка при обработке PDF: {e}")
+            return {'success': False, 'message': f'Ошибка при обработке PDF файла: {str(e)}'}
+        
+        # ФОРМИРУЕМ РЕЗУЛЬТАТ
+        result = {
+            'success': transactions_created > 0,
+            'message': f'Успешно импортировано {transactions_created} транзакций из Optima Bank',
+            'count': transactions_created,
+        }
+        
+        if errors:
+            result['warnings'] = errors[:5]
+        
+        print(f"=== ИТОГ: {transactions_created} транзакций создано ===")
+        return result
+        
+    except Exception as e:
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        import traceback
+        traceback.print_exc()
         return {'success': False, 'message': f'Критическая ошибка: {str(e)}'}

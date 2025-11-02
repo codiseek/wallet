@@ -513,6 +513,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+
+
   <!-- Банковские импорты -->
 {% load static %}
 
@@ -526,36 +528,57 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- Мбанк -->
-    <div class="group">
-        <div class="flex space-x-2">
-            <!-- Основная кнопка импорта -->
-            <button 
-                id="importMbankBtn"
-                class="flex-1 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] hover:from-[#2a2a2a] hover:to-[#3a3a3a] text-white p-3 rounded-xl transition-all duration-300 border border-[#fabf00]/40 hover:border-[#fabf00]/60 hover:shadow-lg hover:shadow-[#fabf00]/10 flex items-center justify-between"
-            >
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-lg bg-[#fabf00]/10 flex items-center justify-center group-hover:bg-[#fabf00]/20 transition-colors">
-                        <img src="{% static 'main/icons/mico.svg' %}" alt="Mbank" class="w-5 h-5 object-contain">
-                    </div>
-                    <div class="text-left">
-                        <div class="font-semibold text-white text-sm">{% trans "MBank" %}</div>
-                        <div class="text-xs text-gray-400">{% trans "Excel выписка" %}</div>
-                    </div>
+<!-- MBank -->
+<div>
+    <button 
+        id="importMbankBtn"
+        class="w-full bg-gradient-to-r from-[#0092a1] to-[#fabf00] hover:from-[#00aabb] hover:to-[#ffd633] text-[#1a1a1a] font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
+    >
+        <div class="flex items-center space-x-3 w-full justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                    <img src="{% static 'main/icons/mico.svg' %}" alt="MBank" class="w-5 h-5 object-contain brightness-0 invert">
                 </div>
-                <i class="fas fa-upload text-gray-500 text-sm group-hover:text-[#fabf00] transition-colors"></i>
-            </button>
-
-            <!-- Кнопка инструкции -->
-            <button 
-                onclick="openMbankInstructionModal()"
-                class="px-3 bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-xl transition-colors flex items-center justify-center"
-                title="Инструкция по выписке"
-            >
-                <i class="fas fa-question text-sm"></i>
-            </button>
+                <div class="text-left">
+                    <div class="text-[#1a1a1a] text-sm font-semibold">{% trans "MBank" %}</div>
+                    <div class="text-xs text-[#333] opacity-80">{% trans "Загрузить выписку" %}</div>
+                </div>
+            </div>
+            <div class="flex space-x-1">
+                <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLS</span>
+                <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLSX</span>
+            </div>
         </div>
-    </div>
+    </button>
 </div>
+
+<!-- Optima Bank -->
+<div class="mt-3">
+    <button 
+        onclick="importOptima()" id="importOptimaBtn"
+        class="w-full bg-gradient-to-r from-[#330000] to-[#CC0000] hover:from-[#660000] hover:to-[#ff1a1a] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
+    >
+        <div class="flex items-center space-x-3 w-full justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-black/30 flex items-center justify-center">
+                    <img src="{% static 'main/icons/optima.svg' %}" alt="Optima Bank" class="w-5 h-5 object-contain">
+                </div>
+                <div class="text-left">
+                    <div class="text-white text-sm font-semibold">{% trans "Optima Bank" %}</div>
+                    <div class="text-xs text-gray-300 opacity-80">{% trans "Загрузить выписку" %}</div>
+                </div>
+            </div>
+            <div class="flex space-x-1">
+                <span class="text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-md">PDF</span>
+            </div>
+        </div>
+    </button>
+</div>
+
+
+<!-- Единственный скрытый input для импорта Optima Bank -->
+<input type="file" id="optimaFileInput" accept=".pdf" class="hidden">
+
 
 <!-- Информационный блок -->
 <div class="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50">
@@ -573,78 +596,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Скрытый input для импорта Мбанка -->
 <input type="file" id="mbankFileInput" accept=".xlsx,.xls" class="hidden">
 
-<!-- Модальное окно с инструкцией по выписке Мбанка -->
-<div id="mbankInstructionModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
-    <div class="bg-gray-800 rounded-2xl w-11/12 max-w-md max-h-[80vh] overflow-hidden border border-gray-600/50 flex flex-col">
-        <!-- Заголовок модального окна -->
-        <div class="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-900/50 flex-shrink-0">
-            <div class="flex items-center space-x-3">
-                <img src="{% static 'main/icons/mico.svg' %}" alt="Mbank" class="w-8 h-8">
-                <div>
-                    <h3 class="text-xl font-bold text-white">{% trans "Инструкция" %}</h3>
-                   
-                </div>
-            </div>
-            <button onclick="closeMbankInstructionModal()" class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        
-        <!-- Контент с инструкцией -->
-        <div class="flex-1 overflow-y-auto p-6">
-            <div class="space-y-4">
-                <!-- Шаг 1 -->
-                <div class="flex items-start space-x-4 p-4 bg-gray-700/30 rounded-xl">
-    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span class="text-white text-sm font-bold">1</span>
-    </div>
-    <div class="flex-1">
-        <p class="text-white font-medium mb-2">{% trans "Запрос выписки по счету" %}</p>
-        <p class="text-gray-300 text-sm leading-relaxed">
-            {% trans "Выберите нужный счет, перейдите в раздел «Выписки», укажите период и нажмите «Применить»" %}
-        </p>
-    </div>
-</div>
-
-<!-- Шаг 2 -->
-<div class="flex items-start space-x-4 p-4 bg-gray-700/30 rounded-xl">
-    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span class="text-white text-sm font-bold">2</span>
-    </div>
-    <div class="flex-1">
-        <p class="text-white font-medium mb-2">{% trans "Формирование документа" %}</p>
-        <p class="text-gray-300 text-sm leading-relaxed">
-            {% trans "Выберите" %} <span class="text-green-400 font-semibold">{% trans "Excel (XLS, XLSX)" %}</span> {% trans "формат и нажмите «Сформировать» для скачивания" %}
-        </p>
-    </div>
-</div>
-
-<!-- Важное примечание -->
-<div class="bg-yellow-500/10 rounded-xl p-4">
-    <div class="flex items-start space-x-3">
-        <i class="fas fa-exclamation-triangle text-yellow-400 mt-0.5 text-base"></i>
-        <div>
-            <p class="text-yellow-400 font-medium mb-1">{% trans "Важно!" %}</p>
-            <p class="text-yellow-300/80 text-sm leading-relaxed">
-                {% trans "Убедитесь, что выбираете именно" %} <span class="font-semibold">{% trans "Excel формат" %}</span>. {% trans "PDF файлы не поддерживаются для импорта." %}
-            </p>
-        </div>
-    </div>
-</div>
-            </div>
-        </div>
-        
-        <!-- Футер с кнопками -->
-        <div class="p-6 border-t border-gray-700 bg-gray-900/30 flex-shrink-0">
-            <button 
-                onclick="closeMbankInstructionModal()"
-                class="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl transition-colors font-medium"
-            >
-                {% trans "Закрыть" %}
-            </button>
-        </div>
-    </div>
-</div>
 
 </div>
 </div>

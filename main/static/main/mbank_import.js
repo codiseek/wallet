@@ -1,15 +1,4 @@
-// Функции для управления модальным окном
-function openMbankInstructionModal() {
-    const modal = document.getElementById('mbankInstructionModal');
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
 
-function closeMbankInstructionModal() {
-    const modal = document.getElementById('mbankInstructionModal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-}
 
 // Функция для начала импорта (вызывается из модалки)
 function startMbankImport() {
@@ -24,21 +13,6 @@ function startMbankImport() {
     }, 300);
 }
 
-// Закрытие модалки по клику на фон
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('mbankInstructionModal');
-    if (e.target === modal) {
-        closeMbankInstructionModal();
-    }
-});
-
-// Закрытие модалки по ESC
-document.addEventListener('keydown', function(e) {
-    const modal = document.getElementById('mbankInstructionModal');
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-        closeMbankInstructionModal();
-    }
-});
 
 // Обработчик выбора файла
 // Найти этот код в panel_page.html и заменить его:
@@ -128,13 +102,6 @@ function handleMbankFileImport(event) {
     }
 }
 
-
-// Закрытие модалки по клику вне области
-document.getElementById('mbankInstructionModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeMbankInstructionModal();
-    }
-});
 
 
 // Импорт из Мбанка
@@ -245,7 +212,7 @@ function handleMbankFileImport(event, fileInput) {
                 // Успех
                 importMbankBtn.innerHTML = `
                     <i class="fas fa-check text-xl"></i>
-                    <span class="font-semibold text-sm">Успешно!</span>
+                    <span class="font-semibold text-sm">Успешно импортировано!</span>
                 `;
                 importMbankBtn.className = originalClasses.replace('bg-purple-600', 'bg-green-600') + ' cursor-not-allowed';
                 

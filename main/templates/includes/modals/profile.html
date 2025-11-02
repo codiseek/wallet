@@ -5,8 +5,6 @@
 
 {% block modal_content %}
 
-
-
 <!-- Модалка профиля -->
    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content max-h-[90vh] overflow-y-auto">
         <!-- Заголовок -->
@@ -77,8 +75,6 @@
             <!-- В модалке профиля - исправленные кнопки -->
 <div class="border-t border-gray-700/50 pt-6">
  
-
-
     <!-- Кнопка удаления аккаунта -->
 <button class="delete-account-btn w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-1">
     <div class="flex items-center space-x-3">
@@ -92,12 +88,68 @@
         <i class="fas fa-chevron-right text-red-400/60 text-sm group-hover:text-red-300 transition-colors"></i>
     </div>
 </button>
+
+<!-- Кнопка удаления всех данных -->
+<button class="delete-all-data-btn w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-4">
+    <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors flex-shrink-0">
+            <i class="fas fa-broom text-orange-400 text-base group-hover:text-white"></i>
+        </div>
+        <div class="flex-1">
+            <span class="text-base font-semibold text-white block">Очистить данные</span>
+            <span class="text-sm text-orange-300/80 group-hover:text-orange-200">Удалить все транзакции и категории</span>
+        </div>
+        <i class="fas fa-chevron-right text-orange-400/60 text-sm group-hover:text-orange-300 transition-colors"></i>
+    </div>
+</button>
+
+<!-- Модальное окно подтверждения удаления всех данных -->
+<div id="deleteAllDataModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
+        <!-- Заголовок -->
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h2 class="text-xl font-bold text-white">Очистка всех данных</h2>
+            <button onclick="closeDeleteAllDataModal()" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Основное предупреждение -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-orange-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Вы уверены?</h3>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                    Это действие нельзя отменить. Будут удалены:
+                </p>
+                <ul class="text-gray-300 text-sm text-left mt-3 space-y-1">
+                    <li>• Все транзакции (доходы и расходы)</li>
+                    <li>• Все категории</li>
+                </ul>
+                <p class="text-orange-300 text-sm mt-3 font-semibold">
+                    Ваш профиль, настройки и другие данные останутся нетронутыми.
+                </p>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeDeleteAllDataModal()" 
+                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-200">
+                    Отмена
+                </button>
+                <button onclick="confirmDeleteAllData()" 
+                        id="confirmDeleteAllDataBtn"
+                        class="flex-1 py-3 px-4 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/30 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
+                    Да, очистить!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
-
-
-              
-                
             </div>
         </div>
     </div>
@@ -163,7 +215,103 @@
     </div>
 </div>
 
+<script>
+// Функции для модального окна удаления всех данных
+function openDeleteAllDataModal() {
+    document.getElementById('deleteAllDataModal').classList.remove('hidden');
+}
+
+function closeDeleteAllDataModal() {
+    document.getElementById('deleteAllDataModal').classList.add('hidden');
+}
+
+// Подтверждение удаления всех данных
+async function confirmDeleteAllData() {
+    const button = document.getElementById('confirmDeleteAllDataBtn');
+    
+    // Анимация начала очистки
+    button.disabled = true;
+    button.innerHTML = `
+        <div class="flex items-center justify-center space-x-2">
+            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Очистка...</span>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/delete-all-data/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Анимация успеха
+            button.innerHTML = `
+                <div class="flex items-center justify-center space-x-2">
+                    <i class="fas fa-check text-white"></i>
+                    <span>Успешно!</span>
+                </div>
+            `;
+            button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+            button.classList.add('bg-green-500', 'hover:bg-green-600');
+            
+           
+            
+            // Закрываем модалки через 1 секунду
+            setTimeout(() => {
+                closeDeleteAllDataModal();
+                closeProfileModal();
+                
+                // Редирект на главную через еще 0.5 секунды
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            }, 1000);
+            
+        } else {
+            // Ошибка - возвращаем кнопку в исходное состояние
+            button.disabled = false;
+            button.innerHTML = 'Да, очистить!';
+            
+            if (typeof showNotification === 'function') {
+                showNotification('❌ ' + data.error, 'error');
+            } else {
+                alert('❌ ' + data.error);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении данных:', error);
+        
+        // Ошибка сети - возвращаем кнопку в исходное состояние
+        button.disabled = false;
+        button.innerHTML = 'Да, очистить!';
+        
+        if (typeof showNotification === 'function') {
+            showNotification('❌ Ошибка при удалении данных', 'error');
+        } else {
+            alert('❌ Ошибка при удалении данных');
+        }
+    }
+}
+
+// Функция для получения CSRF токена
+function getCsrfToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfToken ? csrfToken.value : '';
+}
+
+// Обработчик для кнопки удаления всех данных
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteAllDataBtn = document.querySelector('.delete-all-data-btn');
+    if (deleteAllDataBtn) {
+        deleteAllDataBtn.addEventListener('click', openDeleteAllDataModal);
+    }
+});
+</script>
 
 {% endblock %}
-
-
