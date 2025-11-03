@@ -1355,9 +1355,204 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </div>
 </div>
+<div class="text-center mt-4 mb-4">
+    <button 
+        onclick="openDonateModal()"
+        class="relative overflow-hidden border-2 border-teal-500 text-teal-600 hover:text-white font-bold py-2.5 px-6 rounded-full transition-all duration-500 group"
+    >
+        <span class="relative z-10 flex items-center justify-center">
+            <i class="fa-solid fa-fire mr-2 transition-transform duration-300 group-hover:scale-110"></i>
+            {% trans "Поддержать разработку" %}
+        </span>
+        
+        <div class="absolute inset-0 bg-gradient-to-r from-teal-500 to-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    </button>
+</div>
+    
+</div>
+
+
+
+<!-- Модальное окно доната -->
+<div id="donateModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[500] backdrop-blur-sm hidden">
+    <div class="modal-content bg-gray-800 rounded-2xl w-11/12 max-w-md mx-4 border border-blue-500/30 shadow-2xl overflow-hidden relative">
+        
+        <!-- Кнопка закрытия -->
+        <button onclick="closeDonateModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors z-10">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        
+        <!-- Контент модального окна -->
+        <div class="p-6 relative">
+            <!-- Анимированный фон -->
+            <div class="mb-6 -mx-6 -mt-6 h-32 relative overflow-hidden bg-gradient-to-r from-blue-900/80 to-cyan-900/80 rounded-t-2xl">
+                <div id="heartsContainer" class="absolute inset-0"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <i class="fa-solid fa-fire text-3xl mb-2"></i>
+                        <p class="text-lg font-bold">Поддержи наш проект!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Обновленный текст -->
+            <div class="text-center mb-6">
+                <p class="text-gray-300 mb-4 leading-relaxed">
+                    {% trans "Этот проект <span class='font-bold text-blue-400'>полностью бесплатен</span> и разрабатывается для того, чтобы финансовое управление было доступно каждому без исключения." %}
+                </p>
+                
+                <p class="text-gray-300 text-sm mb-6 leading-relaxed">
+                    {% trans "Ваша поддержка позволит ускорить разработку новых функций, повысить стабильность работы и реализовать дополнительные возможности для всех пользователей." %}
+                </p>
+            </div>
+
+            <!-- QR код для доната -->
+            <div class="text-center mb-4">
+                <div class="inline-block p-4 bg-white rounded-2xl shadow-lg">
+                    <img 
+                        src="{% static 'main/icons/finca.jpg' %}" 
+                        alt="QR код для доната" 
+                        class="w-48 h-48 mx-auto rounded-lg"
+                        onerror="this.style.display='none'"
+                    >
+                    <div id="qrPlaceholder" class="w-48 h-48 mx-auto bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex items-center justify-center flex-col">
+                        <i class="fas fa-qrcode text-gray-600 text-4xl mb-2"></i>
+                        <span class="text-gray-500 text-sm">QR код для доната</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Текст под QR кодом -->
+            <div class="text-center mb-6">
+                <p class="text-blue-300 font-semibold text-sm">
+                    Для переводов внутри Кыргызстана
+                </p>
+            </div>
+
+            <!-- Финальное сообщение -->
+            <div class="text-center">
+                <p class="text-gray-400 text-xs leading-relaxed mb-4">
+                    {% trans "Благодарим за доверие к нашему проекту! Ваша поддержка помогает развиваться дальше." %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Функции для управления модалкой доната
+function openDonateModal() {
+    const modal = document.getElementById('donateModal');
+    animateModal(modal, true);
+    startMatrixHearts(); // Запускаем эффект матрицы
+    
+    // Скрываем плейсхолдер если QR код загрузился
+    const qrImg = document.querySelector('#donateModal img');
+    const qrPlaceholder = document.getElementById('qrPlaceholder');
+    
+    if (qrImg && qrImg.complete && qrImg.naturalHeight !== 0) {
+        qrPlaceholder.style.display = 'none';
+    }
+}
+
+function closeDonateModal() {
+    const modal = document.getElementById('donateModal');
+    animateModal(modal, false);
+    stopMatrixHearts(); // Останавливаем эффект матрицы
+}
+
+// Эффект матрицы с сердечками
+let matrixInterval;
+
+function startMatrixHearts() {
+    const container = document.getElementById('heartsContainer');
+    if (!container) return;
+    
+    // Очищаем предыдущие сердечки
+    container.innerHTML = '';
+    
+    // Запускаем создание новых сердечек
+    matrixInterval = setInterval(() => {
+        createMatrixHeart();
+    }, 150);
+}
+
+function stopMatrixHearts() {
+    if (matrixInterval) {
+        clearInterval(matrixInterval);
+        matrixInterval = null;
+    }
+}
+
+function createMatrixHeart() {
+    const container = document.getElementById('heartsContainer');
+    if (!container) return;
+    
+    const heart = document.createElement('div');
+    heart.className = 'heart-matrix';
+    heart.innerHTML = '💲';
+    
+    // Случайная позиция по горизонтали
+    const left = Math.random() * 100;
+    heart.style.left = `${left}%`;
+    
+    // Случайная скорость падения (2-6 секунд)
+    const duration = 2 + Math.random() * 4;
+    heart.style.animationDuration = `${duration}s`;
+    
+    // Случайный цвет сердечка
+    const colors = ['#ff6b6b', '#ff8e8e', '#ffaaaa', '#ffcccc', '#ff6b9d', '#ff8ec7'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    heart.style.color = color;
+    
+    // Случайный размер
+    const size = 0.8 + Math.random() * 0.7;
+    heart.style.fontSize = `${size}rem`;
+    
+    container.appendChild(heart);
+    
+    // Удаляем сердечко после завершения анимации
+    setTimeout(() => {
+        if (heart.parentNode === container) {
+            container.removeChild(heart);
+        }
+    }, duration * 1000);
+}
+
+// Обработчик загрузки QR кода
+document.addEventListener('DOMContentLoaded', function() {
+    const qrImg = document.querySelector('#donateModal img');
+    const qrPlaceholder = document.getElementById('qrPlaceholder');
+    
+    if (qrImg) {
+        qrImg.onload = function() {
+            if (qrPlaceholder) {
+                qrPlaceholder.style.display = 'none';
+            }
+        };
+        
+        qrImg.onerror = function() {
+            if (qrPlaceholder) {
+                qrPlaceholder.style.display = 'flex';
+            }
+        };
+    }
+});
+
+// Закрытие модалки по клику на фон
+document.getElementById('donateModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDonateModal();
+    }
+});
+</script>
+
 </div>
 </div>
 </div>
+
+
+
 
 
 <script>

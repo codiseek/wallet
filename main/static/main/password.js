@@ -7,7 +7,6 @@ window.passwordChanged = false;
 // Функции для открытия/закрытия модалки
 function openPasswordModal() {
     const modal = document.getElementById('changePasswordModal');
-    modal.classList.remove('hidden');
     passwordModalOpen = true;
     
     // Сброс формы
@@ -15,8 +14,18 @@ function openPasswordModal() {
     
     // Проверяем, нужно ли показывать поле текущего пароля
     checkPasswordChangeStatus();
+    
+    // АНИМАЦИЯ ОТКРЫТИЯ МОДАЛКИ
+    animateModal(modal, true);
 }
 
+function closePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    passwordModalOpen = false;
+    
+    // АНИМАЦИЯ ЗАКРЫТИЯ МОДАЛКИ
+    animateModal(modal, false);
+}
 
 // Функция обновления интерфейса модального окна
 function updatePasswordModalInterface() {
@@ -51,11 +60,6 @@ function resetPasswordForm() {
     resetPasswordStrength();
 }
 
-function closePasswordModal() {
-    const modal = document.getElementById('changePasswordModal');
-    modal.classList.add('hidden');
-    passwordModalOpen = false;
-}
 
 // Проверка статуса смены пароля
 function checkPasswordChangeStatus() {

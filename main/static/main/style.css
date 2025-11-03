@@ -1564,3 +1564,30 @@ backdrop-filter: blur(20px) !important;
 .rotate-180 {
     transform: rotate(180deg);
 }
+
+
+@keyframes matrixFall {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(180px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.heart-matrix {
+    position: absolute;
+    animation: matrixFall linear infinite;
+    font-size: 1.2rem;
+    z-index: 1;
+    text-shadow: 0 0 10px currentColor;
+}
+
