@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 12:38+0600\n"
+"POT-Creation-Date: 2025-11-03 15:39+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,21 +17,98 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\main\templates\main\balance.html:18 .\main\templates\main\desktop.html:273
+#: .\main\templates\includes\modals\change_password.html:13
+msgid "Смена пароля"
+msgstr "Сырсөздү алмаштыруу"
+
+#: .\main\templates\includes\modals\change_password.html:17
+#: .\main\templates\includes\modals\profile.html:17
+#: .\main\templates\includes\modals\profile.html:114
+#: .\main\templates\includes\modals\profile.html:163
+msgid "Закрыть"
+msgstr "Жабуу"
+
+#: .\main\templates\includes\modals\change_password.html:39
+msgid "Сложность пароля"
+msgstr "Сырсөздүн татаалдыгы"
+
+#: .\main\templates\includes\modals\change_password.html:40
+msgid "Не задан"
+msgstr "Белгиленбеген"
+
+#: .\main\templates\includes\modals\change_password.html:59
+msgid "Введите текущий пароль"
+msgstr "Учурдагы сырсөздү киргизиңиз"
+
+#: .\main\templates\includes\modals\change_password.html:76
+msgid "Введите новый пароль"
+msgstr "Жаңы сырсөздү киргизиңиз"
+
+#: .\main\templates\includes\modals\change_password.html:93
+msgid "Повторите новый пароль"
+msgstr "Жаңы сырсөздү кайталаңыз"
+
+#: .\main\templates\includes\modals\change_password.html:105
+msgid "Советы для надежного пароля:"
+msgstr "Ишенимдүү сырсөз үчүн кеңештер:"
+
+#: .\main\templates\includes\modals\change_password.html:109
+msgid "Минимум 8 символов"
+msgstr "Жок дегенде 8 символ"
+
+#: .\main\templates\includes\modals\change_password.html:113
+msgid "Заглавные буквы"
+msgstr "Баш тамгалар"
+
+#: .\main\templates\includes\modals\change_password.html:117
+msgid "Строчные буквы"
+msgstr "Кичине тамгалар"
+
+#: .\main\templates\includes\modals\change_password.html:121
+msgid "Цифры"
+msgstr "Сандар"
+
+#: .\main\templates\includes\modals\change_password.html:125
+msgid "Специальные символы"
+msgstr "Атайын символдор"
+
+#: .\main\templates\includes\modals\change_password.html:139
+msgid "Отмена"
+msgstr "Жокко чыгаруу"
+
+#: .\main\templates\includes\modals\change_password.html:148
+#: .\main\templates\main\panel_page.html:1192
+#: .\main\templates\main\panel_page.html:1228
+msgid "Сохранить"
+msgstr "Сактоо"
+
+#: .\main\templates\includes\modals\profile.html:13
+msgid "Ваш профиль"
+msgstr "Сиздин профилиңиз"
+
+#: .\main\templates\includes\modals\profile.html:110
+msgid "Очистка всех транзакций"
+msgstr "Бардык транзакцияларды тазалоо"
+
+#: .\main\templates\includes\modals\profile.html:159
+msgid "Удаление аккаунта"
+msgstr "Каттоо эсебин жок кылуу"
+
+#: .\main\templates\main\balance.html:20 .\main\templates\main\desktop.html:273
 #: .\main\templates\main\desktop.html:583
 msgid "Текущий баланс"
 msgstr "Учурдагы баланс"
 
-#: .\main\templates\main\balance.html:26 .\main\templates\main\desktop.html:277
-#: .\main\templates\main\panel_page.html:299
+#: .\main\templates\main\balance.html:28 .\main\templates\main\desktop.html:277
+#: .\main\templates\main\panel_page.html:1171
 msgid "Резерв"
 msgstr "Резерв"
 
-#: .\main\templates\main\balance.html:37 .\main\templates\main\desktop.html:284
+#: .\main\templates\main\balance.html:39 .\main\templates\main\desktop.html:284
 msgid "Доходы"
 msgstr "Кирешелер"
 
-#: .\main\templates\main\balance.html:43 .\main\templates\main\desktop.html:288
+#: .\main\templates\main\balance.html:45 .\main\templates\main\desktop.html:288
 msgid "Расходы"
 msgstr "Чыгашалар"
 
@@ -125,7 +202,8 @@ msgid "Список платежей пуст"
 msgstr "Төлөмдөрдүн тизмеси бош"
 
 #: .\main\templates\main\debt_page.html:78
-#: .\main\templates\main\panel_page.html:117
+#: .\main\templates\main\panel_page.html:144
+#: .\main\templates\main\panel_page.html:159
 msgid "Загрузка..."
 msgstr "Жүктөлүүдө..."
 
@@ -171,10 +249,8 @@ msgid "Узнать больше"
 msgstr "Кененирээк билүү"
 
 #: .\main\templates\main\desktop.html:239
-#, fuzzy, python-format
-#| msgid "100%"
 msgid "100%%"
-msgstr "100%"
+msgstr "100%%"
 
 #: .\main\templates\main\desktop.html:240
 msgid "Бесплатно"
@@ -429,7 +505,6 @@ msgid "+30,000 с"
 msgstr "+30,000 с"
 
 #: .\main\templates\main\desktop.html:628
-#, python-format
 msgid "12,450 с (35%%)"
 msgstr "12,450 с (35%%)"
 
@@ -563,196 +638,186 @@ msgstr "Башкаруу панели"
 msgid "Профиль"
 msgstr "Профиль"
 
-#: .\main\templates\main\panel_page.html:63
+#: .\main\templates\main\panel_page.html:61
+msgid "Пароль"
+msgstr "Сырсөз"
+
+#: .\main\templates\main\panel_page.html:72
 msgid "Выйти"
 msgstr "Чыгуу"
 
-#: .\main\templates\main\panel_page.html:81
-msgid "Администрирование"
-msgstr "Администрациялоо"
+#: .\main\templates\main\panel_page.html:92
+msgid "Админка"
+msgstr "Админ панели"
 
-#: .\main\templates\main\panel_page.html:87
-msgid "Управление пользователями"
-msgstr "Колдонуучуларды башкаруу"
+#: .\main\templates\main\panel_page.html:100
+msgid "Юзеры"
+msgstr "Колдонуучулар"
 
-#: .\main\templates\main\panel_page.html:94
-#: .\main\templates\main\panel_page.html:195
+#: .\main\templates\main\panel_page.html:108
 msgid "Всего пользователей"
 msgstr "Бардык колдонуучулар"
 
-#: .\main\templates\main\panel_page.html:98
+#: .\main\templates\main\panel_page.html:112
 msgid "Новых за неделю"
 msgstr "Бир жумада жаңылар"
 
-#: .\main\templates\main\panel_page.html:102
+#: .\main\templates\main\panel_page.html:116
 msgid "Активных сегодня"
 msgstr "Бүгүн активдүүлөр"
 
-#: .\main\templates\main\panel_page.html:110
+#: .\main\templates\main\panel_page.html:126
+msgid "Показать все"
+msgstr "Баарын көрсөтүү"
+
+#: .\main\templates\main\panel_page.html:137
+msgid "Последний зарегистрированный"
+msgstr "Акыркы катталган"
+
+#: .\main\templates\main\panel_page.html:153
 msgid "Последние регистрации"
 msgstr "Акыркы каттоолор"
 
-#: .\main\templates\main\panel_page.html:133
+#: .\main\templates\main\panel_page.html:175
 msgid "Список пользователей"
 msgstr "Колдонуучулардын тизмеси"
 
-#: .\main\templates\main\panel_page.html:157
-msgid "Фильтры"
-msgstr "Фильтрлер"
-
-#: .\main\templates\main\panel_page.html:167
+#: .\main\templates\main\panel_page.html:206
 msgid "Загрузка пользователей..."
 msgstr "Колдонуучулар жүктөлүүдө..."
 
-#: .\main\templates\main\panel_page.html:184
+#: .\main\templates\main\panel_page.html:223
 #: .\main\templates\main\transaction_history.html:47
 msgid "Загрузить еще"
 msgstr "Дагы жүктөө"
 
-#: .\main\templates\main\panel_page.html:199
-#: .\main\templates\main\panel_page.html:382
-msgid "Экспорт"
-msgstr "Экспорт"
-
-#: .\main\templates\main\panel_page.html:218
+#: .\main\templates\main\panel_page.html:974
 msgid "Язык"
 msgstr "Тил"
 
-#: .\main\templates\main\panel_page.html:226
-#: .\main\templates\main\panel_page.html:251 .\wallet\settings.py:130
+#: .\main\templates\main\panel_page.html:982
+#: .\main\templates\main\panel_page.html:1005 .\wallet\settings.py:130
 msgid "English"
 msgstr "Англисче"
 
-#: .\main\templates\main\panel_page.html:227
-#: .\main\templates\main\panel_page.html:256 .\wallet\settings.py:131
+#: .\main\templates\main\panel_page.html:983
+#: .\main\templates\main\panel_page.html:1010 .\wallet\settings.py:131
 msgid "Кыргызча"
-msgstr ""
+msgstr "Кыргызча"
 
-#: .\main\templates\main\panel_page.html:234
+#: .\main\templates\main\panel_page.html:984
+#: .\main\templates\main\panel_page.html:1000 .\wallet\settings.py:132
+msgid "Українська"
+msgstr "Украинче"
+
+#: .\main\templates\main\panel_page.html:991
 msgid "Выберите язык интерфейса."
 msgstr "Интерфейс тилин тандаңыз."
 
-#: .\main\templates\main\panel_page.html:244 .\wallet\settings.py:129
+#: .\main\templates\main\panel_page.html:1018 .\wallet\settings.py:129
 msgid "Русский"
 msgstr "Орусча"
 
-#: .\main\templates\main\panel_page.html:267
+#: .\main\templates\main\panel_page.html:1036
+msgid "Открыть все языки"
+msgstr "Бардык тилдерди ачуу"
+
+#: .\main\templates\main\panel_page.html:1080
 msgid "Валюта"
 msgstr "Валюта"
 
-#: .\main\templates\main\panel_page.html:273
+#: .\main\templates\main\panel_page.html:1086
 msgid "Выберите валюту для отображения сумм."
 msgstr "Суммаларды көрсөтүү үчүн валютаны тандаңыз."
 
-#: .\main\templates\main\panel_page.html:305
+#: .\main\templates\main\panel_page.html:1124
+msgid "Открыть все валюты"
+msgstr "Бардык валюталарды ачуу"
+
+#: .\main\templates\main\panel_page.html:1207
+msgid "Цель"
+msgstr "Максат"
+
+#: .\main\templates\main\panel_page.html:1235
 msgid ""
-"Укажите, сколько процентов от доходов автоматически откладывать в резерв."
-msgstr "Кирешеден канча пайызды автоматтык түрдө резервге коюуну көрсөтүңүз."
+"Укажите %% чтобы автоматически откладывать в резерв и сумму, которую хотите "
+"накопить."
+msgstr ""
+"Резервге автоматтык түрдө коюу үчүн %% жана топтогусу келген сумманы "
+"көрсөтүңүз."
 
-#: .\main\templates\main\panel_page.html:322
-#: .\main\templates\main\panel_page.html:356
-msgid "Сохранить"
-msgstr "Сактоо"
-
-#: .\main\templates\main\panel_page.html:333
-#: .\main\templates\main\stats_page.html:64
-msgid "Целевой резерв"
-msgstr "Максаттуу резерв"
-
-#: .\main\templates\main\panel_page.html:339
-msgid "Укажите сумму, которую хотите накопить."
-msgstr "Топтогусу келген сумманы көрсөтүңүз."
-
-#: .\main\templates\main\panel_page.html:367
+#: .\main\templates\main\panel_page.html:1248
 msgid "Управление данными"
 msgstr "Маалыматтарды башкаруу"
 
-#: .\main\templates\main\panel_page.html:383
+#: .\main\templates\main\panel_page.html:1263
+msgid "Экспорт"
+msgstr "Экспорт"
+
+#: .\main\templates\main\panel_page.html:1264
 msgid "Backup данных"
 msgstr "Маалыматтардын резервдик көчүрмөсү"
 
-#: .\main\templates\main\panel_page.html:397
+#: .\main\templates\main\panel_page.html:1278
 msgid "Импорт"
 msgstr "Импорт"
 
-#: .\main\templates\main\panel_page.html:398
+#: .\main\templates\main\panel_page.html:1279
 msgid "Восстановить"
 msgstr "Калпына келтирүү"
 
-#: .\main\templates\main\panel_page.html:411
+#: .\main\templates\main\panel_page.html:1295
 msgid "Импорт из банков"
 msgstr "Банктардан импорт"
 
-#: .\main\templates\main\panel_page.html:428
+#: .\main\templates\main\panel_page.html:1310
 msgid "MBank"
 msgstr "MBank"
 
-#: .\main\templates\main\panel_page.html:429
-msgid "Excel выписка"
-msgstr "Excel выписка"
+#: .\main\templates\main\panel_page.html:1311
+#: .\main\templates\main\panel_page.html:1335
+msgid "Загрузить выписку"
+msgstr "Выписканы жүктөө"
 
-#: .\main\templates\main\panel_page.html:452
-msgid "Автоматическая обработка"
-msgstr "Автоматтык иштетүү"
+#: .\main\templates\main\panel_page.html:1334
+msgid "Optima Bank"
+msgstr "Optima Bank"
 
-#: .\main\templates\main\panel_page.html:454
+#: .\main\templates\main\panel_page.html:1352
 msgid ""
-"Импорт из банков автоматически определяет категории и добавляет транзакции"
+"распознавание магазинов, сохранение дат и времени транзакций, детальное "
+"описание операций и сортировка по категориям"
 msgstr ""
-"Банктардан импорт категорияларды автоматтык түрдө аныктайт жана "
-"транзакцияларды кошот"
+"дарькандарды тааноо, транзакциялардын датасын жана убактысын сактоо, "
+"операциялардын деталдуу сүрөттөлүшү жана категориялар боюнча иреттөө"
 
-#: .\main\templates\main\panel_page.html:471
-msgid "Инструкция"
-msgstr "Нускама"
-
-#: .\main\templates\main\panel_page.html:489
-msgid "Запрос выписки по счету"
-msgstr "Эсеп боюнча выписка сурамы"
-
-#: .\main\templates\main\panel_page.html:491
+#: .\main\templates\main\panel_page.html:1407
 msgid ""
-"Выберите нужный счет, перейдите в раздел «Выписки», укажите период и нажмите "
-"«Применить»"
+"Этот проект <span class='font-bold text-blue-400'>полностью бесплатен</span> "
+"и разрабатывается для того, чтобы финансовое управление было доступно "
+"каждому без исключения."
 msgstr ""
-"Керектүү эсепти тандаңыз, «Выписки» бөлүмүнө өтүңүз, мезгилди көрсөтүп, "
-"«Колдонуу» баскычын басыңыз"
+"Бул долбоор <span class='font-bold text-blue-400'>толугу менен акысыз</span> "
+"жана каржылык башкаруу ар бир адамга эч кандай тыюу салынбастан жеткиликтүү "
+"болушу үчүн иштелип чыгат."
 
-#: .\main\templates\main\panel_page.html:502
-msgid "Формирование документа"
-msgstr "Документти түзүү"
+#: .\main\templates\main\panel_page.html:1411
+msgid ""
+"Ваша поддержка позволит ускорить разработку новых функций, повысить "
+"стабильность работы и реализовать дополнительные возможности для всех "
+"пользователей."
+msgstr ""
+"Сиздин колдооңуз жаңы функцияларды иштеп чыгууну ылдамдатат, иштөөнүн "
+"туруктуулугун жогорулатат жана бардык колдонуучулар үчүн кошумча "
+"мүмкүнчүлүктөрдү ишке ашырууга мүмкүндүк берет."
 
-#: .\main\templates\main\panel_page.html:504
-msgid "Выберите"
-msgstr "Тандаңыз"
-
-#: .\main\templates\main\panel_page.html:504
-msgid "Excel (XLS, XLSX)"
-msgstr "Excel (XLS, XLSX)"
-
-#: .\main\templates\main\panel_page.html:504
-msgid "формат и нажмите «Сформировать» для скачивания"
-msgstr "форматты тандап, жүктөп алуу үчүн «Түзүү» баскычын басыңыз"
-
-#: .\main\templates\main\panel_page.html:514
-msgid "Важно!"
-msgstr "Маанилүү!"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "Убедитесь, что выбираете именно"
-msgstr "Так"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "Excel формат"
-msgstr "Excel форматын тандаганыңызга ынаныңыз"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "PDF файлы не поддерживаются для импорта."
-msgstr "PDF файлдары импорт үчүн колдолбойт."
-
-#: .\main\templates\main\panel_page.html:530
-msgid "Закрыть"
-msgstr "Жабуу"
+#: .\main\templates\main\panel_page.html:1441
+msgid ""
+"Благодарим за доверие к нашему проекту! Ваша поддержка помогает развиваться "
+"дальше."
+msgstr ""
+"Биздин долбоорго ишенгениңиз үчүн рахмат! Сиздин колдооңуз андан ары өнүгүүгө "
+"жардам берет."
 
 #: .\main\templates\main\stats_page.html:12
 msgid "Мои сбережения"
@@ -765,6 +830,10 @@ msgstr "Учурдагы резерв"
 #: .\main\templates\main\stats_page.html:48
 msgid "Процент от доходов"
 msgstr "Кирешеден пайыз"
+
+#: .\main\templates\main\stats_page.html:64
+msgid "Целевой резерв"
+msgstr "Максаттуу резерв"
 
 #: .\main\templates\main\stats_page.html:65
 msgid "Ваша финансовая цель"
@@ -861,3 +930,66 @@ msgstr "Жакшыраак түшүнүү үчүн операцияларды т
 #: .\main\templates\main\transaction_history.html:145
 msgid "Здесь пока пусто!"
 msgstr "Бул жерде азырынча бош!"
+
+#~ msgid "Администрирование"
+#~ msgstr "Администрациялоо"
+
+#~ msgid "Управление пользователями"
+#~ msgstr "Колдонуучуларды башкаруу"
+
+#~ msgid "Фильтры"
+#~ msgstr "Фильтрлер"
+
+#~ msgid ""
+#~ "Укажите, сколько процентов от доходов автоматически откладывать в резерв."
+#~ msgstr ""
+#~ "Кирешеден канча пайызды автоматтык түрдө резервге коюуну көрсөтүңүз."
+
+#~ msgid "Excel выписка"
+#~ msgstr "Excel выписка"
+
+#~ msgid "Автоматическая обработка"
+#~ msgstr "Автоматтык иштетүү"
+
+#~ msgid ""
+#~ "Импорт из банков автоматически определяет категории и добавляет транзакции"
+#~ msgstr ""
+#~ "Банктардан импорт категорияларды автоматтык түрдө аныктайт жана "
+#~ "транзакцияларды кошот"
+
+#~ msgid "Инструкция"
+#~ msgstr "Нускама"
+
+#~ msgid "Запрос выписки по счету"
+#~ msgstr "Эсеп боюнча выписка сурамы"
+
+#~ msgid ""
+#~ "Выберите нужный счет, перейдите в раздел «Выписки», укажите период и "
+#~ "нажмите «Применить»"
+#~ msgstr ""
+#~ "Керектүү эсепти тандаңыз, «Выписки» бөлүмүнө өтүңүз, мезгилди көрсөтүп, "
+#~ "«Колдонуу» баскычын басыңыз"
+
+#~ msgid "Формирование документа"
+#~ msgstr "Документти түзүү"
+
+#~ msgid "Выберите"
+#~ msgstr "Тандаңыз"
+
+#~ msgid "Excel (XLS, XLSX)"
+#~ msgstr "Excel (XLS, XLSX)"
+
+#~ msgid "формат и нажмите «Сформировать» для скачивания"
+#~ msgstr "форматты тандап, жүктөп алуу үчүн «Түзүү» баскычын басыңыз"
+
+#~ msgid "Важно!"
+#~ msgstr "Маанилүү!"
+
+#~ msgid "Убедитесь, что выбираете именно"
+#~ msgstr "Так"
+
+#~ msgid "Excel формат"
+#~ msgstr "Excel форматын тандаганыңызга ынаныңыз"
+
+#~ msgid "PDF файлы не поддерживаются для импорта."
+#~ msgstr "PDF файлдары импорт үчүн колдолбойт."

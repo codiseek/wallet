@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 12:36+0600\n"
+"POT-Creation-Date: 2025-11-03 15:39+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,21 +18,98 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\main\templates\main\balance.html:18 .\main\templates\main\desktop.html:273
+#: .\main\templates\includes\modals\change_password.html:13
+msgid "Смена пароля"
+msgstr "Change Password"
+
+#: .\main\templates\includes\modals\change_password.html:17
+#: .\main\templates\includes\modals\profile.html:17
+#: .\main\templates\includes\modals\profile.html:114
+#: .\main\templates\includes\modals\profile.html:163
+msgid "Закрыть"
+msgstr "Close"
+
+#: .\main\templates\includes\modals\change_password.html:39
+msgid "Сложность пароля"
+msgstr "Password Complexity"
+
+#: .\main\templates\includes\modals\change_password.html:40
+msgid "Не задан"
+msgstr "Not Set"
+
+#: .\main\templates\includes\modals\change_password.html:59
+msgid "Введите текущий пароль"
+msgstr "Enter current password"
+
+#: .\main\templates\includes\modals\change_password.html:76
+msgid "Введите новый пароль"
+msgstr "Enter new password"
+
+#: .\main\templates\includes\modals\change_password.html:93
+msgid "Повторите новый пароль"
+msgstr "Repeat new password"
+
+#: .\main\templates\includes\modals\change_password.html:105
+msgid "Советы для надежного пароля:"
+msgstr "Tips for a secure password:"
+
+#: .\main\templates\includes\modals\change_password.html:109
+msgid "Минимум 8 символов"
+msgstr "Minimum 8 characters"
+
+#: .\main\templates\includes\modals\change_password.html:113
+msgid "Заглавные буквы"
+msgstr "Uppercase letters"
+
+#: .\main\templates\includes\modals\change_password.html:117
+msgid "Строчные буквы"
+msgstr "Lowercase letters"
+
+#: .\main\templates\includes\modals\change_password.html:121
+msgid "Цифры"
+msgstr "Numbers"
+
+#: .\main\templates\includes\modals\change_password.html:125
+msgid "Специальные символы"
+msgstr "Special characters"
+
+#: .\main\templates\includes\modals\change_password.html:139
+msgid "Отмена"
+msgstr "Cancel"
+
+#: .\main\templates\includes\modals\change_password.html:148
+#: .\main\templates\main\panel_page.html:1192
+#: .\main\templates\main\panel_page.html:1228
+msgid "Сохранить"
+msgstr "Save"
+
+#: .\main\templates\includes\modals\profile.html:13
+msgid "Ваш профиль"
+msgstr "Your Profile"
+
+#: .\main\templates\includes\modals\profile.html:110
+msgid "Очистка всех транзакций"
+msgstr "Clear All Transactions"
+
+#: .\main\templates\includes\modals\profile.html:159
+msgid "Удаление аккаунта"
+msgstr "Delete Account"
+
+#: .\main\templates\main\balance.html:20 .\main\templates\main\desktop.html:273
 #: .\main\templates\main\desktop.html:583
 msgid "Текущий баланс"
 msgstr "Current balance"
 
-#: .\main\templates\main\balance.html:26 .\main\templates\main\desktop.html:277
-#: .\main\templates\main\panel_page.html:299
+#: .\main\templates\main\balance.html:28 .\main\templates\main\desktop.html:277
+#: .\main\templates\main\panel_page.html:1171
 msgid "Резерв"
 msgstr "Reserve"
 
-#: .\main\templates\main\balance.html:37 .\main\templates\main\desktop.html:284
+#: .\main\templates\main\balance.html:39 .\main\templates\main\desktop.html:284
 msgid "Доходы"
 msgstr "Income"
 
-#: .\main\templates\main\balance.html:43 .\main\templates\main\desktop.html:288
+#: .\main\templates\main\balance.html:45 .\main\templates\main\desktop.html:288
 msgid "Расходы"
 msgstr "Expenses"
 
@@ -126,7 +203,8 @@ msgid "Список платежей пуст"
 msgstr "Payment list is empty"
 
 #: .\main\templates\main\debt_page.html:78
-#: .\main\templates\main\panel_page.html:117
+#: .\main\templates\main\panel_page.html:144
+#: .\main\templates\main\panel_page.html:159
 msgid "Загрузка..."
 msgstr "Loading..."
 
@@ -562,195 +640,184 @@ msgstr "Control panel"
 msgid "Профиль"
 msgstr "Profile"
 
-#: .\main\templates\main\panel_page.html:63
+#: .\main\templates\main\panel_page.html:61
+msgid "Пароль"
+msgstr "Password"
+
+#: .\main\templates\main\panel_page.html:72
 msgid "Выйти"
 msgstr "Logout"
 
-#: .\main\templates\main\panel_page.html:81
-msgid "Администрирование"
-msgstr "Administration"
+#: .\main\templates\main\panel_page.html:92
+msgid "Админка"
+msgstr "Admin Panel"
 
-#: .\main\templates\main\panel_page.html:87
-msgid "Управление пользователями"
-msgstr "User management"
+#: .\main\templates\main\panel_page.html:100
+msgid "Юзеры"
+msgstr "Users"
 
-#: .\main\templates\main\panel_page.html:94
-#: .\main\templates\main\panel_page.html:195
+#: .\main\templates\main\panel_page.html:108
 msgid "Всего пользователей"
 msgstr "Total users"
 
-#: .\main\templates\main\panel_page.html:98
+#: .\main\templates\main\panel_page.html:112
 msgid "Новых за неделю"
 msgstr "New this week"
 
-#: .\main\templates\main\panel_page.html:102
+#: .\main\templates\main\panel_page.html:116
 msgid "Активных сегодня"
 msgstr "Active today"
 
-#: .\main\templates\main\panel_page.html:110
+#: .\main\templates\main\panel_page.html:126
+msgid "Показать все"
+msgstr "Show all"
+
+#: .\main\templates\main\panel_page.html:137
+msgid "Последний зарегистрированный"
+msgstr "Last registered"
+
+#: .\main\templates\main\panel_page.html:153
 msgid "Последние регистрации"
 msgstr "Recent registrations"
 
-#: .\main\templates\main\panel_page.html:133
+#: .\main\templates\main\panel_page.html:175
 msgid "Список пользователей"
 msgstr "Users list"
 
-#: .\main\templates\main\panel_page.html:157
-msgid "Фильтры"
-msgstr "Filters"
-
-#: .\main\templates\main\panel_page.html:167
+#: .\main\templates\main\panel_page.html:206
 msgid "Загрузка пользователей..."
 msgstr "Loading users..."
 
-#: .\main\templates\main\panel_page.html:184
+#: .\main\templates\main\panel_page.html:223
 #: .\main\templates\main\transaction_history.html:47
 msgid "Загрузить еще"
 msgstr "Load more"
 
-#: .\main\templates\main\panel_page.html:199
-#: .\main\templates\main\panel_page.html:382
-msgid "Экспорт"
-msgstr "Export"
-
-#: .\main\templates\main\panel_page.html:218
+#: .\main\templates\main\panel_page.html:974
 msgid "Язык"
 msgstr "Language"
 
-#: .\main\templates\main\panel_page.html:226
-#: .\main\templates\main\panel_page.html:251 .\wallet\settings.py:130
+#: .\main\templates\main\panel_page.html:982
+#: .\main\templates\main\panel_page.html:1005 .\wallet\settings.py:130
 msgid "English"
 msgstr "English"
 
-#: .\main\templates\main\panel_page.html:227
-#: .\main\templates\main\panel_page.html:256 .\wallet\settings.py:131
+#: .\main\templates\main\panel_page.html:983
+#: .\main\templates\main\panel_page.html:1010 .\wallet\settings.py:131
 msgid "Кыргызча"
-msgstr ""
+msgstr "Kyrgyz"
 
-#: .\main\templates\main\panel_page.html:234
+#: .\main\templates\main\panel_page.html:984
+#: .\main\templates\main\panel_page.html:1000 .\wallet\settings.py:132
+msgid "Українська"
+msgstr "Ukrainian"
+
+#: .\main\templates\main\panel_page.html:991
 msgid "Выберите язык интерфейса."
 msgstr "Select interface language."
 
-#: .\main\templates\main\panel_page.html:244 .\wallet\settings.py:129
+#: .\main\templates\main\panel_page.html:1018 .\wallet\settings.py:129
 msgid "Русский"
 msgstr "Russian"
 
-#: .\main\templates\main\panel_page.html:267
+#: .\main\templates\main\panel_page.html:1036
+msgid "Открыть все языки"
+msgstr "Open all languages"
+
+#: .\main\templates\main\panel_page.html:1080
 msgid "Валюта"
 msgstr "Currency"
 
-#: .\main\templates\main\panel_page.html:273
+#: .\main\templates\main\panel_page.html:1086
 msgid "Выберите валюту для отображения сумм."
 msgstr "Select currency to display amounts."
 
-#: .\main\templates\main\panel_page.html:305
+#: .\main\templates\main\panel_page.html:1124
+msgid "Открыть все валюты"
+msgstr "Open all currencies"
+
+#: .\main\templates\main\panel_page.html:1207
+msgid "Цель"
+msgstr "Goal"
+
+#: .\main\templates\main\panel_page.html:1235
 msgid ""
-"Укажите, сколько процентов от доходов автоматически откладывать в резерв."
-msgstr "Specify what percentage of income to automatically save to reserve."
+"Укажите %% чтобы автоматически откладывать в резерв и сумму, которую хотите "
+"накопить."
+msgstr ""
+"Specify %% to automatically save to reserve and the amount you want to "
+"accumulate."
 
-#: .\main\templates\main\panel_page.html:322
-#: .\main\templates\main\panel_page.html:356
-msgid "Сохранить"
-msgstr "Save"
-
-#: .\main\templates\main\panel_page.html:333
-#: .\main\templates\main\stats_page.html:64
-msgid "Целевой резерв"
-msgstr "Target reserve"
-
-#: .\main\templates\main\panel_page.html:339
-msgid "Укажите сумму, которую хотите накопить."
-msgstr "Specify the amount you want to save."
-
-#: .\main\templates\main\panel_page.html:367
+#: .\main\templates\main\panel_page.html:1248
 msgid "Управление данными"
 msgstr "Data management"
 
-#: .\main\templates\main\panel_page.html:383
+#: .\main\templates\main\panel_page.html:1263
+msgid "Экспорт"
+msgstr "Export"
+
+#: .\main\templates\main\panel_page.html:1264
 msgid "Backup данных"
 msgstr "Data backup"
 
-#: .\main\templates\main\panel_page.html:397
+#: .\main\templates\main\panel_page.html:1278
 msgid "Импорт"
 msgstr "Import"
 
-#: .\main\templates\main\panel_page.html:398
+#: .\main\templates\main\panel_page.html:1279
 msgid "Восстановить"
 msgstr "Restore"
 
-#: .\main\templates\main\panel_page.html:411
+#: .\main\templates\main\panel_page.html:1295
 msgid "Импорт из банков"
 msgstr "Import from banks"
 
-#: .\main\templates\main\panel_page.html:428
+#: .\main\templates\main\panel_page.html:1310
 msgid "MBank"
 msgstr "MBank"
 
-#: .\main\templates\main\panel_page.html:429
-msgid "Excel выписка"
-msgstr "Excel statement"
+#: .\main\templates\main\panel_page.html:1311
+#: .\main\templates\main\panel_page.html:1335
+msgid "Загрузить выписку"
+msgstr "Upload statement"
 
-#: .\main\templates\main\panel_page.html:452
-msgid "Автоматическая обработка"
-msgstr "Automatic processing"
+#: .\main\templates\main\panel_page.html:1334
+msgid "Optima Bank"
+msgstr "Optima Bank"
 
-#: .\main\templates\main\panel_page.html:454
+#: .\main\templates\main\panel_page.html:1352
 msgid ""
-"Импорт из банков автоматически определяет категории и добавляет транзакции"
+"распознавание магазинов, сохранение дат и времени транзакций, детальное "
+"описание операций и сортировка по категориям"
 msgstr ""
-"Import from banks automatically detects categories and adds transactions"
+"store recognition, saving transaction dates and times, detailed operation "
+"description and sorting by categories"
 
-#: .\main\templates\main\panel_page.html:471
-msgid "Инструкция"
-msgstr "Instructions"
-
-#: .\main\templates\main\panel_page.html:489
-msgid "Запрос выписки по счету"
-msgstr "Request account statement"
-
-#: .\main\templates\main\panel_page.html:491
+#: .\main\templates\main\panel_page.html:1407
 msgid ""
-"Выберите нужный счет, перейдите в раздел «Выписки», укажите период и нажмите "
-"«Применить»"
+"Этот проект <span class='font-bold text-blue-400'>полностью бесплатен</span> "
+"и разрабатывается для того, чтобы финансовое управление было доступно "
+"каждому без исключения."
 msgstr ""
-"Select the required account, go to 'Statements' section, specify the period "
-"and click 'Apply'"
+"This project is <span class='font-bold text-blue-400'>completely free</span> "
+"and is being developed to make financial management accessible to everyone "
+"without exception."
 
-#: .\main\templates\main\panel_page.html:502
-msgid "Формирование документа"
-msgstr "Document generation"
+#: .\main\templates\main\panel_page.html:1411
+msgid ""
+"Ваша поддержка позволит ускорить разработку новых функций, повысить "
+"стабильность работы и реализовать дополнительные возможности для всех "
+"пользователей."
+msgstr ""
+"Your support will help accelerate the development of new features, improve "
+"operational stability and implement additional features for all users."
 
-#: .\main\templates\main\panel_page.html:504
-msgid "Выберите"
-msgstr "Select"
-
-#: .\main\templates\main\panel_page.html:504
-msgid "Excel (XLS, XLSX)"
-msgstr "Excel (XLS, XLSX)"
-
-#: .\main\templates\main\panel_page.html:504
-msgid "формат и нажмите «Сформировать» для скачивания"
-msgstr "format and click 'Generate' to download"
-
-#: .\main\templates\main\panel_page.html:514
-msgid "Важно!"
-msgstr "Important!"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "Убедитесь, что выбираете именно"
-msgstr "Make sure you select exactly"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "Excel формат"
-msgstr "Excel format"
-
-#: .\main\templates\main\panel_page.html:516
-msgid "PDF файлы не поддерживаются для импорта."
-msgstr "PDF files are not supported for import."
-
-#: .\main\templates\main\panel_page.html:530
-msgid "Закрыть"
-msgstr "Close"
+#: .\main\templates\main\panel_page.html:1441
+msgid ""
+"Благодарим за доверие к нашему проекту! Ваша поддержка помогает развиваться "
+"дальше."
+msgstr ""
+"Thank you for trusting our project! Your support helps us to develop further."
 
 #: .\main\templates\main\stats_page.html:12
 msgid "Мои сбережения"
@@ -763,6 +830,10 @@ msgstr "Current reserve"
 #: .\main\templates\main\stats_page.html:48
 msgid "Процент от доходов"
 msgstr "Percentage of income"
+
+#: .\main\templates\main\stats_page.html:64
+msgid "Целевой резерв"
+msgstr "Target reserve"
 
 #: .\main\templates\main\stats_page.html:65
 msgid "Ваша финансовая цель"
@@ -859,3 +930,64 @@ msgstr "Group transactions for better understanding"
 #: .\main\templates\main\transaction_history.html:145
 msgid "Здесь пока пусто!"
 msgstr "It's empty here for now!"
+
+#~ msgid "Администрирование"
+#~ msgstr "Administration"
+
+#~ msgid "Управление пользователями"
+#~ msgstr "User management"
+
+#~ msgid "Фильтры"
+#~ msgstr "Filters"
+
+#~ msgid ""
+#~ "Укажите, сколько процентов от доходов автоматически откладывать в резерв."
+#~ msgstr "Specify what percentage of income to automatically save to reserve."
+
+#~ msgid "Excel выписка"
+#~ msgstr "Excel statement"
+
+#~ msgid "Автоматическая обработка"
+#~ msgstr "Automatic processing"
+
+#~ msgid ""
+#~ "Импорт из банков автоматически определяет категории и добавляет транзакции"
+#~ msgstr ""
+#~ "Import from banks automatically detects categories and adds transactions"
+
+#~ msgid "Инструкция"
+#~ msgstr "Instructions"
+
+#~ msgid "Запрос выписки по счету"
+#~ msgstr "Request account statement"
+
+#~ msgid ""
+#~ "Выберите нужный счет, перейдите в раздел «Выписки», укажите период и "
+#~ "нажмите «Применить»"
+#~ msgstr ""
+#~ "Select the required account, go to 'Statements' section, specify the "
+#~ "period and click 'Apply'"
+
+#~ msgid "Формирование документа"
+#~ msgstr "Document generation"
+
+#~ msgid "Выберите"
+#~ msgstr "Select"
+
+#~ msgid "Excel (XLS, XLSX)"
+#~ msgstr "Excel (XLS, XLSX)"
+
+#~ msgid "формат и нажмите «Сформировать» для скачивания"
+#~ msgstr "format and click 'Generate' to download"
+
+#~ msgid "Важно!"
+#~ msgstr "Important!"
+
+#~ msgid "Убедитесь, что выбираете именно"
+#~ msgstr "Make sure you select exactly"
+
+#~ msgid "Excel формат"
+#~ msgstr "Excel format"
+
+#~ msgid "PDF файлы не поддерживаются для импорта."
+#~ msgstr "PDF files are not supported for import."

@@ -1158,74 +1158,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-          <!-- Настройка процента резерва -->
+<!-- Настройка процента резерва - компактная версия с Flexbox -->
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
-    <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
-            </div>
-            <h3 class="text-base font-semibold text-gray-200">{% trans "Резерв" %}</h3>
-        </div>
-        <span id="currentReservePercent" class="text-sm text-blue-400 font-medium">{{ reserve_percentage }}%</span>
-    </div>
-
-    <p class="text-sm text-gray-400 mb-3">
-        {% trans "Укажите, сколько процентов от доходов автоматически откладывать в резерв." %}
-    </p>
-
-    <div class="flex items-center space-x-3 mb-4">
-        <input
-            type="number"
-            id="reservePercentageInput"
-            min="0"
-            max="100"
-            class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-blue-500 focus:ring-0 outline-none transition-all"
-            value="{{ reserve_percentage }}" 
-        >
-        <button
-            id="saveReserveBtn"
-            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
-        >
-            <i class="fas fa-save mr-2"></i>
-            <span>{% trans "Сохранить" %}</span>
-        </button>
-    </div>
-
-               <!-- Блок для целевого резерва -->
-    <div class="pt-4 border-t border-gray-600/50">
-        <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                    <i class="fas fa-bullseye text-purple-400 text-sm"></i>
+    <div class="flex flex-row">
+        <!-- Левая колонка - Резерв -->
+        <div class="flex-1 pr-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-200">{% trans "Резерв" %}</h3>
                 </div>
-                <h3 class="text-base font-semibold text-gray-200">{% trans "Целевой резерв" %}</h3>
+            
             </div>
-            <span id="currentTargetReserve" class="text-sm text-purple-400 font-medium">{{ target_reserve|floatformat:0 }} <span>сом</span></span>
+
+          
+
+            <div class="space-y-2">
+                <input
+                    type="number"
+                    id="reservePercentageInput"
+                    min="0"
+                    max="100"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-blue-500 focus:ring-0 outline-none transition-all"
+                    value="{{ reserve_percentage }}" 
+                >
+                <button
+                    id="saveReserveBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white px-3 py-3 rounded-lg text-sm font-medium transition-all"
+                >
+                    <i class="fas fa-save mr-2"></i>
+                    <span>{% trans "Сохранить" %}</span>
+                </button>
+            </div>
         </div>
 
-        <p class="text-sm text-gray-400 mb-3">
-            {% trans "Укажите сумму, которую хотите накопить." %}
-        </p>
+        <!-- Вертикальный разделитель -->
+        <div class="w-px bg-gray-600/50 mx-4"></div>
 
-        <div class="flex items-center space-x-3">
-            <input
-                type="number"
-                id="targetReserveInput"
-                min="0"
-                step="1000"
-                class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-purple-500 focus:ring-0 outline-none transition-all"
-                value="{{ target_reserve|floatformat:0 }}"
-            >
-            <button
-                id="saveTargetReserveBtn"
-                class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 w-full py-3 rounded-lg text-sm font-medium transition-all"
-            >
-                <i class="fas fa-save mr-2"></i>
-                <span>{% trans "Сохранить" %}</span>
-            </button>
+        <!-- Правая колонка - Целевой резерв -->
+        <div class="flex-1 pl-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-bullseye text-purple-400 text-sm"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-200">{% trans "Цель" %}</h3>
+                </div>
+                
+            </div>
+
+            
+
+            <div class="space-y-2">
+                <input
+                    type="number"
+                    id="targetReserveInput"
+                    min="0"
+                    step="1000"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-center text-white text-lg font-semibold focus:border-purple-500 focus:ring-0 outline-none transition-all"
+                    value="{{ target_reserve|floatformat:0 }}"
+                >
+                <button
+                    id="saveTargetReserveBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white px-3 py-3 rounded-lg text-sm font-medium transition-all"
+                >
+                    <i class="fas fa-save mr-2"></i>
+                    <span>{% trans "Сохранить" %}</span>
+                </button>
+            </div>
         </div>
     </div>
+
+    <p class="text-gray-300 text-xs text-center leading-relaxed mb-2 mt-5">
+                {% trans "Укажите % чтобы автоматически откладывать в резерв и сумму, которую хотите накопить." %}
+            </p>
+
+
 </div>
 
 
@@ -1336,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <input type="file" id="optimaFileInput" accept=".pdf" class="hidden">
 </div>
 
-<div class="bg-blue-500/5 border border-blue-400/20 rounded-xl px-3 py-2 mt-4">
+<div class="px-3 py-2 mt-4">
     <p class="text-gray-300 text-xs text-center leading-relaxed">
         <strong class="text-blue-400">Автоматизировано:</strong>
         {% trans "распознавание магазинов, сохранение дат и времени транзакций, детальное описание операций и сортировка по категориям" %}

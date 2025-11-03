@@ -4,7 +4,7 @@ let requireCurrentPassword = false;
 // Глобальная переменная для отслеживания состояния пароля
 window.passwordChanged = false;
 
-// Функции для открытия/закрытия модалки
+// Обновляем функцию openPasswordModal для сброса состояния кнопки
 function openPasswordModal() {
     const modal = document.getElementById('changePasswordModal');
     passwordModalOpen = true;
@@ -12,12 +12,19 @@ function openPasswordModal() {
     // Сброс формы
     resetPasswordForm();
     
+    // Сбрасываем состояние кнопки
+    resetSavePasswordButton();
+    
+    // Скрываем уведомления
+    hidePasswordNotification();
+    
     // Проверяем, нужно ли показывать поле текущего пароля
     checkPasswordChangeStatus();
     
     // АНИМАЦИЯ ОТКРЫТИЯ МОДАЛКИ
     animateModal(modal, true);
 }
+
 
 function closePasswordModal() {
     const modal = document.getElementById('changePasswordModal');
@@ -48,8 +55,6 @@ function updatePasswordModalInterface() {
     updateSaveButton();
 }
 
-
-
 // Функция сброса формы пароля
 function resetPasswordForm() {
     document.getElementById('currentPassword').value = '';
@@ -60,6 +65,46 @@ function resetPasswordForm() {
     resetPasswordStrength();
 }
 
+// Показать уведомление в модалке
+function showPasswordNotification(message, type) {
+    const notification = document.getElementById('passwordNotification');
+    const icon = document.getElementById('passwordNotificationIcon');
+    const text = document.getElementById('passwordNotificationText');
+    
+    // Скрываем предыдущие ошибки
+    document.getElementById('currentPasswordError').classList.add('hidden');
+    
+    // Устанавливаем стили в зависимости от типа
+    if (type === 'success') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-green-500/10 border border-green-500/30';
+        icon.className = 'fas fa-check-circle text-green-400';
+        text.className = 'text-sm font-medium text-green-400';
+    } else if (type === 'error') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-red-500/10 border border-red-500/30';
+        icon.className = 'fas fa-exclamation-circle text-red-400';
+        text.className = 'text-sm font-medium text-red-400';
+    } else if (type === 'loading') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-blue-500/10 border border-blue-500/30';
+        icon.className = 'fas fa-spinner fa-spin text-blue-400';
+        text.className = 'text-sm font-medium text-blue-400';
+    }
+    
+    text.textContent = message;
+    notification.classList.remove('hidden');
+    
+    // Автоматически скрываем успешные уведомления через 3 секунды
+    if (type === 'success') {
+        setTimeout(() => {
+            hidePasswordNotification();
+        }, 3000);
+    }
+}
+
+// Скрыть уведомление в модалке
+function hidePasswordNotification() {
+    const notification = document.getElementById('passwordNotification');
+    notification.classList.add('hidden');
+}
 
 // Проверка статуса смены пароля
 function checkPasswordChangeStatus() {
@@ -79,7 +124,6 @@ function checkPasswordChangeStatus() {
             console.error('Error checking password status:', error);
         });
 }
-
 
 // Функция для переключения видимости пароля
 function togglePasswordVisibility(fieldId) {
@@ -102,6 +146,9 @@ function checkPasswordStrength() {
     const password = document.getElementById('newPassword').value;
     const strengthBar = document.getElementById('passwordStrengthBar');
     const strengthText = document.getElementById('passwordStrengthText');
+    
+    // Скрываем уведомления при изменении пароля
+    hidePasswordNotification();
     
     // Сброс проверок
     resetChecks();
@@ -246,8 +293,6 @@ function updateSaveButton() {
     }
 }
 
-
-// Функция сохранения нового пароля
 function saveNewPassword() {
     const currentPassword = document.getElementById('currentPassword').value;
     const password = document.getElementById('newPassword').value;
@@ -256,22 +301,25 @@ function saveNewPassword() {
     
     // Дополнительная проверка
     if (password.length < 8) {
-        showErrorNotification('Пароль должен содержать минимум 8 символов');
+        showPasswordNotification('Пароль должен содержать минимум 8 символов', 'error');
         return;
     }
     
     if (password !== confirmPassword) {
-        showErrorNotification('Пароли не совпадают');
+        showPasswordNotification('Пароли не совпадают', 'error');
         return;
     }
     
     // Если требуется текущий пароль, проверяем его наличие
     if (requireCurrentPassword && !currentPassword) {
-        showErrorNotification('Введите текущий пароль');
+        showPasswordNotification('Введите текущий пароль', 'error');
         return;
     }
     
     // Показываем индикатор загрузки
+    showPasswordNotification('Изменение пароля...', 'loading');
+    
+    // Блокируем кнопку и меняем текст
     const originalHtml = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
     saveBtn.disabled = true;
@@ -302,11 +350,18 @@ function saveNewPassword() {
     })
     .then(data => {
         if (data.success) {
-            showSuccessNotification(data.message || 'Пароль успешно изменен!');
+            // Показываем успешное уведомление
+            showPasswordNotification(data.message || 'Пароль успешно изменен!', 'success');
+            
+            // Восстанавливаем кнопку с зеленым цветом на короткое время
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Успешно!';
+            saveBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+            saveBtn.classList.add('bg-green-600', 'hover:bg-green-500');
             
             // ОБНОВЛЯЕМ СТАТУС ТРЕБОВАНИЯ ТЕКУЩЕГО ПАРОЛЯ
-        requireCurrentPassword = true;
-        window.passwordChanged = true; // Устанавливаем глобальный флаг
+            requireCurrentPassword = true;
+            window.passwordChanged = true; // Устанавливаем глобальный флаг
             
             // ОБНОВЛЯЕМ ИНТЕРФЕЙС - ПОКАЗЫВАЕМ ПОЛЕ ТЕКУЩЕГО ПАРОЛЯ
             updatePasswordModalInterface();
@@ -321,12 +376,13 @@ function saveNewPassword() {
                     updateProfileNotification(profile);
                 }
                 
-                // Закрываем модалку только после успешного обновления профиля
+                // Закрываем модалку через 250 мс
                 setTimeout(() => {
                     closePasswordModal();
+                    // Сбрасываем кнопку к исходному состоянию
                     saveBtn.innerHTML = originalHtml;
                     updateSaveButton();
-                }, 1000);
+                }, 250);
             });
         } else {
             throw new Error(data.error || 'Ошибка при изменении пароля');
@@ -340,10 +396,12 @@ function saveNewPassword() {
             const errorElement = document.getElementById('currentPasswordError');
             errorElement.textContent = error.message;
             errorElement.classList.remove('hidden');
+            hidePasswordNotification(); // Скрываем основное уведомление
         } else {
-            showErrorNotification(error.message);
+            showPasswordNotification(error.message, 'error');
         }
         
+        // Восстанавливаем кнопку
         saveBtn.innerHTML = originalHtml;
         updateSaveButton();
     });
@@ -351,7 +409,15 @@ function saveNewPassword() {
 
 
 
-
+function resetSavePasswordButton() {
+    const saveBtn = document.getElementById('savePasswordBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i><span>Сохранить</span>';
+        saveBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+        saveBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+    }
+}
 
 
 // Инициализация при загрузке страницы
@@ -374,6 +440,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Добавляем обработчик изменения поля текущего пароля
     const currentPasswordField = document.getElementById('currentPassword');
     if (currentPasswordField) {
-        currentPasswordField.addEventListener('input', updateSaveButton);
+        currentPasswordField.addEventListener('input', function() {
+            hidePasswordNotification();
+            document.getElementById('currentPasswordError').classList.add('hidden');
+            updateSaveButton();
+        });
+    }
+    
+    // Добавляем обработчики для полей нового пароля
+    const newPasswordField = document.getElementById('newPassword');
+    const confirmPasswordField = document.getElementById('confirmPassword');
+    
+    if (newPasswordField) {
+        newPasswordField.addEventListener('input', function() {
+            hidePasswordNotification();
+            updateSaveButton();
+        });
+    }
+    
+    if (confirmPasswordField) {
+        confirmPasswordField.addEventListener('input', function() {
+            hidePasswordNotification();
+            updateSaveButton();
+        });
     }
 });

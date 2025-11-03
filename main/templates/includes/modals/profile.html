@@ -19,85 +19,81 @@
     </div>
 
     <!-- Основной контент -->
-    <div class="p-6 space-y-6">
-        <!-- Прогресс заполнения -->
-        <div class="bg-gray-700/30 rounded-xl p-4">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-gray-300">Заполненность профиля</span>
-                <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
-            </div>
-            <div class="w-full bg-gray-600 rounded-full h-2">
-                <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+    <div class="p-4 space-y-4">
+        <!-- Блок для уведомлений -->
+        <div id="profileNotificationModal" class="hidden rounded-lg p-3">
+            <div class="flex items-center space-x-2">
+                <i id="profileNotificationIcon" class="text-sm"></i>
+                <p id="profileNotificationText" class="text-sm font-medium flex-1"></p>
+                <button onclick="hideProfileNotification()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
 
         <!-- Форма профиля -->
-        <form id="profileForm" class="space-y-4">
+        <form id="profileForm" class="space-y-3">
             {% csrf_token %}
             
             <!-- Имя -->
             <div>
-                <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
                 <input type="text" name="first_name" id="firstNameInput" 
-                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                       placeholder="Имя">
             </div>
             
             <!-- Email -->
             <div>
-                <label class="block text-gray-300 text-sm mb-2">
-                    Электронная почта 
-                    <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
-                </label>
                 <input type="email" name="email" id="emailInput"
                        class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                       placeholder="your@email.com">
+                       placeholder="Email">
             </div>
             
             <!-- Телефон -->
             <div>
-                <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
                 <input type="tel" name="phone" id="phoneInput"
                        class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                       placeholder="+996 XXX XXX XXX">
+                       placeholder="Телефон">
             </div>
 
+            <!-- Кнопки -->
             <div class="flex space-x-3 pt-2">
                 <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
                     Отмена
                 </button>
-                <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
+                <button type="submit" id="saveProfileBtn" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                     Сохранить
                 </button>
             </div>
         </form>
 
         <!-- Разделитель -->
-        <div class="border-t border-gray-700/50 pt-6">
+        <div class="border-t border-gray-700/50 pt-4">
             <!-- Кнопка удаления аккаунта -->
-            <button onclick="openDeleteAccountModal()" class="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl p-4 transition-all duration-200 group text-left">
+            <button onclick="openDeleteAccountModal()" class="w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-3 transition-all duration-200 group text-left mt-3">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
-                        <i class="fas fa-trash text-red-400 text-base group-hover:text-white"></i>
+                    <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
+                        <i class="fas fa-trash text-red-400 text-sm group-hover:text-white"></i>
                     </div>
                     <div class="flex-1">
-                        <span class="text-base font-semibold text-white block">Удалить аккаунт</span>
-                        <span class="text-sm text-red-300/80 group-hover:text-red-200">Все данные будут безвозвратно удалены</span>
+                        <span class="text-sm font-semibold text-white block">Удалить аккаунт</span>
+                        <span class="text-xs text-orange-300/80 group-hover:text-orange-200">Все данные будут удалены</span>
                     </div>
-                    <i class="fas fa-chevron-right text-red-400/60 text-sm group-hover:text-red-300 transition-colors"></i>
+                    <i class="fas fa-chevron-right text-red-400/60 text-xs group-hover:text-red-300 transition-colors"></i>
                 </div>
             </button>
 
             <!-- Кнопка удаления всех данных -->
-            <button onclick="openDeleteAllDataModal()" class="w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-4">
+            <button onclick="openDeleteAllDataModal()" class="w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-3 transition-all duration-200 group text-left mt-3">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors flex-shrink-0">
-                        <i class="fas fa-broom text-orange-400 text-base group-hover:text-white"></i>
+                    <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors flex-shrink-0">
+                        <i class="fas fa-broom text-orange-400 text-sm group-hover:text-white"></i>
                     </div>
                     <div class="flex-1">
-                        <span class="text-base font-semibold text-white block">Очистить данных</span>
-                        <span class="text-sm text-orange-300/80 group-hover:text-orange-200">Удалить все транзакции и категории</span>
+                        <span class="text-sm font-semibold text-white block">Очистка данных</span>
+                        <span class="text-xs text-orange-300/80 group-hover:text-orange-200">Удалить все транзакции и категории</span>
                     </div>
-                    <i class="fas fa-chevron-right text-orange-400/60 text-sm group-hover:text-orange-300 transition-colors"></i>
+                    <i class="fas fa-chevron-right text-orange-400/60 text-xs group-hover:text-orange-300 transition-colors"></i>
                 </div>
             </button>
         </div>
@@ -127,7 +123,7 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white mb-2">Вы уверены?</h3>
                 <p class="text-gray-300 text-sm leading-relaxed">
-                    Это действие нельзя отменить. Будут удалены:
+                    Это действие нельзя отменить. <br>Будут удалены:
                 </p>
                 <ul class="text-gray-300 text-sm text-left mt-3 space-y-1">
                     <li>• Все транзакции (доходы и расходы)</li>
@@ -141,12 +137,12 @@
             <!-- Кнопки действий -->
             <div class="flex space-x-3 pt-2">
                 <button onclick="closeDeleteAllDataModal()" 
-                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-200">
+                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all duration-200">
                     Отмена
                 </button>
                 <button onclick="confirmDeleteAllData()" 
                         id="confirmDeleteAllDataBtn"
-                        class="flex-1 py-3 px-4 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/30 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
+                        class="flex-1 py-3 px-4 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/30 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
                     Да, очистить!
                 </button>
             </div>
@@ -187,7 +183,7 @@
                     <input 
                         type="password" 
                         id="confirmPasswordDelete"
-                        class="w-full bg-gray-700 border border-gray-600 rounded-xl pl-4 pr-10 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-0 outline-none transition-all"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg pl-4 pr-10 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-0 outline-none transition-all"
                         placeholder="Ваш текущий пароль"
                         oninput="checkDeleteConditions()"
                     >
@@ -199,7 +195,7 @@
             </div>
 
             <!-- Чекбокс подтверждения -->
-            <div class="flex items-start space-x-3 p-4 bg-gray-700/30 rounded-xl border border-gray-600/50">
+            <div class="flex items-start space-x-3 p-4 bg-gray-700/30 rounded-lg border border-gray-600/50">
                 <input 
                     type="checkbox" 
                     id="confirmDelete" 
@@ -211,7 +207,7 @@
                 </label>
             </div>
 
-            <div class="bg-blue-500/5 border border-blue-400/20 rounded-xl px-3 py-2 mt-4">
+            <div class="bg-blue-500/5 border border-blue-400/20 rounded-lg px-3 py-2 mt-4">
                 <p class="text-gray-300 text-xs text-center leading-relaxed">
                     <strong class="text-blue-400">Внимание:</strong> Рекомендуем предварительно экспортировать данные через панель управления!
                 </p>
@@ -220,13 +216,13 @@
             <!-- Кнопки действий -->
             <div class="flex space-x-3 pt-2">
                 <button onclick="closeDeleteAccountModal()" 
-                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105">
+                        class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105">
                     Отмена
                 </button>
                 <button onclick="deleteAccount()" 
                         id="deleteAccountBtn"
                         disabled
-                        class="flex-1 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-500/30 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
+                        class="flex-1 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-500/30 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105 disabled:hover:scale-100">
                     Удалить!
                 </button>
             </div>

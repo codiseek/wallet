@@ -137,19 +137,7 @@ function openProfileModalFromMenu() {
     }, 100);
 }
 
-function openProfileModal() {
-    loadProfileInfo();
 
-    const modal = document.getElementById('profileModal');
-    if (modal) {
-        if (typeof animateModal === 'function') {
-            animateModal(modal, true);
-        } else {
-            modal.style.display = 'flex';
-            modal.classList.remove('hidden');
-        }
-    }
-}
 
 function closeProfileModal() {
     const modal = document.getElementById('profileModal');
@@ -344,9 +332,6 @@ function updateProfileDisplay(profile) {
     document.getElementById('emailInput').value = profile.email || '';
     document.getElementById('phoneInput').value = profile.phone || '';
     
-    document.getElementById('completionPercentage').textContent = profile.completion_percentage + '%';
-    document.getElementById('completionProgress').style.width = profile.completion_percentage + '%';
-    
     updateProfileNotification(profile);
 }
 
@@ -410,7 +395,7 @@ function updateProfileNotification(profile) {
     <div class="mt-3 pt-3 border-t border-blue-500/20">
         <div class="flex items-center space-x-2 text-green-400 text-xs">
             <i class="fas fa-check-circle"></i>
-            <span>${hasEmail ? '✓ Email добавлен' : ''}${hasEmail && hasPasswordChanged ? ', ' : ''}${hasPasswordChanged ? '✓ Пароль установлен' : ''}</span>
+            <span>${hasEmail ? '✓ Email добавлен' : ''}${hasEmail && hasPasswordChanged ? ', ' : ''}${hasPasswordChanged ? 'Пароль установлен' : ''}</span>
         </div>
     </div>
     ` : ''}
@@ -474,12 +459,97 @@ function togglePasswordVisibility(inputId) {
     }
 }
 
+
+// Функции для уведомлений в модалке профиля
+function showProfileNotification(message, type) {
+    const notification = document.getElementById('profileNotificationModal');
+    const icon = document.getElementById('profileNotificationIcon');
+    const text = document.getElementById('profileNotificationText');
+
+    // Устанавливаем стили в зависимости от типа
+    if (type === 'success') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-green-500/10 border border-green-500/30';
+        icon.className = 'fas fa-check-circle text-green-400';
+        text.className = 'text-sm font-medium text-green-400';
+    } else if (type === 'error') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-red-500/10 border border-red-500/30';
+        icon.className = 'fas fa-exclamation-circle text-red-400';
+        text.className = 'text-sm font-medium text-red-400';
+    } else if (type === 'loading') {
+        notification.className = 'mb-4 rounded-lg p-3 bg-blue-500/10 border border-blue-500/30';
+        icon.className = 'fas fa-spinner fa-spin text-blue-400';
+        text.className = 'text-sm font-medium text-blue-400';
+    }
+
+    text.textContent = message;
+    notification.classList.remove('hidden');
+
+    // Автоматически скрываем успешные уведомления через 3 секунды
+    if (type === 'success') {
+        setTimeout(() => {
+            hideProfileNotification();
+        }, 3000);
+    }
+}
+
+function hideProfileNotification() {
+    const notification = document.getElementById('profileNotificationModal');
+    notification.classList.add('hidden');
+}
+
+// Функция сброса состояния кнопки сохранения
+function resetSaveProfileButton() {
+    const submitBtn = document.getElementById('saveProfileBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Сохранить';
+        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+        submitBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-purple-600', 'hover:from-blue-600', 'hover:to-purple-700');
+    }
+}
+
+// Функция проверки заполнения полей
+function validateProfileForm() {
+    const firstName = document.getElementById('firstNameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+    
+    // Проверяем, что хотя бы одно поле заполнено
+    if (!firstName && !email && !phone) {
+        showProfileNotification('Заполните хотя бы одно поле для сохранения профиля', 'error');
+        return false;
+    }
+    
+    // Дополнительная проверка email, если он заполнен
+    if (email && !isValidEmail(email)) {
+        showProfileNotification('Введите корректный email адрес', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// Функция проверки email
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
 function saveProfile() {
+    // Проверяем заполнение полей перед отправкой
+    if (!validateProfileForm()) {
+        return;
+    }
+
     const form = document.getElementById('profileForm');
     const formData = new FormData(form);
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('saveProfileBtn');
     const originalText = submitBtn.innerHTML;
     
+    // Показываем уведомление о загрузке
+    showProfileNotification('Сохранение профиля...', 'loading');
+    
+    // Блокируем кнопку и меняем текст
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Сохранение...';
     
@@ -499,12 +569,20 @@ function saveProfile() {
     })
     .then(data => {
         if (data.success) {
-            showSuccessNotification(data.message);
+            // Показываем успешное уведомление
+            showProfileNotification(data.message || 'Профиль успешно сохранен!', 'success');
             updateProfileDisplay(data.profile);
+            
+            // Восстанавливаем кнопку с зеленым цветом на короткое время
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Успешно!';
+            submitBtn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-purple-600', 'hover:from-blue-600', 'hover:to-purple-700');
+            submitBtn.classList.add('bg-green-600', 'hover:bg-green-500');
             
             return loadProfileInfo().then(freshProfile => {
                 updateProfileNotification(freshProfile);
                 
+                // Закрываем модалку через 250 мс
                 setTimeout(() => {
                     const modal = document.getElementById('profileModal');
                     if (modal && typeof animateModal === 'function') {
@@ -512,17 +590,65 @@ function saveProfile() {
                     } else {
                         closeProfileModal();
                     }
-                }, 1500);
+                }, 250);
             });
         } else {
-            showErrorNotification(data.error || 'Ошибка сохранения');
+            throw new Error(data.error || 'Ошибка сохранения');
         }
     })
     .catch(error => {
-        showErrorNotification('Ошибка сохранения: ' + error.message);
-    })
-    .finally(() => {
+        // Показываем уведомление об ошибке
+        showProfileNotification('Ошибка сохранения: ' + error.message, 'error');
+        
+        // Восстанавливаем кнопку при ошибке
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     });
 }
+
+// Обновляем функцию openProfileModal для сброса состояния
+function openProfileModal() {
+    loadProfileInfo();
+
+    // Сбрасываем состояние кнопки
+    resetSaveProfileButton();
+    
+    // Скрываем уведомления при открытии модалки
+    hideProfileNotification();
+
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+        if (typeof animateModal === 'function') {
+            animateModal(modal, true);
+        } else {
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+        }
+    }
+}
+
+// Добавляем обработчики для полей ввода, чтобы скрывать ошибки при вводе
+document.addEventListener('DOMContentLoaded', function() {
+    const firstNameInput = document.getElementById('firstNameInput');
+    const emailInput = document.getElementById('emailInput');
+    const phoneInput = document.getElementById('phoneInput');
+    
+    if (firstNameInput) {
+        firstNameInput.addEventListener('input', function() {
+            hideProfileNotification();
+        });
+    }
+    
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            hideProfileNotification();
+        });
+    }
+    
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            hideProfileNotification();
+        });
+    }
+});
+

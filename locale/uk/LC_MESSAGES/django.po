@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 15:01+0600\n"
+"POT-Creation-Date: 2025-11-03 15:39+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,255 +20,447 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-#: .\main\templates\main\balance.html:19 .\main\templates\main\desktop.html:273
+
+#: .\main\templates\includes\modals\change_password.html:13
+msgid "Смена пароля"
+msgstr "Зміна пароля"
+
+#: .\main\templates\includes\modals\change_password.html:17
+#: .\main\templates\includes\modals\profile.html:17
+#: .\main\templates\includes\modals\profile.html:114
+#: .\main\templates\includes\modals\profile.html:163
+msgid "Закрыть"
+msgstr "Закрити"
+
+#: .\main\templates\includes\modals\change_password.html:39
+msgid "Сложность пароля"
+msgstr "Складність пароля"
+
+#: .\main\templates\includes\modals\change_password.html:40
+msgid "Не задан"
+msgstr "Не задано"
+
+#: .\main\templates\includes\modals\change_password.html:59
+msgid "Введите текущий пароль"
+msgstr "Введіть поточний пароль"
+
+#: .\main\templates\includes\modals\change_password.html:76
+msgid "Введите новый пароль"
+msgstr "Введіть новий пароль"
+
+#: .\main\templates\includes\modals\change_password.html:93
+msgid "Повторите новый пароль"
+msgstr "Повторіть новий пароль"
+
+#: .\main\templates\includes\modals\change_password.html:105
+msgid "Советы для надежного пароля:"
+msgstr "Поради для надійного пароля:"
+
+#: .\main\templates\includes\modals\change_password.html:109
+msgid "Минимум 8 символов"
+msgstr "Мінімум 8 символів"
+
+#: .\main\templates\includes\modals\change_password.html:113
+msgid "Заглавные буквы"
+msgstr "Великі літери"
+
+#: .\main\templates\includes\modals\change_password.html:117
+msgid "Строчные буквы"
+msgstr "Малі літери"
+
+#: .\main\templates\includes\modals\change_password.html:121
+msgid "Цифры"
+msgstr "Цифри"
+
+#: .\main\templates\includes\modals\change_password.html:125
+msgid "Специальные символы"
+msgstr "Спеціальні символи"
+
+#: .\main\templates\includes\modals\change_password.html:139
+msgid "Отмена"
+msgstr "Скасувати"
+
+#: .\main\templates\includes\modals\change_password.html:148
+#: .\main\templates\main\panel_page.html:1192
+#: .\main\templates\main\panel_page.html:1228
+msgid "Сохранить"
+msgstr "Зберегти"
+
+#: .\main\templates\includes\modals\profile.html:13
+msgid "Ваш профиль"
+msgstr "Ваш профіль"
+
+#: .\main\templates\includes\modals\profile.html:110
+msgid "Очистка всех транзакций"
+msgstr "Очищення всіх транзакцій"
+
+#: .\main\templates\includes\modals\profile.html:159
+msgid "Удаление аккаунта"
+msgstr "Видалення акаунта"
+
+#: .\main\templates\main\balance.html:20 .\main\templates\main\desktop.html:273
 #: .\main\templates\main\desktop.html:583
 msgid "Текущий баланс"
 msgstr "Поточний баланс"
 
+#: .\main\templates\main\balance.html:28 .\main\templates\main\desktop.html:277
+#: .\main\templates\main\panel_page.html:1171
 msgid "Резерв"
 msgstr "Резерв"
 
+#: .\main\templates\main\balance.html:39 .\main\templates\main\desktop.html:284
 msgid "Доходы"
 msgstr "Доходи"
 
+#: .\main\templates\main\balance.html:45 .\main\templates\main\desktop.html:288
 msgid "Расходы"
 msgstr "Витрати"
 
+#: .\main\templates\main\category_page.html:11
 msgid "Мои категории"
 msgstr "Мої категорії"
 
+#: .\main\templates\main\category_page.html:15
+#: .\main\templates\main\category_page.html:22
+#: .\main\templates\main\transaction_history.html:22
 msgid "За 1 месяц"
 msgstr "За 1 місяць"
 
+#: .\main\templates\main\category_page.html:20
+#: .\main\templates\main\transaction_history.html:16
 msgid "За день"
 msgstr "За день"
 
+#: .\main\templates\main\category_page.html:21
+#: .\main\templates\main\transaction_history.html:10
+#: .\main\templates\main\transaction_history.html:19
 msgid "За неделю"
 msgstr "За тиждень"
 
+#: .\main\templates\main\category_page.html:23
+#: .\main\templates\main\transaction_history.html:25
 msgid "За 3 месяца"
 msgstr "За 3 місяці"
 
+#: .\main\templates\main\category_page.html:24
+#: .\main\templates\main\transaction_history.html:28
 msgid "За 6 месяцев"
 msgstr "За 6 місяців"
 
+#: .\main\templates\main\category_page.html:25
+#: .\main\templates\main\transaction_history.html:31
 msgid "За 9 месяцев"
 msgstr "За 9 місяців"
 
+#: .\main\templates\main\category_page.html:26
+#: .\main\templates\main\transaction_history.html:34
 msgid "За 12 месяцев"
 msgstr "За 12 місяців"
 
+#: .\main\templates\main\category_page.html:34
 msgid "Добавить категорию"
 msgstr "Додати категорію"
 
+#: .\main\templates\main\category_page.html:42
 msgid "Категорий пока нет"
 msgstr "Категорій поки немає"
 
+#: .\main\templates\main\debt_page.html:13
 msgid "Платежи и долги"
 msgstr "Платежі та борги"
 
+#: .\main\templates\main\debt_page.html:16
+#: .\main\templates\main\note_page.html:15
+#: .\main\templates\main\todo_page.html:16
 msgid "Добавить"
 msgstr "Додати"
 
+#: .\main\templates\main\debt_page.html:27
 msgid "Общая"
 msgstr "Загальна"
 
+#: .\main\templates\main\debt_page.html:36
 msgid "Просрочено"
 msgstr "Прострочено"
 
+#: .\main\templates\main\debt_page.html:45
+#: .\main\templates\main\stats_page.html:105
 msgid "Выполнено"
 msgstr "Виконано"
 
+#: .\main\templates\main\debt_page.html:54
+#: .\main\templates\main\todo_page.html:25
 msgid "Активные"
 msgstr "Активні"
 
+#: .\main\templates\main\debt_page.html:57
 msgid "Просроченные"
 msgstr "Прострочені"
 
+#: .\main\templates\main\debt_page.html:60
 msgid "Оплаченные"
 msgstr "Оплачені"
 
+#: .\main\templates\main\debt_page.html:72
 msgid "Список платежей пуст"
 msgstr "Список платежів порожній"
 
+#: .\main\templates\main\debt_page.html:78
+#: .\main\templates\main\panel_page.html:144
+#: .\main\templates\main\panel_page.html:159
 msgid "Загрузка..."
 msgstr "Завантаження..."
 
+#: .\main\templates\main\desktop.html:192
+#: .\main\templates\main\desktop.html:734
 msgid "Возможности"
 msgstr "Можливості"
 
+#: .\main\templates\main\desktop.html:193
+#: .\main\templates\main\desktop.html:735
 msgid "Интерфейс"
 msgstr "Інтерфейс"
 
+#: .\main\templates\main\desktop.html:194
+#: .\main\templates\main\desktop.html:387
+#: .\main\templates\main\desktop.html:736
 msgid "Статистика"
 msgstr "Статистика"
 
+#: .\main\templates\main\desktop.html:195
+#: .\main\templates\main\desktop.html:737
 msgid "Скачать"
 msgstr "Завантажити"
 
+#: .\main\templates\main\desktop.html:198
 msgid "Попробовать бесплатно"
 msgstr "Спробувати безкоштовно"
 
+#: .\main\templates\main\desktop.html:220
 msgid "Финансовая ясность —"
 msgstr "Фінансова ясність —"
 
+#: .\main\templates\main\desktop.html:221
 msgid "теперь это просто!"
 msgstr "тепер це просто!"
 
+#: .\main\templates\main\desktop.html:230
 msgid "Начать использовать"
 msgstr "Почати використовувати"
 
+#: .\main\templates\main\desktop.html:234
 msgid "Узнать больше"
 msgstr "Дізнатися більше"
 
+#: .\main\templates\main\desktop.html:239
 msgid "100%%"
 msgstr "100%%"
 
+#: .\main\templates\main\desktop.html:240
 msgid "Бесплатно"
 msgstr "Безкоштовно"
 
+#: .\main\templates\main\desktop.html:243
+#: .\main\templates\main\desktop.html:520
 msgid "PWA"
 msgstr "PWA"
 
+#: .\main\templates\main\desktop.html:244
 msgid "Работает везде"
 msgstr "Працює всюди"
 
+#: .\main\templates\main\desktop.html:247
 msgid "OPS"
 msgstr "OPS"
 
+#: .\main\templates\main\desktop.html:248
 msgid "Открытый код"
 msgstr "Відкритий код"
 
+#: .\main\templates\main\desktop.html:274
 msgid "15,430 с"
 msgstr "15,430 с"
 
+#: .\main\templates\main\desktop.html:278
 msgid "5,000 с"
 msgstr "5,000 с"
 
+#: .\main\templates\main\desktop.html:285
+#: .\main\templates\main\desktop.html:348
 msgid "+25,000 с"
 msgstr "+25,000 с"
 
+#: .\main\templates\main\desktop.html:289
 msgid "-9,570 с"
 msgstr "-9,570 с"
 
+#: .\main\templates\main\desktop.html:306
+#: .\main\templates\main\desktop.html:588
 msgid "Все"
 msgstr "Всі"
 
+#: .\main\templates\main\desktop.html:309
+#: .\main\templates\main\desktop.html:589
+#: .\main\templates\main\desktop.html:627
 msgid "Еда"
 msgstr "Їжа"
 
+#: .\main\templates\main\desktop.html:312
 msgid "Жильё"
 msgstr "Житло"
 
+#: .\main\templates\main\desktop.html:315
+#: .\main\templates\main\desktop.html:344
+#: .\main\templates\main\desktop.html:601
 msgid "Работа"
 msgstr "Робота"
 
+#: .\main\templates\main\desktop.html:327
 msgid "Продукты"
 msgstr "Продукти"
 
+#: .\main\templates\main\desktop.html:328
 msgid "Супермаркет"
 msgstr "Супермаркет"
 
+#: .\main\templates\main\desktop.html:332
 msgid "-1,250 с"
 msgstr "-1,250 с"
 
+#: .\main\templates\main\desktop.html:333
 msgid "Сегодня"
 msgstr "Сьогодні"
 
+#: .\main\templates\main\desktop.html:343
+#: .\main\templates\main\desktop.html:600
 msgid "Зарплата"
 msgstr "Зарплата"
 
+#: .\main\templates\main\desktop.html:349
 msgid "2 дня назад"
 msgstr "2 дні тому"
 
+#: .\main\templates\main\desktop.html:359
 msgid "Топливо"
 msgstr "Паливо"
 
+#: .\main\templates\main\desktop.html:360
 msgid "АЗС"
 msgstr "АЗС"
 
+#: .\main\templates\main\desktop.html:364
 msgid "-2,800 с"
 msgstr "-2,800 с"
 
+#: .\main\templates\main\desktop.html:365
 msgid "3 дня назад"
 msgstr "3 дні тому"
 
+#: .\main\templates\main\desktop.html:374
+#: .\main\templates\main\desktop.html:579
 msgid "Главная"
 msgstr "Головна"
 
+#: .\main\templates\main\desktop.html:378
+#: .\main\templates\main\desktop.html:504
 msgid "Категории"
 msgstr "Категорії"
 
+#: .\main\templates\main\desktop.html:391
 msgid "Заметки"
 msgstr "Нотатки"
 
+#: .\main\templates\main\desktop.html:404
 msgid "Мощные возможности в вашем кармане"
 msgstr "Потужні можливості у вашій кишені"
 
+#: .\main\templates\main\desktop.html:406
 msgid ""
 "Coinza объединяет все необходимое для полного контроля над вашими финансами "
 "в одном элегантном приложении"
 msgstr ""
-"Coinza об'єднує все необхідне для повного контролю над вашими фінансами "
-"в одному елегантному додатку"
+"Coinza об'єднує все необхідне для повного контролю над вашими фінансами в "
+"одному елегантному додатку"
 
+#: .\main\templates\main\desktop.html:416
+#: .\main\templates\main\desktop.html:619
 msgid "Детальная статистика"
 msgstr "Детальна статистика"
 
+#: .\main\templates\main\desktop.html:424
 msgid "Круговые диаграммы расходов"
 msgstr "Кругові діаграми витрат"
 
+#: .\main\templates\main\desktop.html:428
 msgid "Сравнение периодов"
 msgstr "Порівняння періодів"
 
+#: .\main\templates\main\desktop.html:432
 msgid "Прогресс финансовых целей"
 msgstr "Прогрес фінансових цілей"
 
+#: .\main\templates\main\desktop.html:442
+#: .\main\templates\main\desktop.html:642
 msgid "Умные заметки"
 msgstr "Розумні нотатки"
 
+#: .\main\templates\main\desktop.html:450
 msgid "Напоминания о платежах"
 msgstr "Нагадування про платежі"
 
+#: .\main\templates\main\desktop.html:454
 msgid "Финансовые цели"
 msgstr "Фінансові цілі"
 
+#: .\main\templates\main\desktop.html:458
 msgid "Быстрый доступ к заметкам"
 msgstr "Швидкий доступ до нотаток"
 
+#: .\main\templates\main\desktop.html:468
 msgid "Мультивалютность"
 msgstr "Мультивалютність"
 
+#: .\main\templates\main\desktop.html:476
 msgid "4 основные валюты"
 msgstr "4 основні валюти"
 
+#: .\main\templates\main\desktop.html:480
 msgid " Быстрое переключение"
 msgstr " Швидке перемикання"
 
+#: .\main\templates\main\desktop.html:484
 msgid "Автоматический учет"
 msgstr "Автоматичний облік"
 
+#: .\main\templates\main\desktop.html:496
 msgid "Авторезерв"
 msgstr "Авторезерв"
 
+#: .\main\templates\main\desktop.html:497
 msgid "Автоматическое накопление процента от доходов"
 msgstr "Автоматичне накопичення відсотка від доходів"
 
+#: .\main\templates\main\desktop.html:505
 msgid "Гибкая система категорий с иконками"
 msgstr "Гнучка система категорій з іконками"
 
+#: .\main\templates\main\desktop.html:512
 msgid "Уведомления"
 msgstr "Сповіщення"
 
+#: .\main\templates\main\desktop.html:513
 msgid "Система умных уведомлений и напоминаний"
 msgstr "Система розумних сповіщень та нагадувань"
 
+#: .\main\templates\main\desktop.html:521
 msgid "Установите как нативное приложение"
 msgstr "Встановіть як нативний додаток"
 
+#: .\main\templates\main\desktop.html:531
 msgid "Элегантный и интуитивный интерфейс"
 msgstr "Елегантний та інтуїтивний інтерфейс"
 
+#: .\main\templates\main\desktop.html:533
 msgid ""
 "Каждый экран тщательно продуман для максимального удобства использования на "
 "мобильных устройствах"
@@ -276,352 +468,529 @@ msgstr ""
 "Кожен екран ретельно продуманий для максимальної зручності використання на "
 "мобільних пристроях"
 
+#: .\main\templates\main\desktop.html:539
 msgid "Главный экран"
 msgstr "Головний екран"
 
-msgid "Визуальна статистика"
+#: .\main\templates\main\desktop.html:550
+msgid "Визуальная статистика"
 msgstr "Візуальна статистика"
 
+#: .\main\templates\main\desktop.html:551
 msgid "Прогресс-бары и цветовые индикаторы"
 msgstr "Індикатори прогресу та кольорові індикатори"
 
+#: .\main\templates\main\desktop.html:559
+#: .\main\templates\main\transaction_history.html:6
 msgid "История операций"
 msgstr "Історія операцій"
 
+#: .\main\templates\main\desktop.html:560
 msgid "Последние транзакции с детализацией"
 msgstr "Останні транзакції з деталізацією"
 
+#: .\main\templates\main\desktop.html:568
 msgid "Быстрая фильтрация"
 msgstr "Швидка фільтрація"
 
+#: .\main\templates\main\desktop.html:569
 msgid "Сортировка по категориям и периодам"
 msgstr "Сортування за категоріями та періодами"
 
+#: .\main\templates\main\desktop.html:584
 msgid "24,850 с"
 msgstr "24,850 с"
 
+#: .\main\templates\main\desktop.html:590
 msgid "Транспорт"
 msgstr "Транспорт"
 
+#: .\main\templates\main\desktop.html:604
 msgid "+30,000 с"
 msgstr "+30,000 с"
 
+#: .\main\templates\main\desktop.html:628
 msgid "12,450 с (35%%)"
 msgstr "12,450 с (35%%)"
 
+#: .\main\templates\main\desktop.html:650
 msgid "Оплата интернета"
 msgstr "Оплата інтернету"
 
+#: .\main\templates\main\desktop.html:651
 msgid "до 15 числа"
 msgstr "до 15 числа"
 
+#: .\main\templates\main\desktop.html:653
 msgid "Не забыть оплатить интернет до 15 числа каждого месяца"
 msgstr "Не забути сплатити за інтернет до 15 числа кожного місяця"
 
+#: .\main\templates\main\desktop.html:664
 msgid "Постоянное развитие"
 msgstr "Постійний розвиток"
 
+#: .\main\templates\main\desktop.html:674
 msgid "Пользователей"
 msgstr "Користувачів"
 
+#: .\main\templates\main\desktop.html:678
 msgid "Обновлений"
 msgstr "Оновлень"
 
+#: .\main\templates\main\desktop.html:682
 msgid "Рейтинг"
 msgstr "Рейтинг"
 
+#: .\main\templates\main\desktop.html:686
+#: .\main\templates\main\desktop.html:742
 msgid "Поддержка"
 msgstr "Підтримка"
 
+#: .\main\templates\main\desktop.html:698
 msgid "Начните управлять финансами сегодня"
 msgstr "Почніть керувати фінансами сьогодні"
 
+#: .\main\templates\main\desktop.html:700
 msgid "Сканируйте QR-код чтобы открыть приложение на вашем смартфоне"
 msgstr "Відскануйте QR-код щоб відкрити додаток на вашому смартфоні"
 
+#: .\main\templates\main\desktop.html:710
 msgid "Наведите камеру смартфона"
 msgstr "Наведіть камеру смартфона"
 
+#: .\main\templates\main\desktop.html:727
 msgid "Простое и удобное приложение для управления личными финансами"
 msgstr "Простий та зручний додаток для управління особистими фінансами"
 
+#: .\main\templates\main\desktop.html:732
 msgid "Приложение"
 msgstr "Додаток"
 
+#: .\main\templates\main\desktop.html:746
 msgid "Помощь"
 msgstr "Допомога"
 
+#: .\main\templates\main\desktop.html:751
 msgid "О проекте"
 msgstr "Про проект"
 
+#: .\main\templates\main\desktop.html:753
 msgid "Открытый исходный код. Разрабатывается с любовью к сообществу."
 msgstr "Відкритий вихідний код. Розробляється з любов'ю до спільноти."
 
+#: .\main\templates\main\header.html:55
 msgid "Новость"
 msgstr "Новина"
 
+#: .\main\templates\main\header.html:64
 msgid "Заметка"
 msgstr "Нотатка"
 
+#: .\main\templates\main\header.html:72
 msgid "Задача"
 msgstr "Завдання"
 
+#: .\main\templates\main\header.html:81
 msgid "Платеж"
 msgstr "Платіж"
 
+#: .\main\templates\main\note_page.html:10
 msgid "Список заметок"
 msgstr "Список нотаток"
 
+#: .\main\templates\main\note_page.html:33
 msgid "Ваши умные заметки"
 msgstr "Ваші розумні нотатки"
 
+#: .\main\templates\main\note_page.html:37
 msgid "Создавайте заметки с напоминаниями и никогда не упускайте важное"
 msgstr "Створюйте нотатки з нагадуваннями і ніколи не пропускайте важливе"
 
+#: .\main\templates\main\note_page.html:48
 msgid "Умные напоминания"
 msgstr "Розумні нагадування"
 
+#: .\main\templates\main\note_page.html:49
 msgid "Получайте уведомления точно в срок"
 msgstr "Отримуйте сповіщення точно вчасно"
 
+#: .\main\templates\main\note_page.html:59
 msgid "Все под контролем"
 msgstr "Все під контролем"
 
+#: .\main\templates\main\note_page.html:60
 msgid "Просматривайте и редактируйте в любое время"
 msgstr "Переглядайте та редагуйте в будь-який час"
 
+#: .\main\templates\main\note_page.html:70
 msgid "Мгновенный доступ"
 msgstr "Миттєвий доступ"
 
+#: .\main\templates\main\note_page.html:71
 msgid "Ваши мысли всегда под рукой"
 msgstr "Ваші думки завжди під рукою"
 
+#: .\main\templates\main\note_page.html:80
 msgid "Создать первую заметку"
 msgstr "Створити першу нотатку"
 
+#: .\main\templates\main\panel_page.html:12
 msgid "Панель управления"
 msgstr "Панель керування"
 
+#: .\main\templates\main\panel_page.html:52
 msgid "Профиль"
 msgstr "Профіль"
 
+#: .\main\templates\main\panel_page.html:61
+msgid "Пароль"
+msgstr "Пароль"
+
+#: .\main\templates\main\panel_page.html:72
 msgid "Выйти"
 msgstr "Вийти"
 
-msgid "Администрирование"
-msgstr "Адміністрування"
+#: .\main\templates\main\panel_page.html:92
+msgid "Админка"
+msgstr "Адмінка"
 
-msgid "Управление пользователями"
-msgstr "Управління користувачами"
+#: .\main\templates\main\panel_page.html:100
+msgid "Юзеры"
+msgstr "Користувачі"
 
+#: .\main\templates\main\panel_page.html:108
 msgid "Всего пользователей"
 msgstr "Всього користувачів"
 
+#: .\main\templates\main\panel_page.html:112
 msgid "Новых за неделю"
 msgstr "Нових за тиждень"
 
+#: .\main\templates\main\panel_page.html:116
 msgid "Активных сегодня"
 msgstr "Активних сьогодні"
 
+#: .\main\templates\main\panel_page.html:126
+msgid "Показать все"
+msgstr "Показати все"
+
+#: .\main\templates\main\panel_page.html:137
+msgid "Последний зарегистрированный"
+msgstr "Останній зареєстрований"
+
+#: .\main\templates\main\panel_page.html:153
 msgid "Последние регистрации"
 msgstr "Останні реєстрації"
 
+#: .\main\templates\main\panel_page.html:175
 msgid "Список пользователей"
 msgstr "Список користувачів"
 
-msgid "Фильтры"
-msgstr "Фільтри"
-
+#: .\main\templates\main\panel_page.html:206
 msgid "Загрузка пользователей..."
 msgstr "Завантаження користувачів..."
 
+#: .\main\templates\main\panel_page.html:223
+#: .\main\templates\main\transaction_history.html:47
 msgid "Загрузить еще"
 msgstr "Завантажити ще"
 
-msgid "Экспорт"
-msgstr "Експорт"
-
+#: .\main\templates\main\panel_page.html:974
 msgid "Язык"
 msgstr "Мова"
 
+#: .\main\templates\main\panel_page.html:982
+#: .\main\templates\main\panel_page.html:1005 .\wallet\settings.py:130
 msgid "English"
 msgstr "Англійська"
 
+#: .\main\templates\main\panel_page.html:983
+#: .\main\templates\main\panel_page.html:1010 .\wallet\settings.py:131
 msgid "Кыргызча"
 msgstr "Киргизька"
 
+#: .\main\templates\main\panel_page.html:984
+#: .\main\templates\main\panel_page.html:1000 .\wallet\settings.py:132
+msgid "Українська"
+msgstr "Українська"
+
+#: .\main\templates\main\panel_page.html:991
 msgid "Выберите язык интерфейса."
 msgstr "Виберіть мову інтерфейсу."
 
+#: .\main\templates\main\panel_page.html:1018 .\wallet\settings.py:129
 msgid "Русский"
 msgstr "Російська"
 
+#: .\main\templates\main\panel_page.html:1036
+msgid "Открыть все языки"
+msgstr "Відкрити всі мови"
+
+#: .\main\templates\main\panel_page.html:1080
 msgid "Валюта"
 msgstr "Валюта"
 
+#: .\main\templates\main\panel_page.html:1086
 msgid "Выберите валюту для отображения сумм."
 msgstr "Виберіть валюту для відображення сум."
 
+#: .\main\templates\main\panel_page.html:1124
+msgid "Открыть все валюты"
+msgstr "Відкрити всі валюти"
+
+#: .\main\templates\main\panel_page.html:1207
+msgid "Цель"
+msgstr "Мета"
+
+#: .\main\templates\main\panel_page.html:1235
 msgid ""
-"Укажите, сколько процентов от доходов автоматически откладывать в резерв."
-msgstr "Вкажіть, скільки відсотків від доходів автоматично відкладати в резерв."
+"Укажите %% чтобы автоматически откладывать в резерв и сумму, которую хотите "
+"накопить."
+msgstr ""
+"Вкажіть %% щоб автоматично відкладати в резерв та суму, яку хочете накопичити."
 
-msgid "Сохранить"
-msgstr "Зберегти"
-
-msgid "Целевой резерв"
-msgstr "Цільовий резерв"
-
-msgid "Укажите сумму, которую хотите накопить."
-msgstr "Вкажіть суму, яку хочете накопичити."
-
+#: .\main\templates\main\panel_page.html:1248
 msgid "Управление данными"
 msgstr "Управління даними"
 
+#: .\main\templates\main\panel_page.html:1263
+msgid "Экспорт"
+msgstr "Експорт"
+
+#: .\main\templates\main\panel_page.html:1264
 msgid "Backup данных"
 msgstr "Backup даних"
 
+#: .\main\templates\main\panel_page.html:1278
 msgid "Импорт"
 msgstr "Імпорт"
 
+#: .\main\templates\main\panel_page.html:1279
 msgid "Восстановить"
 msgstr "Відновити"
 
+#: .\main\templates\main\panel_page.html:1295
 msgid "Импорт из банков"
 msgstr "Імпорт з банків"
 
+#: .\main\templates\main\panel_page.html:1310
 msgid "MBank"
 msgstr "MBank"
 
-msgid "Excel выписка"
-msgstr "Excel виписка"
+#: .\main\templates\main\panel_page.html:1311
+#: .\main\templates\main\panel_page.html:1335
+msgid "Загрузить выписку"
+msgstr "Завантажити виписку"
 
-msgid "Автоматическая обработка"
-msgstr "Автоматична обробка"
+#: .\main\templates\main\panel_page.html:1334
+msgid "Optima Bank"
+msgstr "Optima Bank"
 
+#: .\main\templates\main\panel_page.html:1352
 msgid ""
-"Импорт из банков автоматически определяет категории и добавляет транзакции"
-msgstr "Імпорт з банків автоматично визначає категорії та додає транзакції"
+"распознавание магазинов, сохранение дат и времени транзакций, детальное "
+"описание операций и сортировка по категориям"
+msgstr ""
+"розпізнавання магазинів, збереження дат та часу транзакцій, детальний опис "
+"операцій та сортування за категоріями"
 
-msgid "Инструкция"
-msgstr "Інструкція"
-
-msgid "Запрос выписки по счету"
-msgstr "Запит виписки по рахунку"
-
+#: .\main\templates\main\panel_page.html:1407
 msgid ""
-"Выберите нужный счет, перейдите в раздел «Выписки», укажите период и нажмите "
-"«Применить»"
-msgstr "Виберіть потрібний рахунок, перейдіть у розділ «Виписки», вкажіть період та натисніть «Застосувати»"
+"Этот проект <span class='font-bold text-blue-400'>полностью бесплатен</span> "
+"и разрабатывается для того, чтобы финансовое управление было доступно "
+"каждому без исключения."
+msgstr ""
+"Цей проект <span class='font-bold text-blue-400'>повністю безкоштовний</span> "
+"і розробляється для того, щоб фінансове управління було доступним кожному "
+"без винятку."
 
-msgid "Формирование документа"
-msgstr "Формування документа"
+#: .\main\templates\main\panel_page.html:1411
+msgid ""
+"Ваша поддержка позволит ускорить разработку новых функций, повысить "
+"стабильность работы и реализовать дополнительные возможности для всех "
+"пользователей."
+msgstr ""
+"Ваша підтримка дозволить прискорити розробку нових функцій, підвищити "
+"стабільність роботи та реалізувати додаткові можливості для всіх "
+"користувачів."
 
-msgid "Выберите"
-msgstr "Виберіть"
+#: .\main\templates\main\panel_page.html:1441
+msgid ""
+"Благодарим за доверие к нашему проекту! Ваша поддержка помогает развиваться "
+"дальше."
+msgstr ""
+"Дякуємо за довіру до нашого проекту! Ваша підтримка допомагає розвиватися "
+"далі."
 
-msgid "Excel (XLS, XLSX)"
-msgstr "Excel (XLS, XLSX)"
-
-msgid "формат и нажмите «Сформировать» для скачивания"
-msgstr "формат та натисніть «Сформувати» для завантаження"
-
-msgid "Важно!"
-msgstr "Важливо!"
-
-msgid "Убедитесь, что выбираете именно"
-msgstr "Переконайтеся, що вибираєте саме"
-
-msgid "Excel формат"
-msgstr "Excel формат"
-
-msgid "PDF файлы не поддерживаются для импорта."
-msgstr "PDF файли не підтримуються для імпорту."
-
-msgid "Закрыть"
-msgstr "Закрити"
-
+#: .\main\templates\main\stats_page.html:12
 msgid "Мои сбережения"
 msgstr "Мої заощадження"
 
+#: .\main\templates\main\stats_page.html:42
 msgid "Текущий резерв"
 msgstr "Поточний резерв"
 
+#: .\main\templates\main\stats_page.html:48
 msgid "Процент от доходов"
 msgstr "Відсоток від доходів"
 
+#: .\main\templates\main\stats_page.html:64
+msgid "Целевой резерв"
+msgstr "Цільовий резерв"
+
+#: .\main\templates\main\stats_page.html:65
 msgid "Ваша финансовая цель"
 msgstr "Ваша фінансова мета"
 
+#: .\main\templates\main\stats_page.html:78
 msgid "Прогресс"
 msgstr "Прогрес"
 
+#: .\main\templates\main\stats_page.html:97
 msgid "Накоплено"
 msgstr "Накопичено"
 
+#: .\main\templates\main\stats_page.html:101
 msgid "Осталось"
 msgstr "Залишилося"
 
+#: .\main\templates\main\stats_page.html:115
 msgid "Поздравляем! Цель достигнута!"
 msgstr "Вітаємо! Мета досягнута!"
 
+#: .\main\templates\main\stats_page.html:120
 msgid "Осталось совсем немного!"
 msgstr "Залишилося зовсім трохи!"
 
+#: .\main\templates\main\stats_page.html:124
 msgid "Отличный прогресс!"
 msgstr "Відмінний прогрес!"
 
+#: .\main\templates\main\stats_page.html:128
 msgid "Продолжайте в том же духе!"
 msgstr "Продовжуйте в тому ж дусі!"
 
+#: .\main\templates\main\stats_page.html:132
 msgid "Начните свой путь к цели"
 msgstr "Почніть свій шлях до мети"
 
+#: .\main\templates\main\stats_page.html:150
 msgid "Отложено в этом месяце"
 msgstr "Відкладено цього місяця"
 
+#: .\main\templates\main\stats_page.html:169
 msgid "Всего накоплено"
 msgstr "Всього накопичено"
 
+#: .\main\templates\main\stats_page.html:177
 msgid "растет каждый месяц"
 msgstr "зростає щомісяця"
 
+#: .\main\templates\main\todo_page.html:12
 msgid "Список задач"
 msgstr "Список завдань"
 
+#: .\main\templates\main\todo_page.html:29
 msgid "Выполненные"
 msgstr "Виконані"
 
+#: .\main\templates\main\transaction_history.html:67
 msgid "Здесь будут отображаться все ваши финансовые операции."
 msgstr "Тут будуть відображатися всі ваші фінансові операції."
 
+#: .\main\templates\main\transaction_history.html:81
 msgid "Импорт из MBank"
 msgstr "Імпорт з MBank"
 
+#: .\main\templates\main\transaction_history.html:82
 msgid "Загружайте выписки прямо из банка в панели управления"
 msgstr "Завантажуйте виписки прямо з банку в панелі керування"
 
+#: .\main\templates\main\transaction_history.html:92
 msgid "Добавляйте доходы и расходы"
 msgstr "Додавайте доходи та витрати"
 
+#: .\main\templates\main\transaction_history.html:93
 msgid "Отслеживайте каждую операцию для полной картины"
 msgstr "Відстежуйте кожну операцію для повної картини"
 
+#: .\main\templates\main\transaction_history.html:103
 msgid "Анализируйте статистику"
 msgstr "Аналізуйте статистику"
 
+#: .\main\templates\main\transaction_history.html:104
 msgid "Смотрите куда уходят деньги и откуда приходят"
 msgstr "Дивіться, куди йдуть гроші та звідки приходять"
 
+#: .\main\templates\main\transaction_history.html:114
 msgid "Сортируйте по категориям"
 msgstr "Сортуйте за категоріями"
 
+#: .\main\templates\main\transaction_history.html:115
 msgid "Группируйте операции для лучшего понимания"
 msgstr "Групуйте операції для кращого розуміння"
 
+#: .\main\templates\main\transaction_history.html:145
 msgid "Здесь пока пусто!"
 msgstr "Тут поки порожньо!"
 
-#: .\wallet\settings.py:132
-msgid "Українська"
-msgstr ""
+#~ msgid "Администрирование"
+#~ msgstr "Адміністрування"
+
+#~ msgid "Управление пользователями"
+#~ msgstr "Управління користувачами"
+
+#~ msgid "Фильтры"
+#~ msgstr "Фільтри"
+
+#~ msgid ""
+#~ "Укажите, сколько процентов от доходов автоматически откладывать в резерв."
+#~ msgstr ""
+#~ "Вкажіть, скільки відсотків від доходів автоматично відкладати в резерв."
+
+#~ msgid "Excel выписка"
+#~ msgstr "Excel виписка"
+
+#~ msgid "Автоматическая обработка"
+#~ msgstr "Автоматична обробка"
+
+#~ msgid ""
+#~ "Импорт из банков автоматически определяет категории и добавляет транзакции"
+#~ msgstr "Імпорт з банків автоматично визначає категорії та додає транзакції"
+
+#~ msgid "Инструкция"
+#~ msgstr "Інструкція"
+
+#~ msgid "Запрос выписки по счету"
+#~ msgstr "Запит виписки по рахунку"
+
+#~ msgid ""
+#~ "Выберите нужный счет, перейдите в раздел «Выписки», укажите период и "
+#~ "нажмите «Применить»"
+#~ msgstr ""
+#~ "Виберіть потрібний рахунок, перейдіть у розділ «Виписки», вкажіть період "
+#~ "та натисніть «Застосувати»"
+
+#~ msgid "Формирование документа"
+#~ msgstr "Формування документа"
+
+#~ msgid "Выберите"
+#~ msgstr "Виберіть"
+
+#~ msgid "Excel (XLS, XLSX)"
+#~ msgstr "Excel (XLS, XLSX)"
+
+#~ msgid "формат и нажмите «Сформировать» для скачивания"
+#~ msgstr "формат та натисніть «Сформувати» для завантаження"
+
+#~ msgid "Важно!"
+#~ msgstr "Важливо!"
+
+#~ msgid "Убедитесь, что выбираете именно"
+#~ msgstr "Переконайтеся, що вибираєте саме"
+
+#~ msgid "Excel формат"
+#~ msgstr "Excel формат"
+
+#~ msgid "PDF файлы не поддерживаются для импорта."
+#~ msgstr "PDF файли не підтримуються для імпорту."

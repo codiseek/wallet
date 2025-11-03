@@ -340,8 +340,8 @@ async function saveReservePercentage() {
 }
 
 // Функция сохранения целевого резерва
+// Функция сохранения целевого резерва
 async function saveTargetReserve() {
-    console.log('=== Сохраняю целевой резерв ===');
 
     const input = document.getElementById('targetReserveInput');
     const button = document.getElementById('saveTargetReserveBtn');
@@ -371,7 +371,6 @@ async function saveTargetReserve() {
         const formData = new FormData();
         formData.append('target_reserve', target);
 
-        console.log('Отправляю на сервер:', formData.get('target_reserve'));
 
         const response = await fetch('/update_target_reserve/', {
             method: 'POST',
@@ -382,16 +381,17 @@ async function saveTargetReserve() {
             body: formData
         });
 
-        console.log('Ответ сервера:', response.status);
         const data = await response.json();
-        console.log('Ответ JSON:', data);
 
         if (data.success) {
             // Обновляем глобальные данные и UI
             window.initialTargetReserve = target;
             showSuccessNotification('Целевой резерв сохранён!');
 
-            document.getElementById('currentTargetReserve').textContent = formatAmount(target);
+            // УДАЛЕНО: Прямое обновление несуществующего элемента
+            // document.getElementById('currentTargetReserve').textContent = formatAmount(target);
+            
+            // ВМЕСТО ЭТОГО: Используем существующую функцию для обновления всего интерфейса
             updateSavingsDisplay();
 
             // Кнопка — зелёная и с галочкой
@@ -418,4 +418,3 @@ async function saveTargetReserve() {
         button.disabled = false;
     }
 }
-
