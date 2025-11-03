@@ -966,8 +966,8 @@ function generateUserDetailsHTML(user) {
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <i class="fas fa-globe text-purple-400 text-sm"></i>
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <i class="fa-solid fa-language text-purple-400 text-sm"></i>
             </div>
             <h3 class="text-base font-semibold text-gray-200">
                 {% if LANGUAGE_CODE == 'ru' %}Язык
@@ -1074,8 +1074,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                <i class="fas fa-money-bill-wave text-green-400 text-sm"></i>
+            <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <i class="fa-solid fa-hand-holding-dollar text-green-400 text-sm"></i>
             </div>
             <h3 class="text-base font-semibold text-gray-200">{% trans "Валюта" %}</h3>
         </div>
@@ -1162,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="bg-gray-800/60 rounded-xl p-4 mb-6 border border-gray-600/50">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <i class="fas fa-piggy-bank text-blue-400 text-sm"></i>
             </div>
             <h3 class="text-base font-semibold text-gray-200">{% trans "Резерв" %}</h3>
@@ -1196,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="pt-4 border-t border-gray-600/50">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                     <i class="fas fa-bullseye text-purple-400 text-sm"></i>
                 </div>
                 <h3 class="text-base font-semibold text-gray-200">{% trans "Целевой резерв" %}</h3>
@@ -1231,10 +1231,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Управление данными -->
 <div class="bg-zinc-800/60 rounded-2xl p-5 mb-6 border border-gray-700/50 shadow-lg">
-  <h3 class="font-semibold text-white mb-6 flex items-center">
-    <i class="fas fa-database mr-3 text-blue-400"></i>
-    <span>{% trans "Управление данными" %}</span>
-  </h3>
+          <div class="flex items-center space-x-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <i class="fa-solid fa-cloud-arrow-down text-blue-400 text-sm"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-200">{% trans "Управление данными" %}</h3>
+        </div>
 
   <!-- Основные операции -->
   <div class="grid grid-cols-2 gap-3 mb-6">
@@ -1276,96 +1278,90 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <div class="space-y-4">
     <!-- Заголовок банковских импортов -->
-    <div class="flex items-center justify-between">
-        <h4 class="font-medium text-white/90 text-sm flex items-center">
-            <i class="fas fa-building-columns mr-2 text-purple-400"></i>
-            {% trans "Импорт из банков" %}
-        </h4>
+    <div class="flex items-center space-x-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <i class="fa-solid fa-building-columns text-blue-400 text-sm"></i>
+        </div>
+        <h3 class="text-base font-semibold text-gray-200">{% trans "Импорт из банков" %}</h3>
     </div>
 
     <!-- Мбанк -->
-<!-- MBank -->
-<div>
-    <button 
-        id="importMbankBtn"
-        class="w-full bg-gradient-to-r from-[#0092a1] to-[#fabf00] hover:from-[#00aabb] hover:to-[#ffd633] text-[#1a1a1a] font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
-    >
-        <div class="flex items-center space-x-3 w-full justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
-                    <img src="{% static 'main/icons/mico.svg' %}" alt="MBank" class="w-5 h-5 object-contain brightness-0 invert">
+    <div>
+        <button 
+            id="importMbankBtn"
+            class="w-full bg-gradient-to-r from-[#0092a1] to-[#fabf00] hover:from-[#00aabb] hover:to-[#ffd633] text-[#1a1a1a] font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
+        >
+            <div class="flex items-center space-x-3 w-full justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                        <img src="{% static 'main/icons/mico.svg' %}" alt="MBank" class="w-5 h-5 object-contain brightness-0 invert">
+                    </div>
+                    <div class="text-left">
+                        <div class="text-[#1a1a1a] text-sm font-semibold">{% trans "MBank" %}</div>
+                        <div class="text-xs text-[#333] opacity-80">{% trans "Загрузить выписку" %}</div>
+                    </div>
                 </div>
-                <div class="text-left">
-                    <div class="text-[#1a1a1a] text-sm font-semibold">{% trans "MBank" %}</div>
-                    <div class="text-xs text-[#333] opacity-80">{% trans "Загрузить выписку" %}</div>
-                </div>
-            </div>
-            <div class="flex space-x-1">
-                <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLS</span>
-                <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLSX</span>
-            </div>
-        </div>
-    </button>
-</div>
-
-<!-- Optima Bank -->
-<div class="mt-3">
-    <button 
-        onclick="importOptima()" id="importOptimaBtn"
-        class="w-full bg-gradient-to-r from-[#330000] to-[#CC0000] hover:from-[#660000] hover:to-[#ff1a1a] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
-    >
-        <div class="flex items-center space-x-3 w-full justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-lg bg-black/30 flex items-center justify-center">
-                    <img src="{% static 'main/icons/optima.svg' %}" alt="Optima Bank" class="w-5 h-5 object-contain">
-                </div>
-                <div class="text-left">
-                    <div class="text-white text-sm font-semibold">{% trans "Optima Bank" %}</div>
-                    <div class="text-xs text-gray-300 opacity-80">{% trans "Загрузить выписку" %}</div>
+                <div class="flex space-x-1">
+                    <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLS</span>
+                    <span class="text-[10px] font-semibold bg-white/30 text-[#1a1a1a] px-2 py-0.5 rounded-md">XLSX</span>
                 </div>
             </div>
-            <div class="flex space-x-1">
-                <span class="text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-md">PDF</span>
-            </div>
-        </div>
-    </button>
-</div>
-
-
-<!-- Единственный скрытый input для импорта Optima Bank -->
-<input type="file" id="optimaFileInput" accept=".pdf" class="hidden">
-
-
-<!-- Информационный блок -->
-<div class="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50">
-    <div class="flex items-start space-x-2">
-        <i class="fas fa-info-circle text-blue-400 mt-0.5 text-sm"></i>
-        <div class="flex-1">
-            <p class="text-white text-xs font-medium mb-1">{% trans "Автоматическая обработка" %}</p>
-            <p class="text-gray-400 text-xs leading-relaxed">
-                {% trans "Импорт из банков автоматически определяет категории и добавляет транзакции" %}
-            </p>
-        </div>
+        </button>
     </div>
+
+    <!-- Optima Bank -->
+    <div>
+        <button 
+            onclick="importOptima()" id="importOptimaBtn"
+            class="w-full bg-gradient-to-r from-[#330000] to-[#CC0000] hover:from-[#660000] hover:to-[#ff1a1a] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between"
+        >
+            <div class="flex items-center space-x-3 w-full justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-black/30 flex items-center justify-center">
+                        <img src="{% static 'main/icons/optima.svg' %}" alt="Optima Bank" class="w-5 h-5 object-contain">
+                    </div>
+                    <div class="text-left">
+                        <div class="text-white text-sm font-semibold">{% trans "Optima Bank" %}</div>
+                        <div class="text-xs text-gray-300 opacity-80">{% trans "Загрузить выписку" %}</div>
+                    </div>
+                </div>
+                <div class="flex space-x-1">
+                    <span class="text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-md">PDF</span>
+                </div>
+            </div>
+        </button>
+    </div>
+
+    <!-- Единственный скрытый input для импорта Optima Bank -->
+    <input type="file" id="optimaFileInput" accept=".pdf" class="hidden">
 </div>
+
+<div class="bg-blue-500/5 border border-blue-400/20 rounded-xl px-3 py-2 mt-4">
+    <p class="text-gray-300 text-xs text-center leading-relaxed">
+        <strong class="text-blue-400">Автоматизировано:</strong>
+        {% trans "распознавание магазинов, сохранение дат и времени транзакций, детальное описание операций и сортировка по категориям" %}
+    </p>
+</div>
+
 
 <!-- Скрытый input для импорта Мбанка -->
 <input type="file" id="mbankFileInput" accept=".xlsx,.xls" class="hidden">
 
 
+
 </div>
-</div>
+
 <div class="text-center mt-4 mb-4">
     <button 
         onclick="openDonateModal()"
-        class="relative overflow-hidden border-2 border-teal-500 text-teal-600 hover:text-white font-bold py-2.5 px-6 rounded-full transition-all duration-500 group"
+        class="relative overflow-hidden border-2 border-orange-500 text-orange-600 hover:text-white font-bold py-2.5 px-6 rounded-full transition-all duration-500 group"
     >
         <span class="relative z-10 flex items-center justify-center">
             <i class="fa-solid fa-fire mr-2 transition-transform duration-300 group-hover:scale-110"></i>
-            {% trans "Поддержать разработку" %}
+            Поддержать разработку
         </span>
         
-        <div class="absolute inset-0 bg-gradient-to-r from-teal-500 to-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
     </button>
 </div>
     
@@ -1490,7 +1486,7 @@ function createMatrixHeart() {
     
     const heart = document.createElement('div');
     heart.className = 'heart-matrix';
-    heart.innerHTML = '💲';
+    heart.innerHTML = '$';
     
     // Случайная позиция по горизонтали
     const left = Math.random() * 100;

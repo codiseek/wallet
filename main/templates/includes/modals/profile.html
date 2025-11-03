@@ -1,119 +1,124 @@
 {% extends "includes/modals/_base_modal.html" %}
 {% load static %}
-
+{% load i18n %}
 {% block modal_id %}profileModal{% endblock %}
 
 {% block modal_content %}
 
 <!-- Модалка профиля -->
-   <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content max-h-[90vh] overflow-y-auto">
-        <!-- Заголовок -->
-        <div class="flex justify-between items-center p-6 border-b border-gray-700 sticky top-0 bg-gray-800 rounded-t-2xl">
-            <h2 class="text-xl font-bold text-white">Ваш профиль</h2>
-            <button onclick="closeProfileModal()" class="text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
+<div class="bg-gray-800 rounded-2xl w-full max-w-md profile-modal-content max-h-[90vh] overflow-y-auto">
+    <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+        <div>
+            <h3 class="text-lg font-bold text-white flex items-center">
+                <span>{% trans "Ваш профиль" %}</span>
+            </h3>
         </div>
-        
-        <!-- Основной контент -->
-        <div class="p-6 space-y-6">
-            <!-- Прогресс заполнения -->
-            <div class="bg-gray-700/30 rounded-xl p-4">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-gray-300">Заполненность профиля</span>
-                    <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
-                </div>
-                <div class="w-full bg-gray-600 rounded-full h-2">
-                    <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
+        <button onclick="closeProfileModal()" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+            {% trans "Закрыть" %}
+        </button>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="p-6 space-y-6">
+        <!-- Прогресс заполнения -->
+        <div class="bg-gray-700/30 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-300">Заполненность профиля</span>
+                <span class="text-blue-400 font-semibold" id="completionPercentage">0%</span>
+            </div>
+            <div class="w-full bg-gray-600 rounded-full h-2">
+                <div id="completionProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Форма профиля -->
+        <form id="profileForm" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Имя -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
+                <input type="text" name="first_name" id="firstNameInput" 
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            
+            <!-- Email -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">
+                    Электронная почта 
+                    <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
+                </label>
+                <input type="email" name="email" id="emailInput"
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                       placeholder="your@email.com">
+            </div>
+            
+            <!-- Телефон -->
+            <div>
+                <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
+                <input type="tel" name="phone" id="phoneInput"
+                       class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                       placeholder="+996 XXX XXX XXX">
             </div>
 
-            <!-- Форма профиля -->
-      <form id="profileForm" class="space-y-4">
-    {% csrf_token %}
-    
-    <!-- Имя -->
-    <div>
-        <label class="block text-gray-300 text-sm mb-2">Имя (необязательно)</label>
-        <input type="text" name="first_name" id="firstNameInput" 
-               class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-    </div>
-    
-    <!-- Email -->
-    <div>
-        <label class="block text-gray-300 text-sm mb-2">
-            Электронная почта 
-            <span class="text-blue-400 text-xs">(для восстановления доступа)</span>
-        </label>
-        <input type="email" name="email" id="emailInput"
-               class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-               placeholder="your@email.com">
-    </div>
-    
-    <!-- Телефон -->
-    <div>
-        <label class="block text-gray-300 text-sm mb-2">Телефон (необязательно)</label>
-        <input type="tel" name="phone" id="phoneInput"
-               class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-               placeholder="+996 XXX XXX XXX">
-    </div>
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
+                    Отмена
+                </button>
+                <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
+                    Сохранить
+                </button>
+            </div>
+        </form>
 
-    <div class="flex space-x-3 pt-2">
-        <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors">
-            Отмена
-        </button>
-        <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all">
-            Сохранить
-        </button>
-    </div>
-</form>
+        <!-- Разделитель -->
+        <div class="border-t border-gray-700/50 pt-6">
+            <!-- Кнопка удаления аккаунта -->
+            <button onclick="openDeleteAccountModal()" class="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl p-4 transition-all duration-200 group text-left">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
+                        <i class="fas fa-trash text-red-400 text-base group-hover:text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <span class="text-base font-semibold text-white block">Удалить аккаунт</span>
+                        <span class="text-sm text-red-300/80 group-hover:text-red-200">Все данные будут безвозвратно удалены</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-red-400/60 text-sm group-hover:text-red-300 transition-colors"></i>
+                </div>
+            </button>
 
-            <!-- Разделитель -->
-            <div class="border-t border-gray-700/50">
-             
-                
-            <!-- В модалке профиля - исправленные кнопки -->
-<div class="border-t border-gray-700/50 pt-6">
- 
-    <!-- Кнопка удаления аккаунта -->
-<button class="delete-account-btn w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-1">
-    <div class="flex items-center space-x-3">
-        <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors flex-shrink-0">
-            <i class="fas fa-trash text-red-400 text-base group-hover:text-white"></i>
-        </div>
-        <div class="flex-1">
-            <span class="text-base font-semibold text-white block">Удалить аккаунт</span>
-            <span class="text-sm text-red-300/80 group-hover:text-red-200">Все данные будут безвозвратно удалены</span>
-        </div>
-        <i class="fas fa-chevron-right text-red-400/60 text-sm group-hover:text-red-300 transition-colors"></i>
-    </div>
-</button>
-
-<!-- Кнопка удаления всех данных -->
-<button class="delete-all-data-btn w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-4">
-    <div class="flex items-center space-x-3">
-        <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors flex-shrink-0">
-            <i class="fas fa-broom text-orange-400 text-base group-hover:text-white"></i>
-        </div>
-        <div class="flex-1">
-            <span class="text-base font-semibold text-white block">Очистить данные</span>
-            <span class="text-sm text-orange-300/80 group-hover:text-orange-200">Удалить все транзакции и категории</span>
-        </div>
-        <i class="fas fa-chevron-right text-orange-400/60 text-sm group-hover:text-orange-300 transition-colors"></i>
-    </div>
-</button>
-
-<!-- Модальное окно подтверждения удаления всех данных -->
-<div id="deleteAllDataModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
-        <!-- Заголовок -->
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
-            <h2 class="text-xl font-bold text-white">Очистка всех данных</h2>
-            <button onclick="closeDeleteAllDataModal()" class="text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-times text-xl"></i>
+            <!-- Кнопка удаления всех данных -->
+            <button onclick="openDeleteAllDataModal()" class="w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/30 rounded-xl p-4 transition-all duration-200 group text-left mt-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors flex-shrink-0">
+                        <i class="fas fa-broom text-orange-400 text-base group-hover:text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <span class="text-base font-semibold text-white block">Очистить данных</span>
+                        <span class="text-sm text-orange-300/80 group-hover:text-orange-200">Удалить все транзакции и категории</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-orange-400/60 text-sm group-hover:text-orange-300 transition-colors"></i>
+                </div>
             </button>
         </div>
-        
+    </div>
+</div>
+
+<!-- Модальные окна внутри блока modal_content -->
+<!-- Модальное окно подтверждения удаления всех данных -->
+<div id="deleteAllDataModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[9999] flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md delete-all-data-modal-content">
+        <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center">
+                    <span>{% trans "Очистка всех транзакций" %}</span>
+                </h3>
+            </div>
+            <button onclick="closeDeleteAllDataModal()" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                {% trans "Закрыть" %}
+            </button>
+        </div>
+
         <div class="p-6 space-y-6">
             <!-- Основное предупреждение -->
             <div class="text-center">
@@ -129,7 +134,7 @@
                     <li>• Все категории</li>
                 </ul>
                 <p class="text-orange-300 text-sm mt-3 font-semibold">
-                    Ваш профиль, настройки и другие данные останутся нетронутыми.
+                    Ваш профиль, настройки и другие данные останутся нетронутыми!
                 </p>
             </div>
 
@@ -148,24 +153,21 @@
         </div>
     </div>
 </div>
-</div>
 
+<!-- Модалка подтверждения удаления аккаунта -->
+<div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[9999] flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md delete-account-modal-content">
+        <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center">
+                    <span>{% trans "Удаление аккаунта" %}</span>
+                </h3>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Модалка подтверждения удаления -->
-<div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 rounded-2xl w-full max-w-md modal-content">
-        <!-- Заголовок -->
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
-            <h2 class="text-xl font-bold text-white">Удаление аккаунта</h2>
-            <button onclick="closeDeleteAccountModal()" class="text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-times text-xl"></i>
+            <button onclick="closeDeleteAccountModal()" class="text-gray-300 hover:text-white px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-sm font-medium flex items-center">
+                {% trans "Закрыть" %}
             </button>
         </div>
-        
+
         <div class="p-6 space-y-6">
             <!-- Основное предупреждение -->
             <div class="text-center">
@@ -175,15 +177,12 @@
                 <h3 class="text-lg font-semibold text-white mb-2">Вы уверены?</h3>
                 <p class="text-gray-300 text-sm leading-relaxed">
                     Это действие нельзя отменить. Все ваши данные будут безвозвратно удалены: 
-                    транзакции, категории, заметки, задачи и долги.
+                    транзакции, категории, заметки и т.д
                 </p>
             </div>
 
             <!-- Поле для ввода пароля -->
             <div>
-                <label for="confirmPasswordDelete" class="block text-sm font-medium text-gray-300 mb-2">
-                    Введите пароль для подтверждения
-                </label>
                 <div class="relative">
                     <input 
                         type="password" 
@@ -199,19 +198,6 @@
                 <div id="passwordDeleteMessage" class="text-xs mt-1 hidden"></div>
             </div>
 
-            <!-- Рекомендация -->
-            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                <div class="flex items-start space-x-3">
-                    <i class="fas fa-info-circle text-blue-400 text-lg mt-0.5"></i>
-                    <div>
-                        <p class="text-blue-300 text-sm">
-                            Рекомендуем предварительно <span class="font-semibold">экспортировать данные</span> 
-                            через панель управления
-                        </p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Чекбокс подтверждения -->
             <div class="flex items-start space-x-3 p-4 bg-gray-700/30 rounded-xl border border-gray-600/50">
                 <input 
@@ -223,6 +209,12 @@
                 <label for="confirmDelete" class="text-gray-200 text-sm leading-tight">
                     Да, я понимаю последствия и хочу удалить аккаунт со всеми данными
                 </label>
+            </div>
+
+            <div class="bg-blue-500/5 border border-blue-400/20 rounded-xl px-3 py-2 mt-4">
+                <p class="text-gray-300 text-xs text-center leading-relaxed">
+                    <strong class="text-blue-400">Внимание:</strong> Рекомендуем предварительно экспортировать данные через панель управления!
+                </p>
             </div>
 
             <!-- Кнопки действий -->
@@ -243,13 +235,33 @@
 </div>
 
 <script>
-// Функции для модального окна удаления всех данных
+// Функции для управления модалками
+function openDeleteAccountModal() {
+    console.log('Opening delete account modal');
+    document.getElementById('deleteAccountModal').classList.remove('hidden');
+}
+
+function closeDeleteAccountModal() {
+    console.log('Closing delete account modal');
+    document.getElementById('deleteAccountModal').classList.add('hidden');
+}
+
 function openDeleteAllDataModal() {
+    console.log('Opening delete all data modal');
     document.getElementById('deleteAllDataModal').classList.remove('hidden');
 }
 
 function closeDeleteAllDataModal() {
+    console.log('Closing delete all data modal');
     document.getElementById('deleteAllDataModal').classList.add('hidden');
+}
+
+// Функция закрытия модалки профиля
+function closeProfileModal() {
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+        profileModal.classList.add('hidden');
+    }
 }
 
 // Подтверждение удаления всех данных
@@ -286,8 +298,6 @@ async function confirmDeleteAllData() {
             `;
             button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
             button.classList.add('bg-green-500', 'hover:bg-green-600');
-            
-           
             
             // Закрываем модалки через 1 секунду
             setTimeout(() => {
@@ -332,12 +342,80 @@ function getCsrfToken() {
     return csrfToken ? csrfToken.value : '';
 }
 
-// Обработчик для кнопки удаления всех данных
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteAllDataBtn = document.querySelector('.delete-all-data-btn');
-    if (deleteAllDataBtn) {
-        deleteAllDataBtn.addEventListener('click', openDeleteAllDataModal);
+// Функции для управления видимостью пароля и проверки условий удаления
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
     }
+}
+
+function checkDeleteConditions() {
+    const password = document.getElementById('confirmPasswordDelete').value;
+    const checkbox = document.getElementById('confirmDelete');
+    const deleteBtn = document.getElementById('deleteAccountBtn');
+    
+    if (password.length > 0 && checkbox.checked) {
+        deleteBtn.disabled = false;
+    } else {
+        deleteBtn.disabled = true;
+    }
+}
+
+// Функция удаления аккаунта
+function deleteAccount() {
+    // Реализация удаления аккаунта
+    console.log('Удаление аккаунта...');
+}
+
+// Инициализация после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Profile modal loaded');
+    
+    // Добавляем обработчики для закрытия по клику на фон
+    document.getElementById('deleteAccountModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteAccountModal();
+        }
+    });
+    
+    document.getElementById('deleteAllDataModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteAllDataModal();
+        }
+    });
+});
+
+// Добавляем глобальную функцию для принудительного разблокирования
+function forceUnlockPage() {
+    // Разблокируем body
+    document.body.style.overflow = 'auto';
+    document.body.style.position = 'static';
+    
+    // Удаляем все overlays, которые могут блокировать
+    const overlays = document.querySelectorAll('.fixed.inset-0');
+    overlays.forEach(overlay => {
+        if (overlay.id !== 'deleteAccountModal' && overlay.id !== 'deleteAllDataModal' && overlay.id !== 'profileModal') {
+            overlay.style.display = 'none';
+        }
+    });
+}
+
+// Вешаем forceUnlockPage на все кнопки закрытия
+document.addEventListener('DOMContentLoaded', function() {
+    const closeButtons = document.querySelectorAll('button[onclick*="close"]');
+    closeButtons.forEach(button => {
+        const originalOnClick = button.getAttribute('onclick');
+        button.setAttribute('onclick', originalOnClick + '; forceUnlockPage();');
+    });
 });
 </script>
 
