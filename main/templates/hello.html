@@ -807,10 +807,16 @@
         </div>
     </button>
 </form>
-    <!-- Ссылка переключения между формами -->
+    <!-- Ссылка переключения между формами 
     <div class="mt-4 text-center">
       <button id="toggleAuthMode" class="text-blue-400 hover:text-blue-300 text-sm">
         У Вас еще нет аккаунта? Зарегистрироваться
+      </button>
+    </div> -->
+
+    <div class="mt-4 text-center">
+      <button class="text-blue-400 hover:text-blue-300 text-sm">
+        Логин: admin / Пароль: 12345678
       </button>
     </div>
 
@@ -1022,6 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Также обновляем обработчик переключения между формами
+/*
 document.getElementById('toggleAuthMode').addEventListener('click', function() {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
@@ -1045,6 +1052,8 @@ document.getElementById('toggleAuthMode').addEventListener('click', function() {
         setTimeout(initRegisterForm, 100);
     }
 });
+*/
+
 
 // AJAX авторизация
 document.getElementById('loginForm').addEventListener('submit', async function(e) {

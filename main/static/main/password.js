@@ -293,6 +293,7 @@ function updateSaveButton() {
     }
 }
 
+/*
 function saveNewPassword() {
     const currentPassword = document.getElementById('currentPassword').value;
     const password = document.getElementById('newPassword').value;
@@ -406,7 +407,7 @@ function saveNewPassword() {
         updateSaveButton();
     });
 }
-
+*/
 
 
 function resetSavePasswordButton() {
@@ -428,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordMenuBtn.onclick = openPasswordModal;
     }
     
-    // Добавляем обработчик для кнопки Сохранить в модалке
+    /*
     const saveBtn = document.getElementById('savePasswordBtn');
     if (saveBtn) {
         saveBtn.onclick = function(event) {
@@ -436,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveNewPassword();
         };
     }
+    */
     
     // Добавляем обработчик изменения поля текущего пароля
     const currentPasswordField = document.getElementById('currentPassword');

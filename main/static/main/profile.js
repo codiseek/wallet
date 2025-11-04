@@ -254,6 +254,7 @@ function exportUserData() {
     showSuccessNotification('Экспорт завершен! Файл скачан.');
 }
 
+/*
 function deleteAccount() {
     const passwordInput = document.getElementById('confirmPasswordDelete');
     const password = passwordInput.value.trim();
@@ -304,6 +305,10 @@ function deleteAccount() {
         btn.innerHTML = originalText;
     });
 }
+
+
+*/
+
 
 function loadProfileInfo() {
     return fetch('/get_profile_info/')
